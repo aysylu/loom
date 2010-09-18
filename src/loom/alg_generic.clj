@@ -1,7 +1,6 @@
 (ns ^{:doc "Graph algorithms for use on any type of graph"
       :author "Justin Kramer"}
-  loom.alg-generic
-  (:use [loom.io.ubigraph :only [call]]))
+  loom.alg-generic)
 
 ;;;
 ;;; Utility functions
