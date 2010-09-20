@@ -295,8 +295,8 @@ on adjacency lists."
 ;;;
 ;;; FlyGraph -- a read-only, ad-hoc graph which uses provided functions to
 ;;; return values for nodes, edges, etc. Members which are not functions get
-;;; returned as-is. Edges will be inferred if nodes and neighbors are provided.
-;;; Nodes and edges will be inferred if neighbors and start are provided.
+;;; returned as-is. Edges can be inferred if nodes and neighbors are provided.
+;;; Nodes and edges can be inferred if neighbors and start are provided.
 ;;;
 
 (defn- call-or-return [f & args]
@@ -318,10 +318,13 @@ on adjacency lists."
                 [n nbr])))
    :neighbors (fn
                 ([g] (partial neighbors g))
-                ([g node] (call-or-return (:fneighbors g) node)))})
+                ([g node] (call-or-return (:fneighbors g) node)))
+   :degree (fn [g node]
+             (count (neighbors g node)))})
 
 (def ^{:private true} default-flygraph-digraph-impl
-  {:incoming (fn [g node] (call-or-return (:fincoming g) node))})
+  {:incoming (fn [g node] (call-or-return (:fincoming g) node))
+   :in-degree (fn [g node] (count (incoming g node)))})
 
 (def ^{:private true} default-flygraph-weighted-impl
   {:weight (fn [g n1 n2] (call-or-return (:fweight g) n1 n2))})
@@ -444,8 +447,8 @@ on adjacency lists."
 (defn fly-graph
   "Create a read-only, ad-hoc graph which uses the provided functions
   to return values for nodes, edges, etc. If any members are not functions,
-  they will be returned as-is. Edges will be inferred if nodes and
-  neighbors are provided. Nodes and edges will be inferred if neighbors and
+  they will be returned as-is. Edges can be inferred if nodes and
+  neighbors are provided. Nodes and edges can be inferred if neighbors and
   start are provided."
   [& {:keys [nodes edges neighbors incoming weight start]}]
   (cond
