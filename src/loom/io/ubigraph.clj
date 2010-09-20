@@ -2,8 +2,7 @@
       :author "Justin Kramer"}
   loom.io.ubigraph
   (:use [loom.graph :only [add-nodes* add-edges*]]
-        [loom.alg-generic :only [trace-path]]
-        [robert.hooke :only [add-hook]])
+        [loom.alg-generic :only [trace-path]])
   (:import [org.apache.xmlrpc.client XmlRpcClient XmlRpcClientConfigImpl]
            [org.apache.xmlrpc XmlRpcException]))
 
