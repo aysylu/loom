@@ -4,7 +4,8 @@ can use these functions."
       :author "Justin Kramer"}
   loom.alg
   (:require [loom.alg-generic :as gen])
-  (:use [loom.graph
+  (:use [clojure.set :only [union]]
+        [loom.graph
          :only [add-edges nodes edges neighbors weight incoming degree
                 in-degree weighted? directed? graph]
          :rename {neighbors nb weight wt}]
@@ -45,7 +46,7 @@ can use these functions."
          (if (seen n)
            [seen span]
            (let [[cspan cseen] (gen/pre-span (nb g) n :seen seen)]
-             [(clojure.set/union seen cseen) (merge span {n []} cspan)])))
+             [(union seen cseen) (merge span {n []} cspan)])))
        [#{} {}]
        (nodes g))))
   ([g start]
