@@ -1,7 +1,8 @@
 (ns ^{:doc "Graph label protocol and implementations for records from loom.graph"
       :author "Justin Kramer"}
   loom.label
-  (:use [loom.attr :only [add-attr remove-attr attr]])
+  (:use [loom.attr :only [add-attr remove-attr attr]]
+        [loom.graph :only [add-nodes add-edges]])
   (:import [loom.graph SimpleGraph SimpleDigraph
             SimpleWeightedGraph SimpleWeightedDigraph
             FlyGraph FlyDigraph WeightedFlyGraph WeightedFlyDigraph]))
@@ -64,3 +65,25 @@
   "Return true if g satisfies LabeledGraph"
   [g]
   (satisfies? LabeledGraph g))
+
+(defn add-labeled-nodes
+  "Adds nodes and respective labels to graph g:
+  (add-labeled-nodes n1 \"n1 label\" n2 \"n2 label\")"
+  [g & nodes+labels]
+  (reduce
+   (fn [g [node label]]
+     (-> g
+         (add-nodes node)
+         (add-label node label)))
+   g (partition 2 nodes+labels)))
+
+(defn add-labeled-edges
+  "Adds edges and respective labels to graph g:
+  (add-labeled-edges [n1 n2] \"label 1\" [n2 n3] \"label 2\")"
+  [g & edges+labels]
+  (reduce
+   (fn [g [[n1 n2 :as edge] label]]
+     (-> g
+         (add-edges edge)
+         (add-label n1 n2 label)))
+   g (partition 2 edges+labels)))
