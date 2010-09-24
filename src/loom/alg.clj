@@ -27,7 +27,6 @@ can use these functions."
     [#{} []]
     nodes)))
 
-;;TODO: options: :incoming, :when
 (defn pre-traverse
   "Traverses graph g depth-first from start. Returns a lazy seq of nodes.
   When no starting node is provided, traverses the entire graph, connected
@@ -77,15 +76,16 @@ can use these functions."
      (gen/topsort-component (nb g) start)))
 
 (defn bf-traverse
-  "Traverses graph g breadth-first from start. When f is provided, returns
-  a lazy seq of (f node predecessor-map) for each node traversed. Otherwise,
-  returns a lazy seq of the nodes."
+  "Traverses graph g breadth-first from start. When option :f is provided,
+  returns a lazy seq of (f node predecessor-map depth) for each node traversed.
+  Otherwise, returns a lazy seq of the nodes. When option :when is provided,
+  filters neighbors with (f neighbor predecessor depth)."
   ([g]
      (traverse-all (nodes g) (partial gen/bf-traverse (nb g))))
   ([g start]
      (gen/bf-traverse (nb g) start))
-  ([g start & {:as opts}]
-     (apply gen/bf-traverse (nb g) start (apply concat opts))))
+  ([g start & opts]
+     (apply gen/bf-traverse (nb g) start opts)))
 
 (defn bf-span
   "Return a breadth-first spanning tree of the form {node [successors]}"
@@ -107,8 +107,8 @@ can use these functions."
 (defn bf-path
   "Return a path from start to end with the fewest hops (i.e. irrespective
   of edge weights)"
-  [g start end]
-  (gen/bf-path (nb g) start end))
+  [g start end & opts]
+  (apply gen/bf-path (nb g) start end opts))
 
 (defn bf-path-bi
   "Using a bidirectional breadth-first search, finds a path from start to
@@ -162,7 +162,7 @@ can use these functions."
 
 (defn longest-shortest-path
   "Finds the longest shortest path beginning at start, using Dijkstra's
-  algorithm if the graph is weighted, bread-first search otherwise."
+  algorithm if the graph is weighted, breadth-first search otherwise."
   [g start]
   (reverse
    (if (weighted? g)
@@ -173,15 +173,16 @@ can use these functions."
       [start]
       (dijkstra-traverse g start vector))
      (reduce
-      (fn [path1 [n predmap]]
+      (fn [path1 [n predmap _]]
         (let [path2 (trace-path predmap n)]
           (if (< (count path1) (count path2)) path2 path1)))
       [start]
-      (bf-traverse g start vector)))))
+      (bf-traverse g start :f vector)))))
 
 (defn connected-components
   "Return the connected components of undirected graph g as a vector of vectors"
   [g]
+  ;; TODO: leverage predmap from bf-traverse (keys = seen)
   (first
    (reduce
     (fn [[cc seen] n]

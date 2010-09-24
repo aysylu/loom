@@ -103,42 +103,46 @@
 ;;; Breadth-first traversal
 ;;;
 
-;; TODO: depth limiter
-;; TODO: per-level filters a la gremlin?
-
 (defn bf-traverse
   "Traverses a graph breadth-first from start, neighbors being a
-  function that returns adjacent nodes. When f is provided, returns
-  a lazy seq of (f node predecessor-map) for each node traversed. Otherwise,
-  returns a lazy seq of the nodes."
-  [neighbors start & {:keys [f seen] :or {f (fn [n p] n)}}]
-  (letfn [(step [queue preds]
-            (when-let [node (peek queue)]
-              (let [nbrs (remove #(contains? preds %) (neighbors node))]
-                (cons (f node preds)
-                      (lazy-seq
-                       (step (into (pop queue) nbrs)
-                             (reduce #(assoc %1 %2 node) preds nbrs)))))))]
-    (step (conj clojure.lang.PersistentQueue/EMPTY start)
-          (if seen
-            (into {start nil} (for [s seen] [s nil]))
-            {start nil}))))
+  function that returns adjacent nodes. When :f is provided, returns
+  a lazy seq of (f node predecessor-map depth) for each node traversed.
+  Otherwise, returns a lazy seq of the nodes. When :when is provided,
+  filters neighbors with (f neighbor predecessor depth)."
+  [neighbors start & {:keys [f when seen]}]
+  (let [f (or f (fn [n p d] n))
+        nbr-pred (or when (constantly true))]
+    (letfn [(step [queue preds]
+              (when-let [[node depth] (peek queue)]
+                (cons
+                 (f node preds depth)
+                 (lazy-seq
+                  (let [nbrs (->> (neighbors node)
+                                  (remove #(contains? preds %))
+                                  (filter #(nbr-pred % node (inc depth))))]
+                    (step (into (pop queue) (for [nbr nbrs] [nbr (inc depth)]))
+                          (reduce #(assoc %1 %2 node) preds nbrs)))))))]
+      (step (conj clojure.lang.PersistentQueue/EMPTY [start 0])
+            (into {start nil} (if (map? seen)
+                                seen
+                                (for [s seen] [s nil])))))))
 
 (defn bf-span
   "Return a breadth-first spanning tree of the form {node [successors]}"
   [neighbors start & {:keys [seen]}]
   (preds->span
    (bf-traverse neighbors start
-                :f (fn [n pm] [n (pm n)])
+                :f (fn [n pm _] [n (pm n)])
                 :seen seen)))
 
 (defn bf-path
   "Return a path from start to end with the fewest hops (i.e. irrespective
   of edge weights), neighbors being a function that returns adjacent nodes"
-  [neighbors start end]
-  (when-let [preds (some (fn [[_ p]] (when (p end) p))
-                         (bf-traverse neighbors start :f vector))]
-    (reverse (trace-path preds end))))
+  [neighbors start end & {:as opts}]
+  (let [opts (merge opts {:f vector})]
+    (when-let [preds (some (fn [[_ pm _]] (when (pm end) pm))
+                           (apply bf-traverse neighbors start (apply concat opts)))]
+      (reverse (trace-path preds end)))))
 
 (defn- shared-keys
   "Return a lazy-seq of the keys that exist in both m1 and m2"
@@ -157,16 +161,18 @@
   (let [done? (atom false)
         preds1 (atom {})
         preds2 (atom {})
+        ;; FIXME: have to return CLOSEST intersection to ensure shortest path
         find-intersect #(first (shared-keys @preds1 @preds2))
         search (fn [n preds]
                  (dorun
                   (take-while
                    (fn [_] (not @done?))
-                   (bf-traverse neighbors n :f #(reset! preds %2)))))
+                   (bf-traverse neighbors n
+                                :f (fn [_ pm _] (reset! preds pm))))))
         search1 (future (search start preds1))
         search2 (future (search end preds2))]
     (loop [intersect (find-intersect)]
-      (if (or intersect (future-done? search1)) ;; (future-done? search2)
+      (if (or intersect (future-done? search1)) ;; (future-done? search2) ; incoming
         (do
           (reset! done? true)
           (cond
