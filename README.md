@@ -1,14 +1,14 @@
 # Loom
 
-This library isn't ready for consumption yet. The API is still in flux. Even the name may change.
+**Caveat coder**: this lib is alpha-stage and very much in flux.
 
-That said, feedback welcome.
+That said, feedback welcome. Email: [jkkramer@gmail.com](mailto:jkkramer@gmail.com), Twitter: [jkkramer](http://twitter.com/jkkramer)
 
 ## Usage
 
 ### Leiningen/Clojars [group-id/name version]
 
-    [none yet -- see above]
+    [org.satta/loom "0.1.0-SNAPSHOT"]
 
 ### Namespaces
 
@@ -124,7 +124,7 @@ TODO: link to autodocs
 
 ## Dependencies
 
-There is (optional) support for visualization via [GrapViz](http://graphviz.org).
+There is (optional) support for visualization via [GrapViz](http://graphviz.org) and [Ubigraph](http://ubietylab.net/ubigraph/).
 
 ## TODO
 

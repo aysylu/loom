@@ -1,4 +1,4 @@
-(defproject loom "0.1.0-SNAPSHOT"
+(defproject org.satta/loom "0.1.0-SNAPSHOT"
   :description "Graph library for Clojure"
   :author "Justin Kramer"
   :dependencies [[org.clojure/clojure "1.3.0-master-SNAPSHOT"]
