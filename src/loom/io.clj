@@ -110,7 +110,7 @@
       (condp = (os)
           :mac (sh "open" (str f))
           :win (sh "cmd" (str "/c start " (-> f .toURI .toURL str)))
-          :else (sh "xdg-open" (str f)))
+          :unix (sh "xdg-open" (str f)))
       nil)))
 
 (defn- open-data
