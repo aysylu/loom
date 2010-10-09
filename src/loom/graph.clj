@@ -27,7 +27,7 @@ on adjacency lists."
   (degree [g node] "Return the number of nodes adjacent to node"))
 
 (defprotocol Digraph
-  (incoming [g node] "Return direct predecessors of node")
+  (incoming [g] [g node] "Return direct predecessors of node, or (partial incoming g)")
   (in-degree [g node] "Return the number direct predecessors to node")
   (transpose [g] "Return a graph with all edges reversed"))
 
@@ -114,8 +114,9 @@ on adjacency lists."
                  ([g node] (keys (get-in g [:adj node]))))}})
 
 (def default-digraph-impl
-  {:incoming (fn [g node]
-               (get-in g [:in node]))
+  {:incoming (fn
+               ([g] (partial incoming g))
+               ([g node] (get-in g [:in node])))
    :in-degree (fn [g node]
                 (count (get-in g [:in node])))})
 
