@@ -115,7 +115,9 @@ can use these functions."
   end with the fewest hops (i.e. irrespective of edge weights). Can be much
   faster than a unidirectional search on certain types of graphs"
   [g start end]
-  (gen/bf-path-bi (nb g) start end))
+  (if (directed? g)
+    (gen/bf-path-bi (nb g) (incoming g) start end)
+    (gen/bf-path-bi (nb g) (nb g) start end)))
 
 (defn dijkstra-traverse
   "Returns a lazy-seq of [current-node state] where state is a map in the

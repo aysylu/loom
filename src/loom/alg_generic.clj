@@ -153,35 +153,38 @@
 
 (defn bf-path-bi
   "Using a bidirectional breadth-first search, finds a path from start to
-  end with the fewest hops (i.e. irrespective of edge weights), neighbors
-  being a function which returns adjacent nodes. Can be much faster than
-  a unidirectional search on certain types of graphs"
-  [neighbors start end]
-  ;; TODO: make this work better with directed graphs using incoming fn
+  end with the fewest hops (i.e. irrespective of edge weights), outgoing
+  and incoming being functions which return adjacent nodes. Can be much faster
+  than a unidirectional search on certain types of graphs"
+  [outgoing incoming start end]
   (let [done? (atom false)
-        preds1 (atom {})
-        preds2 (atom {})
-        ;; FIXME: have to return CLOSEST intersection to ensure shortest path
-        find-intersect #(first (shared-keys @preds1 @preds2))
-        search (fn [n preds]
+        preds1 (atom {}) ;from start to end
+        preds2 (atom {}) ;from end to start
+        search (fn [nbrs n preds]
                  (dorun
                   (take-while
                    (fn [_] (not @done?))
-                   (bf-traverse neighbors n
-                                :f (fn [_ pm _] (reset! preds pm))))))
-        search1 (future (search start preds1))
-        search2 (future (search end preds2))]
-    (loop [intersect (find-intersect)]
-      (if (or intersect (future-done? search1)) ;; (future-done? search2) ; incoming
+                   (bf-traverse
+                    nbrs n :f (fn [_ pm _] (reset! preds pm))))))
+        search1 (future (search outgoing start preds1))
+        search2 (future (search incoming end preds2))
+        find-intersects #(shared-keys @preds1 @preds2)]
+    (loop [intersects (find-intersects)]
+      (if (or (seq intersects) (future-done? search1) (future-done? search2))
         (do
           (reset! done? true)
           (cond
-           intersect (concat
-                      (reverse (trace-path @preds1 intersect))
-                      (rest (trace-path @preds2 intersect)))
+           (seq intersects)
+           (let [intersect (apply min-key
+                                  #(+ (count (trace-path @preds1 %))
+                                      (count (trace-path @preds2 %)))
+                                  intersects)]
+             (concat
+              (reverse (trace-path @preds1 intersect))
+              (rest (trace-path @preds2 intersect))))
            (@preds1 end) (reverse (trace-path @preds1 end))
            (@preds2 start) (trace-path @preds2 start)))
-        (recur (find-intersect))))))
+        (recur (find-intersects))))))
 
 ;;;
 ;;; Dijkstra

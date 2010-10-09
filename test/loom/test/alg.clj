@@ -79,7 +79,8 @@
     #{:r :o :b :g :p} (set (bf-traverse g2 :r :when #(< %3 3)))
     [:a :e :j] (bf-path g4 :a :j)
     [:a :c :h :j] (bf-path g4 :a :j :when (fn [n p d] (not= :e n)))
-    [:a :e :j] (bf-path-bi g4 :a :j)))
+    [:a :e :j] (bf-path-bi g4 :a :j)
+    true (some #(= % (bf-path-bi g5 :g :d)) [[:g :a :b :d] [:g :f :e :d]])))
 
 (deftest dijkstra-test
   (are [expected got] (= expected got)
