@@ -186,6 +186,37 @@
            (@preds2 start) (trace-path @preds2 start)))
         (recur (find-intersects))))))
 
+;; FIXME: Decide whether this can be optimized and is worth keeping
+#_(defn bf-path-bi2
+  "Non-threaded version of bf-path-bi. Tends to be slower."
+  [outgoing incoming start end]
+  (loop [preds {start nil}
+         succs {end nil}
+         q1 [start]
+         q2 [end]]
+    (when (and (seq q1) (seq q2))
+      (if (<= (count q1) (count q2))
+        (let [pairs (for [node q1 nbr (outgoing node)
+                          :when (not (contains? preds nbr))]
+                      [nbr node])
+              preds (into preds pairs)
+              q1 (map first pairs)]
+          (if-let [i (some #(when (contains? succs %) %) q1)]
+            (concat
+             (reverse (trace-path preds i))
+             (rest (trace-path succs i)))
+            (recur preds succs q1 q2)))
+        (let [pairs (for [node q2 nbr (incoming node)
+                          :when (not (contains? succs nbr))]
+                      [nbr node])
+              succs (into succs pairs)
+              q2 (map first pairs)]
+          (if-let [i (some #(when (contains? preds %) %) q2)]
+            (concat
+             (reverse (trace-path preds i))
+             (rest (trace-path succs i)))
+            (recur preds succs q1 q2)))))))
+
 ;;;
 ;;; Dijkstra
 ;;;
