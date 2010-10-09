@@ -30,7 +30,7 @@
 (defn pre-traverse
   "Traverses a graph depth-first preorder from start, neighbors being a
   function that returns adjacent nodes. Returns a lazy seq of nodes."
-  [neighbors start & {:keys [seen] :or {seen #{start}}}]
+  [neighbors start & {:keys [seen] :or {seen #{}}}]
   (letfn [(step [stack seen]
             (when-let [node (peek stack)]
               (cons
@@ -40,24 +40,24 @@
                   (step (into (pop stack) nbrs)
                         (into seen nbrs)))))))]
     (step [start]
-          seen)))
+          (conj seen start))))
 
 (defn pre-span
   "Return a depth-first spanning tree of the form {node [successors]}"
-  [neighbors start & {:keys [seen]}]
-  (let [seen-start seen]
-    (loop [seen (or seen-start #{})
-           preds {start nil}
-           stack [start]]
-      (if (empty? stack)
-        (if seen-start
-          [(preds->span preds) seen]
-          (preds->span preds))
-        (let [v (peek stack)
-              seen (conj seen v)]
-          (if-let [u (first (remove seen (neighbors v)))]
-            (recur seen (assoc preds u v) (conj stack u))
-            (recur seen preds (pop stack))))))))
+  [neighbors start & {:keys [seen return-seen] :or {seen #{}}}]
+  (loop [seen seen
+         preds {start nil}
+         stack [start]]
+    (if (empty? stack)
+      ;; TODO: this is awkward, devise something better
+      (if return-seen
+        [(preds->span preds) seen]
+        (preds->span preds))
+      (let [v (peek stack)
+            seen (conj seen v)]
+        (if-let [u (first (remove seen (neighbors v)))]
+          (recur seen (assoc preds u v) (conj stack u))
+          (recur seen preds (pop stack)))))))
 
 (defn post-traverse
   "Traverses a graph depth-first postorder from start, neighbors being a
@@ -123,17 +123,18 @@
                     (step (into (pop queue) (for [nbr nbrs] [nbr (inc depth)]))
                           (reduce #(assoc %1 %2 node) preds nbrs)))))))]
       (step (conj clojure.lang.PersistentQueue/EMPTY [start 0])
-            (into {start nil} (if (map? seen)
-                                seen
-                                (for [s seen] [s nil])))))))
+            (if (map? seen)
+              (assoc seen start nil)
+              (into {start nil} (for [s seen] [s nil])))))))
 
 (defn bf-span
   "Return a breadth-first spanning tree of the form {node [successors]}"
   [neighbors start & {:keys [seen]}]
   (preds->span
-   (bf-traverse neighbors start
-                :f (fn [n pm _] [n (pm n)])
-                :seen seen)))
+   (last
+    (bf-traverse neighbors start
+                 :f (fn [_ pm _] pm)
+                 :seen seen))))
 
 (defn bf-path
   "Return a path from start to end with the fewest hops (i.e. irrespective

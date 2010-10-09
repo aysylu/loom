@@ -4,12 +4,11 @@ can use these functions."
       :author "Justin Kramer"}
   loom.alg
   (:require [loom.alg-generic :as gen])
-  (:use [clojure.set :only [union]]
-        [loom.graph
+  (:use [loom.graph
          :only [add-edges nodes edges neighbors weight incoming degree
                 in-degree weighted? directed? graph]
          :rename {neighbors nb weight wt}]
-        [loom.alg-generic :only [trace-path]]))
+        [loom.alg-generic :only [trace-path preds->span]]))
 
 ;;;
 ;;; Convenience wrappers for loom.alg-generic functions
@@ -44,8 +43,8 @@ can use these functions."
        (fn [[seen span] n]
          (if (seen n)
            [seen span]
-           (let [[cspan cseen] (gen/pre-span (nb g) n :seen seen)]
-             [(union seen cseen) (merge span {n []} cspan)])))
+           (let [[cspan seen] (gen/pre-span (nb g) n :seen seen :return-seen true)]
+             [seen (merge span {n []} cspan)])))
        [#{} {}]
        (nodes g))))
   ([g start]
@@ -81,7 +80,18 @@ can use these functions."
   Otherwise, returns a lazy seq of the nodes. When option :when is provided,
   filters neighbors with (f neighbor predecessor depth)."
   ([g]
-     (traverse-all (nodes g) (partial gen/bf-traverse (nb g))))
+     (first
+      (reduce
+       (fn [[cc predmap] n]
+         (if (contains? predmap n)
+           [cc predmap]
+           (reduce
+            (fn [[cc _] [n pm _]]
+              [(conj cc n) pm])
+            [cc predmap]
+            (gen/bf-traverse (nb g) n :f vector :seen predmap))))
+       [[] {}]
+       (nodes g))))
   ([g start]
      (gen/bf-traverse (nb g) start))
   ([g start & opts]
@@ -90,16 +100,15 @@ can use these functions."
 (defn bf-span
   "Return a breadth-first spanning tree of the form {node [successors]}"
   ([g]
-     (second
+     (preds->span
       (reduce
-       (fn [[seen span] n]
-         (if (seen n)
-           [seen span]
-           (let [cspan (gen/bf-span (nb g) n :seen seen)]
-             ;; FIXME: very inefficient
-             [(into seen (concat (keys cspan) (apply concat (vals cspan))))
-              (merge span {n []} cspan)])))
-       [#{} {}]
+       (fn [predmap n]
+         (if (contains? predmap n)
+           predmap
+           (last (gen/bf-traverse (nb g) n
+                                  :f (fn [_ pm _] pm)
+                                  :seen predmap))))
+       {}
        (nodes g))))
   ([g start]
      (gen/bf-span (nb g) start)))
@@ -184,15 +193,18 @@ can use these functions."
 (defn connected-components
   "Return the connected components of undirected graph g as a vector of vectors"
   [g]
-  ;; TODO: leverage predmap from bf-traverse (keys = seen)
   (first
    (reduce
-    (fn [[cc seen] n]
-      (if (seen n)
-        [cc seen]
-        (let [c (vec (gen/bf-traverse (nb g) n :seen seen))]
-          [(conj cc c) (into seen c)])))
-    [[] #{}]
+    (fn [[cc predmap] n]
+      (if (contains? predmap n)
+        [cc predmap]
+        (let [[c pm] (reduce
+                      (fn [[c _] [n pm _]]
+                        [(conj c n) pm])
+                      [[] nil]
+                      (gen/bf-traverse (nb g) n :f vector :seen predmap))]
+          [(conj cc c) pm])))
+    [[] {}]
     (nodes g))))
 
 ;; TODO: weak & strong cc
