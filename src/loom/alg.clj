@@ -163,6 +163,11 @@ can use these functions."
 ;;; Graph algorithms
 ;;;
 
+(defn dag?
+  "Return true if g is a directed acyclic graph"
+  [g]
+  (boolean (topsort g)))
+
 (defn shortest-path
   "Finds the shortest path from start to end in graph g, using Dijkstra's
   algorithm if the graph is weighted, breadth-first search otherwise."

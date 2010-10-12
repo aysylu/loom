@@ -130,6 +130,9 @@
 
 (deftest other-stuff-test
   (are [expected got] (= expected got)
+    false (dag? g2)
+    true (dag? (digraph (bf-span g2)))
+    true (dag? g5)
     [:a :c :h :j] (shortest-path g4 :a :j)
     [:a :e :j] (shortest-path (graph g4) :a :j)
     #{9 10} (set (loners (add-nodes g8 9 10)))
