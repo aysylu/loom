@@ -29,7 +29,7 @@
    [:a :e 173]
    [:e :j 502]))
 
-;; Algorithm Design Manual
+;; Algorithm Design Manual, p 179
 (def g5
   (digraph {:a [:b :c]
             :b [:c :d]
@@ -44,7 +44,29 @@
 (def g7 (digraph [1 2] [2 3] [3 1] [5 6] [6 7]))
 
 (def g8 (graph {1 [2 3 4] 5 [6 7 8]}))
-  
+
+;; Algorithm Design Manual, p 182
+(def g9
+  (digraph {8 #{6},
+            7 #{5},
+            6 #{7},
+            5 #{6},
+            4 #{1 6 8},
+            3 #{1},
+            2 #{3 4 5},
+            1 #{2}}))
+
+;; http://en.wikipedia.org/wiki/Strongly_connected_component
+(def g10
+  (digraph {:a [:b]
+            :b [:c :e :f]
+            :c [:d :g]
+            :d [:c :h]
+            :e [:a :f]
+            :f [:g]
+            :g [:f]
+            :h [:g :d]}))
+
 (deftest depth-first-test
   (are [expected got] (= expected got)
     #{1 2 3 5 6 7} (set (pre-traverse g7))
@@ -90,11 +112,15 @@
     #{:r :g :b :o :p} (set (map first (dijkstra-traverse g2)))
     {:r {:o 8 :b 5} :b {:g 8} :o {:p 10}} (dijkstra-span g2 :r)))
 
-(deftest connections-test
+(deftest connectivity-test
   (are [expected got] (= expected got)
     [#{1 2 3 4} #{5 6 7 8} #{9}] (map set (connected-components
                                            (add-nodes g8 9)))
     [#{:r :g :b :o :p}] (map set (connected-components g2))
+    #{#{2 3 4 1} #{8} #{7 5 6}} (set (map set (scc g9)))
+    #{#{:b :e :a} #{:h :d :c} #{:f :g}} (set (map set (scc g10)))
+    false (strongly-connected? g9)
+    true (strongly-connected? (digraph g2))
     #{1 2 3 4 5 6 7 8} (set (nodes (connect g8)))
     #{:r :g :b :o :p} (set (nodes (connect g2)))))
 

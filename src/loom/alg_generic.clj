@@ -62,13 +62,15 @@
 (defn post-traverse
   "Traverses a graph depth-first postorder from start, neighbors being a
   function that returns adjacent nodes. Returns a vector"
-  [neighbors start & {:keys [seen] :or {seen #{}}}]
+  [neighbors start & {:keys [seen return-seen] :or {seen #{}}}]
   ;; For most graphs, being lazy wouldn't matter
   (loop [seen seen
          result []
          stack [start]]
     (if (empty? stack)
-      result
+      (if return-seen
+        [result seen]
+        result)
       (let [v (peek stack)
             seen (conj seen v)
             nbrs (remove seen (neighbors v))]

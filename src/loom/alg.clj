@@ -6,7 +6,7 @@ can use these functions."
   (:require [loom.alg-generic :as gen])
   (:use [loom.graph
          :only [add-edges nodes edges neighbors weight incoming degree
-                in-degree weighted? directed? graph]
+                in-degree weighted? directed? graph transpose]
          :rename {neighbors nb weight wt}]
         [loom.alg-generic :only [trace-path preds->span]]))
 
@@ -55,8 +55,8 @@ can use these functions."
   vector of the nodes."
   ([g]
      (traverse-all (nodes g) (partial gen/post-traverse (nb g))))
-  ([g start]
-     (gen/post-traverse (nb g) start)))
+  ([g start & opts]
+     (apply gen/post-traverse (nb g) start opts)))
 
 (defn topsort
   "Topological sort of a directed acyclic graph (DAG). Returns nil if
@@ -207,7 +207,27 @@ can use these functions."
     [[] {}]
     (nodes g))))
 
-;; TODO: weak & strong cc
+(defn scc
+  "Return the strongly-connected components of directed graph g as a vector of
+  vectors. Uses Kosaraju's algorithm."
+  [g]
+  (let [gt (transpose g)]
+    (loop [stack (reverse (post-traverse g))
+           seen #{}
+           cc []]
+      (if (empty? stack)
+        cc
+        (let [[c seen] (post-traverse gt (first stack)
+                                      :seen seen :return-seen true)]
+          (recur (remove seen stack)
+                 seen
+                 (conj cc c)))))))
+
+(defn strongly-connected?
+  [g]
+  (== (count (first (scc g))) (count (nodes g))))
+
+;; TODO: weak cc
 
 (defn connect
   "Return graph g with all connected components connected to each other"
