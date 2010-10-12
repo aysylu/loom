@@ -278,4 +278,50 @@ can use these functions."
       [#{} []]
       (edges g)))))
 
-;; TODO: MST, coloring, bipartite, matching, etc etc
+(defn bipartite-color
+  "Attempt a two-coloring of graph g. When successful, returns a map of
+  nodes to colors (1 or 0). Otherwise, returns nil."
+  [g]
+  (letfn [(color-component [coloring start]
+            (loop [coloring (assoc coloring start 1)
+                   queue (conj clojure.lang.PersistentQueue/EMPTY start)]
+              (if (empty? queue)
+                coloring
+                (let [v (peek queue)
+                      color (- 1 (coloring v))
+                      nbrs (nb g v)]
+                  ;; TODO: could be better
+                  (if (some #(and (coloring %) (= (coloring v) (coloring %)))
+                            nbrs)
+                    nil ;not bipartite
+                    (let [nbrs (remove coloring nbrs)]
+                      (recur (into coloring (for [nbr nbrs] [nbr color]))
+                             (into (pop queue) nbrs))))))))]
+    (loop [[node & nodes] (seq (nodes g))
+           coloring {}]
+      (when coloring
+        (if (nil? node)
+          coloring
+          (if (coloring node)
+            (recur nodes coloring)
+            (recur nodes (color-component coloring node))))))))
+
+(defn bipartite?
+  "Return true if g is bipartite"
+  [g]
+  (boolean (bipartite-color g)))
+
+(defn bipartite-sets
+  "Return two sets of nodes, one for each color of the bipartite coloring,
+  or nil if g is not bipartite"
+  [g]
+  (when-let [coloring (bipartite-color g)]
+    (reduce
+     (fn [[s1 s2] [node color]]
+       (if (zero? color)
+         [(conj s1 node) s2]
+         [s1 (conj s2 node)]))
+     [#{} #{}]
+     coloring)))
+
+;; TODO: MST, coloring, matching, etc etc

@@ -138,3 +138,14 @@
     #{9 10} (set (loners (add-nodes g8 9 10)))
     ;; TODO: the rest
     ))
+
+(deftest bipartite-test
+  (are [expected got] (= expected got)
+    {0 1, 1 0, 5 0, 2 1, 3 1, 4 0} (bipartite-color g6)
+    {5 1, 1 1, 2 0, 3 0, 4 0, 6 0, 7 0, 8 0} (bipartite-color g8)
+    nil (bipartite-color g1)
+    true (bipartite? g6)
+    true (bipartite? g8)
+    false (bipartite? g1)
+    #{#{2 3 4 6 7 8} #{1 5}} (set (bipartite-sets g8))))
+    
