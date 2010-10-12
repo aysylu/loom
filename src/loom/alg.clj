@@ -210,6 +210,11 @@ can use these functions."
       [[] {}]
       (nodes g)))))
 
+(defn connected?
+  "Returns true if g is connected"
+  [g]
+  (== (count (first (connected-components g))) (count (nodes g))))
+
 (defn scc
   "Return the strongly-connected components of directed graph g as a vector of
   vectors. Uses Kosaraju's algorithm."
