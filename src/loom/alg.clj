@@ -191,21 +191,24 @@ can use these functions."
       (bf-traverse g start :f vector)))))
 
 (defn connected-components
-  "Return the connected components of undirected graph g as a vector of vectors"
+  "Return the connected components of graph g as a vector of vectors. If g
+  is directed, returns the weakly-connected components."
   [g]
-  (first
-   (reduce
-    (fn [[cc predmap] n]
-      (if (contains? predmap n)
-        [cc predmap]
-        (let [[c pm] (reduce
-                      (fn [[c _] [n pm _]]
-                        [(conj c n) pm])
-                      [[] nil]
-                      (gen/bf-traverse (nb g) n :f vector :seen predmap))]
-          [(conj cc c) pm])))
-    [[] {}]
-    (nodes g))))
+  (let [nb (if-not (directed? g) (nb g)
+                   #(concat (nb g %) (incoming g %)))]
+    (first
+     (reduce
+      (fn [[cc predmap] n]
+        (if (contains? predmap n)
+          [cc predmap]
+          (let [[c pm] (reduce
+                        (fn [[c _] [n pm _]]
+                          [(conj c n) pm])
+                        [[] nil]
+                        (gen/bf-traverse nb n :f vector :seen predmap))]
+            [(conj cc c) pm])))
+      [[] {}]
+      (nodes g)))))
 
 (defn scc
   "Return the strongly-connected components of directed graph g as a vector of
@@ -226,8 +229,6 @@ can use these functions."
 (defn strongly-connected?
   [g]
   (== (count (first (scc g))) (count (nodes g))))
-
-;; TODO: weak cc
 
 (defn connect
   "Return graph g with all connected components connected to each other"

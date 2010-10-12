@@ -117,6 +117,7 @@
     [#{1 2 3 4} #{5 6 7 8} #{9}] (map set (connected-components
                                            (add-nodes g8 9)))
     [#{:r :g :b :o :p}] (map set (connected-components g2))
+    [#{1 2 3 4 5 6 8 7}] (map set (connected-components g9))
     #{#{2 3 4 1} #{8} #{7 5 6}} (set (map set (scc g9)))
     #{#{:b :e :a} #{:h :d :c} #{:f :g}} (set (map set (scc g10)))
     false (strongly-connected? g9)
