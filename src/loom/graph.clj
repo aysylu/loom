@@ -280,7 +280,7 @@ on adjacency lists."
 
     :remove-all
     (fn [g]
-      (assoc g :nodeset #{} :adj {}) :in {}))
+      (assoc g :nodeset #{} :adj {} :in {})))
 
   Digraph
   (assoc default-digraph-impl
