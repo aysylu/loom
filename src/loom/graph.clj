@@ -63,6 +63,8 @@ on adjacency lists."
 ;;; loops allowed
 ;;;
 ;; TODO: allow custom weight fn?
+;; TODO: preserve metadata?
+;; TODO: leverage zippers for faster record updates?
 
 (defrecord SimpleGraph [nodeset adj])
 (defrecord SimpleDigraph [nodeset adj in])

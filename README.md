@@ -1,6 +1,6 @@
 # Loom
 
-**Caveat coder**: this lib is alpha-stage and very much in flux.
+**Caveat coder**: this lib is alpha-stage. The API may change in future versions.
 
 That said, feedback welcome. Email: [jkkramer@gmail.com](mailto:jkkramer@gmail.com), Twitter: [jkkramer](http://twitter.com/jkkramer)
 
@@ -8,7 +8,7 @@ That said, feedback welcome. Email: [jkkramer@gmail.com](mailto:jkkramer@gmail.c
 
 ### Leiningen/Clojars [group-id/name version]
 
-    [org.satta/loom "0.1.0-SNAPSHOT"]
+    [jkkramer/loom "0.1.0"]
 
 ### Namespaces
 
@@ -124,10 +124,12 @@ TODO: link to autodocs
 
 ## Dependencies
 
-There is (optional) support for visualization via [GrapViz](http://graphviz.org) and [Ubigraph](http://ubietylab.net/ubigraph/).
+Nothing but Clojure. There is optional support for visualization via [GrapViz](http://graphviz.org).
 
 ## TODO
 
+* Use deftype instead of defrecord
+* Do more functional graph research
 * Solidify basic API, guarantees
 * Implement more algorithms
 * Test & profile more with big, varied graphs

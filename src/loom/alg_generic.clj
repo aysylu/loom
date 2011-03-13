@@ -42,6 +42,8 @@
     (step [start]
           (conj seen start))))
 
+;; TODO: graph-seq, analog of tree-seq
+
 (defn pre-span
   "Return a depth-first spanning tree of the form {node [successors]}"
   [neighbors start & {:keys [seen return-seen] :or {seen #{}}}]
@@ -171,6 +173,7 @@
                     nbrs n :f (fn [_ pm _] (reset! preds pm))))))
         search1 (future (search outgoing start preds1))
         search2 (future (search incoming end preds2))
+        ;; TODO: watchers?
         find-intersects #(shared-keys @preds1 @preds2)]
     (loop [intersects (find-intersects)]
       (if (or (seq intersects) (future-done? search1) (future-done? search2))
