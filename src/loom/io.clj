@@ -5,9 +5,7 @@
         [loom.alg :only [distinct-edges loners]]
         [loom.attr :only [attr? attr attrs]]
         [clojure.string :only [escape]]
-        [clojure.java [io :only [file]] [shell :only [sh]]])
-  (:import [org.apache.xmlrpc.client XmlRpcClient XmlRpcClientConfigImpl]
-           [org.apache.xmlrpc XmlRpcException]))
+        [clojure.java [io :only [file]] [shell :only [sh]]]))
 
 (defn- dot-esc
   [s]
