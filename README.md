@@ -8,7 +8,7 @@ That said, feedback welcome. Email: [jkkramer@gmail.com](mailto:jkkramer@gmail.c
 
 ### Leiningen/Clojars [group-id/name version]
 
-    [jkkramer/loom "0.1.0"]
+    [jkkramer/loom "0.2.0"]
 
 ### Namespaces
 
