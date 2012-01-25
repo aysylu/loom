@@ -71,7 +71,8 @@ on adjacency lists."
 (defrecord SimpleWeightedGraph [nodeset adj])
 (defrecord SimpleWeightedDigraph [nodeset adj in])
 
-(def ^{:doc "Weight used when none is given for edges in weighted graphs"}
+(def ^{:dynamic true
+       :doc "Weight used when none is given for edges in weighted graphs"}
   *default-weight* 1)
 
 (def default-graph-impls
