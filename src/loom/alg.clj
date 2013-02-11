@@ -3,7 +3,8 @@ Graph, Digraph, or WeightedGraph protocols (as appropriate per algorithm)
 can use these functions."
       :author "Justin Kramer"}
   loom.alg
-  (:require [loom.alg-generic :as gen])
+  (:require [loom.alg-generic :as gen]
+            [loom.flow :as flow])
   (:use [loom.graph
          :only [add-edges nodes edges neighbors weight incoming degree
                 in-degree weighted? directed? graph transpose]
@@ -324,4 +325,23 @@ can use these functions."
      [#{} #{}]
      coloring)))
 
+(defn max-flow
+  "Returns [flow-map flow-value], where flow-map is a weighted adjacency map
+   representing the maximum flow.  The argument should be a weighted digraph,
+   where the edge weights are flow capacities.  Source and sink are the vertices
+   representing the flow source and sink vertices.  Optionally, pass in
+     :method :algorithm to use.  Currently, the only option is :edmonds-karp ."
+  [g source sink & {:keys [method] :or {method :edmonds-karp}}]
+  (let [method-set #{:edmonds-karp}
+        n (nb g), i (incoming g), c (wt g), s source, t sink
+        [flow-map flow-value] (case method
+                                    :edmonds-karp (flow/edmonds-karp n i c s t)
+                                    (throw
+                                     (java.lang.RuntimeException.
+                                      (str "Method not found.  Choose from: "
+                                                 method-set))))]
+    [flow-map flow-value]))
+                                                   
+                                                   
+                                                        
 ;; TODO: MST, coloring, matching, etc etc
