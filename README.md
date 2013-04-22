@@ -2,13 +2,15 @@
 
 **Caveat coder**: this lib is alpha-stage. The API may change in future versions.
 
-That said, feedback welcome. Email: [jkkramer@gmail.com](mailto:jkkramer@gmail.com), Twitter: [jkkramer](http://twitter.com/jkkramer)
+This library is based off of Justin Kramer's Loom library.
+
+Contact: [robertlachlan@gmail.com](mailto:robertlachlan@gmail.com).
 
 ## Usage
 
 ### Leiningen/Clojars [group-id/name version]
 
-    [jkkramer/loom "0.2.0"]
+    [haeffalump/loom "0.3.0-SNAPSHOT"]
 
 ### Namespaces
 
@@ -139,4 +141,4 @@ Nothing but Clojure. There is optional support for visualization via [GrapViz](h
 
 Copyright (C) 2010 Justin Kramer jkkramer@gmail.com
 
-Distributed under the Eclipse Public License, the same as Clojure.
+Distributed under the [Eclipse Public License](http://opensource.org/licenses/eclipse-1.0.php), the same as Clojure.

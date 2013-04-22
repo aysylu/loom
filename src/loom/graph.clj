@@ -338,6 +338,9 @@ on adjacency lists."
 (defrecord WeightedFlyGraph [fnodes fedges fneighbors fweight start])
 (defrecord WeightedFlyDigraph [fnodes fedges fneighbors fincoming fweight start])
 
+;; Deprecate the flygraphs?  Instead provide interfaces on algorithms to 
+;; run the algorithm on 
+
 (extend FlyGraph
   Graph default-flygraph-graph-impl)
 
