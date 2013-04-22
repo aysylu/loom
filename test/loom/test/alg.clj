@@ -67,6 +67,25 @@
             :g [:f]
             :h [:g :d]}))
 
+;; Weighted directed graph with a negative-weight cycle
+;; which is reachable from sources :a, :b, :d, and :e.
+;; http://www.seas.gwu.edu/~simhaweb/alg/lectures/module9/module9.html
+(def g11
+  (weighted-digraph [:a :b 3]
+                    [:b :c 4]
+                    [:b :d 5]
+                    [:d :e 2]
+                    [:e :b -8]))
+
+;; Weighted directed graph with a non-negative-weight cycle,
+;; similar to g11, but with the edge [:e :b] reweighed.
+(def g12
+  (weighted-digraph [:a :b 3]
+                    [:b :c 4]
+                    [:b :d 5]
+                    [:d :e 2]
+                    [:e :b -7]))
+
 (deftest depth-first-test
   (are [expected got] (= expected got)
     #{1 2 3 5 6 7} (set (pre-traverse g7))
@@ -138,6 +157,63 @@
     #{9 10} (set (loners (add-nodes g8 9 10)))
     ;; TODO: the rest
     ))
+
+(deftest bellman-ford-test
+  (are [expected graph start]
+       (= expected (bellman-ford graph start))
+
+       false g11 :a
+       false g11 :b
+       [{:e Double/POSITIVE_INFINITY,
+         :d Double/POSITIVE_INFINITY,
+         :b Double/POSITIVE_INFINITY,
+         :a Double/POSITIVE_INFINITY,
+         :c 0}{:c [:c]}] g11 :c 
+       false g11 :d
+       false g11 :e
+       [{:e 10,
+         :d 8,
+         :b 3,
+         :c 7,
+         :a 0}
+        {:a [:a],
+         :c [:a :b :c],
+         :b [:a :b],
+         :d [:a :b :d],
+         :e [:a :b :d :e]}] g12 :a
+       [{:e 7,
+         :d 5,
+         :c 4,
+         :a Double/POSITIVE_INFINITY,
+         :b 0}
+        {:b [:b],
+         :c [:b :c],
+         :d [:b :d],
+         :e [:b :d :e]}] g12 :b
+       [{:e Double/POSITIVE_INFINITY,
+         :d Double/POSITIVE_INFINITY,
+         :b Double/POSITIVE_INFINITY,
+         :a Double/POSITIVE_INFINITY,
+         :c 0}
+        {:c [:c]}] g12 :c 
+       [{:e 2,
+         :b -5,
+         :c -1,
+         :a Double/POSITIVE_INFINITY,
+         :d 0}
+        {:d [:d],
+         :c [:d :e :b :c],
+         :b [:d :e :b],
+         :e [:d :e]}] g12 :d
+       [{:d -2,
+         :b -7,
+         :c -3,
+         :a Double/POSITIVE_INFINITY,
+         :e 0}
+        {:e [:e],
+         :c [:e :b :c],
+         :b [:e :b],
+         :d [:e :b :d]}] g12 :e))
 
 (deftest bipartite-test
   (are [expected got] (= expected got)
