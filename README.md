@@ -1,5 +1,4 @@
-# Loom
-![alt text](https://raw.github.com/aysylu/loom/master/doc/loom_logo.png "Loom logo")
+![Loom logo](https://raw.github.com/aysylu/loom/master/doc/loom_logo.png "Loom")
 
 **Caveat coder**: this lib is alpha-stage. The API may change in future versions.
 
