@@ -2,7 +2,7 @@
 
 **Caveat coder**: this lib is alpha-stage. The API may change in future versions.
 
-That said, feedback welcome. Email: [jkkramer@gmail.com](mailto:jkkramer@gmail.com), Twitter: [jkkramer](http://twitter.com/jkkramer)
+That said, feedback welcome. Github: [aysylu](https://github.com/aysylu), [Heffalump](https://github.com/Heffalump), Email: [aysylu7@gmail.com](mailto:aysylu7@gmail.com), Twitter: [aysylu22](http://twitter.com/aysylu22)
 
 ## Usage
 
