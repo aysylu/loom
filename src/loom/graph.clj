@@ -7,8 +7,6 @@ on adjacency lists."
   loom.graph
   (:use [loom.alg-generic :only [bf-traverse]]))
 
-;(set! *warn-on-reflection* true)
-
 ;;;
 ;;; Protocols
 ;;;
@@ -33,6 +31,8 @@ on adjacency lists."
 
 (defprotocol WeightedGraph
   (weight [g] [g n1 n2] "Return weight of edge [n1 n2] or (partial weight g)"))
+
+(defprotocol VertexLabelled)
 
 ;; Variadic wrappers
 
@@ -337,6 +337,9 @@ on adjacency lists."
 (defrecord FlyDigraph [fnodes fedges fneighbors fincoming start])
 (defrecord WeightedFlyGraph [fnodes fedges fneighbors fweight start])
 (defrecord WeightedFlyDigraph [fnodes fedges fneighbors fincoming fweight start])
+
+;; Deprecate the flygraphs?  Instead provide interfaces on algorithms to 
+;; run the algorithm on 
 
 (extend FlyGraph
   Graph default-flygraph-graph-impl)
