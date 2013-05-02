@@ -14,8 +14,8 @@
   ([titanium-graph &
     {:keys [node-fn edge-fn]
      :or {node-fn (nodes/get-all-vertices)
-          edge-fn (map (juxt edges/head-vertex
-                             edges/tail-vertex)
+          edge-fn (map (juxt edges/tail-vertex
+                             edges/head-vertex)
                        (edges/get-all-edges))}}]
    (let [nodes (set node-fn)
          edges (set edge-fn)]
@@ -40,11 +40,9 @@
                 :node-label nodes/to-map
                 :edge-label
                 (fn [n1 n2]
-                  (println n1 n2)
-                  (println (edges/edges-between n1 n2))
-                  (println (edges/edges-between n2 n1))
                   (mapv edges/to-map
-                    (edges/edges-between n1 n2)))))
+                        (edges/edges-between n1 n2))
+                  )))
 
 (let [g (tg/open {"storage.backend" "inmemory"})]
   (tg/transact!
