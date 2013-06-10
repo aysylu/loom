@@ -12,11 +12,12 @@
 (defn titanium->loom
   "Converts titanium graph into loom representation"
   ([titanium-graph &
-    {:keys [node-fn edge-fn]
+    {:keys [node-fn edge-fn weight-fn]
      :or {node-fn (nodes/get-all-vertices)
           edge-fn (map (juxt edges/tail-vertex
                              edges/head-vertex)
-                       (edges/get-all-edges))}}]
+                       (edges/get-all-edges))
+          weight-fn (constantly 1)}}]
    (let [nodes (set node-fn)
          edges (set edge-fn)]
    (reify
@@ -31,7 +32,10 @@
      Digraph
      (incoming [g] (partial incoming g))
      (incoming [g node] (filter (nodes g) (nodes/connected-in-vertices node [])))
-     (in-degree [g node] (count (incoming g node)))))))
+     (in-degree [g node] (count (incoming g node)))
+     WeightedGraph
+     (weight [g] (partial weight g))
+     (weight [g n1 n2] (weight-fn n1 n2))))))
 
 (defn view [g]
   (loom.io/view (if (satisfies? Graph g)
