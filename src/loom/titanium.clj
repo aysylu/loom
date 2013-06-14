@@ -18,20 +18,20 @@
                              edges/head-vertex)
                        (edges/get-all-edges))
           weight-fn (constantly 1)}}]
-   (let [nodes (set node-fn)
-         edges (set edge-fn)]
+   (let [nodes-set (set node-fn)
+         edges-set (set edge-fn)]
    (reify
      Graph
-     (nodes [_] nodes)
-     (edges [_] edges)
+     (nodes [_] nodes-set)
+     (edges [_] edges-set)
      (has-node? [g node] (contains? (nodes g) node))
      (has-edge? [g n1 n2] (contains? (edges g) [n1 n2]))
      (neighbors [g] (partial neighbors g))
-     (neighbors [g node] (filter (nodes g) (nodes/connected-out-vertices node [])))
+     (neighbors [g node] (filter (nodes g) (seq (nodes/connected-out-vertices node))))
      (degree [g node] (count (neighbors g node)))
      Digraph
      (incoming [g] (partial incoming g))
-     (incoming [g node] (filter (nodes g) (nodes/connected-in-vertices node [])))
+     (incoming [g node] (filter (nodes g) (seq (nodes/connected-in-vertices node))))
      (in-degree [g node] (count (incoming g node)))
      WeightedGraph
      (weight [g] (partial weight g))
@@ -45,17 +45,5 @@
                 :edge-label
                 (fn [n1 n2]
                   (mapv edges/to-map
-                        (edges/edges-between n1 n2))
-                  )))
+                        (edges/edges-between n1 n2)))))
 
-(let [g (tg/open {"storage.backend" "inmemory"})]
-  (tg/transact!
-    (let [ 
-          v1 (nodes/create! {:age 28 :name "Michael"})
-          v2 (nodes/create! {:age 26 :name "Alex"})
-          e (edges/connect!
-              v1
-              "friend"
-              v2
-              {:since 2008})]
-      (view (titanium->loom g)))))
