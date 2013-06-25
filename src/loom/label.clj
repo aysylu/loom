@@ -1,11 +1,10 @@
 (ns ^{:doc "Graph label protocol and implementations for records from loom.graph"
       :author "Justin Kramer"}
   loom.label
+  (:require loom.basic-implementation)
   (:use [loom.attr :only [add-attr remove-attr attr]]
-        [loom.graph :only [add-nodes add-edges]])
-  (:import [loom.graph SimpleGraph SimpleDigraph
-            SimpleWeightedGraph SimpleWeightedDigraph
-            FlyGraph FlyDigraph WeightedFlyGraph WeightedFlyDigraph]))
+        [loom.graph :only [add-nodes add-edges add-node add-edge]])
+  (:import [loom.basic_implementation BasicUndirectedGraph BasicDirectedGraph]))
 
 (defprotocol LabeledGraph
   (add-label [g node label] [g n1 n2 label] "Add a label to node or edge")
@@ -15,9 +14,9 @@
 (def default-labeled-graph-impl
   {:add-label (fn
                 ([g node label]
-                   (add-attr g node :label label))
+                   (add-attr (add-node g node) node :label label))
                 ([g n1 n2 label]
-                   (add-attr g n1 n2 :label label)))
+                   (add-attr (add-edge g n1 n2) n1 n2 :label label)))
    :remove-label (fn
                    ([g node]
                       (remove-attr g node :label))
@@ -29,35 +28,11 @@
             ([g n1 n2]
                (attr g n1 n2 :label)))})
 
-(extend SimpleGraph
+(extend BasicUndirectedGraph
   LabeledGraph
   default-labeled-graph-impl)
 
-(extend SimpleDigraph
-  LabeledGraph
-  default-labeled-graph-impl)
-
-(extend SimpleWeightedGraph
-  LabeledGraph
-  default-labeled-graph-impl)
-
-(extend SimpleWeightedDigraph
-  LabeledGraph
-  default-labeled-graph-impl)
-
-(extend FlyGraph
-  LabeledGraph
-  default-labeled-graph-impl)
-
-(extend FlyDigraph
-  LabeledGraph
-  default-labeled-graph-impl)
-
-(extend WeightedFlyGraph
-  LabeledGraph
-  default-labeled-graph-impl)
-
-(extend WeightedFlyDigraph
+(extend BasicDirectedGraph
   LabeledGraph
   default-labeled-graph-impl)
 

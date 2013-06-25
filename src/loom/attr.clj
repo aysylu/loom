@@ -3,10 +3,9 @@ loom.graph. Common uses for attributes include labels and styling (color,
 thickness, etc)."
       :author "Justin Kramer"}
   loom.attr
-  (use [loom.graph :only [directed? nodes edges]])
-  (:import [loom.graph SimpleGraph SimpleDigraph
-            SimpleWeightedGraph SimpleWeightedDigraph
-            FlyGraph FlyDigraph WeightedFlyGraph WeightedFlyDigraph]))
+  (:require [loom.basic-implementation])
+  (:use [loom.graph :only [directed? nodes directed-edges add-node add-edge]])
+  (:import [loom.basic_implementation BasicUndirectedGraph BasicDirectedGraph]))
 
 (defprotocol AttrGraph
   (add-attr [g node k v] [g n1 n2 k v] "Add an attribute to node or edge")
@@ -17,9 +16,10 @@ thickness, etc)."
 (def default-attr-graph-impl
   {:add-attr (fn
                ([g node k v]
-                  (assoc-in g [:attrs node k] v))
+                  (assoc-in (add-node g node) [:attrs node k] v))
                ([g n1 n2 k v]
-                  (let [g (assoc-in g [:attrs n1 ::edge-attrs n2 k] v)
+                  (let [g (add-edge g n1 n2)
+                        g (assoc-in g [:attrs n1 ::edge-attrs n2 k] v)
                         g (if (directed? g) g
                               (assoc-in g [:attrs n2 ::edge-attrs n1 k] v))]
                     g)))
@@ -39,35 +39,11 @@ thickness, etc)."
             ([g n1 n2]
                (get-in g [:attrs n1 ::edge-attrs n2])))})
 
-(extend SimpleGraph
+(extend BasicDirectedGraph
   AttrGraph
   default-attr-graph-impl)
 
-(extend SimpleDigraph
-  AttrGraph
-  default-attr-graph-impl)
-
-(extend SimpleWeightedGraph
-  AttrGraph
-  default-attr-graph-impl)
-
-(extend SimpleWeightedDigraph
-  AttrGraph
-  default-attr-graph-impl)
-
-(extend FlyGraph
-  AttrGraph
-  default-attr-graph-impl)
-
-(extend FlyDigraph
-  AttrGraph
-  default-attr-graph-impl)
-
-(extend WeightedFlyGraph
-  AttrGraph
-  default-attr-graph-impl)
-
-(extend WeightedFlyDigraph
+(extend BasicUndirectedGraph
   AttrGraph
   default-attr-graph-impl)
 
@@ -97,7 +73,7 @@ thickness, etc)."
   [g k v]
   (-> g
       (add-attr-to-nodes k v (nodes g))
-      (add-attr-to-edges k v (edges g))))
+      (add-attr-to-edges k v (directed-edges g))))
 
 (defn add-attrs-to-all
   "Adds attributes to all nodes and edges"
@@ -106,7 +82,7 @@ thickness, etc)."
    (fn [g [k v]]
      (-> g
          (add-attr-to-nodes k v (nodes g))
-         (add-attr-to-edges k v (edges g))))
+         (add-attr-to-edges k v (directed-edges g))))
    g (partition 2 1 kvs)))
 
 
