@@ -7,12 +7,12 @@
 
 ;; Trivial case
 (def g0
-  (weighted-digraph
+  (directed-graph
    [:s :t 100]))
 
 ;; From Cormen et al. Algorithms, 3 ed. p. 726-727
 (def g1
-  (weighted-digraph
+  (directed-graph
    [:s :v1 16]
    [:s :v2 13]
    [:v1 :v3 12]
@@ -25,18 +25,18 @@
 
 ;; Source and sink disconnected
 (def g2
-  (weighted-digraph
+  (directed-graph
    [:s :a 5]
    [:b :t 10]))
 
 
 (deftest edmonds-karp-test
-  (are [max-value network] (let [[flow value] (edmonds-karp (neighbors network)
-                                                            (incoming network)
-                                                            (weight network)
+  (are [max-value network] (let [[flow value] (edmonds-karp (partial neighbors network)
+                                                            (partial direct-predecessors network)
+                                                            (partial edge-weight network)
                                                             :s :t)]
                              (and (= max-value value)
-                                  (is-admissible-flow? flow (weight network)
+                                  (is-admissible-flow? flow (partial edge-weight network)
                                                        :s :t)))
        23 g1
        100 g0
@@ -45,11 +45,11 @@
 
 (deftest max-flow-convenience-test
   (are [max-value network]
-       (let [[flow value] (max-flow (weighted-digraph network) :s :t)]
+       (let [[flow value] (max-flow (directed-graph network) :s :t)]
          (and (= max-value value)
-              (is-admissible-flow? flow (weight network) :s :t)))
+              (is-admissible-flow? flow (partial edge-weight network) :s :t)))
        23 g1))
 
-                                         
+
 
 

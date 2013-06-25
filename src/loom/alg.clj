@@ -6,9 +6,9 @@ can use these functions."
   (:require [loom.alg-generic :as gen]
             [loom.flow :as flow])
   (:use [loom.graph
-         :only [add-edges nodes edges neighbors weight incoming degree
-                in-degree weighted? directed? graph transpose]
-         :rename {neighbors nb weight wt}]
+         :only [add-edges nodes neighbors edge-weight direct-successors
+                direct-predecessors weighted? directed? graph directed-edges transpose]
+         :rename {neighbors nb edge-weight wt}]
         [loom.alg-generic :only [trace-path preds->span]]))
 
 ;;;
@@ -126,7 +126,7 @@ can use these functions."
   faster than a unidirectional search on certain types of graphs"
   [g start end]
   (if (directed? g)
-    (gen/bf-path-bi (nb g) (incoming g) start end)
+    (gen/bf-path-bi (nb g) (direct-predecessors g) start end)
     (gen/bf-path-bi (nb g) (nb g) start end)))
 
 (defn dijkstra-traverse
@@ -185,7 +185,7 @@ can use these functions."
 (defn- relax-edges
   "Performs edge relaxation on all edges in weighted directed graph"
   [g start estimates]
-  (->> (edges g)
+  (->> (directed-edges g)
        (reduce (fn [estimates [u v :as edge]]
                  (relax-edge edge (wt g u v) estimates))
                estimates)))
@@ -221,16 +221,16 @@ can use these functions."
                                 (relax-edges g start estimates))
                               initial-estimates
                               (-> g nodes count dec range))
-        edges (edges g)]
+        edges (directed-edges g)]
       (if (some
             (fn [[u v :as edge]]
               (can-relax-edge? edge (wt g u v) costs))
             edges)
         false
-        [costs 
+        [costs
          (->> (keys paths)
               ;remove vertices that are unreachable from source
-              (remove #(= Double/POSITIVE_INFINITY (get costs %))) 
+              (remove #(= Double/POSITIVE_INFINITY (get costs %)))
               (reduce
                 (fn [final-paths v]
                   (assoc final-paths v
@@ -280,7 +280,7 @@ can use these functions."
   is directed, returns the weakly-connected components."
   [g]
   (let [nb (if-not (directed? g) (nb g)
-                   #(concat (nb g %) (incoming g %)))]
+                   #(concat (nb g %) (direct-predecessors g %)))]
     (first
      (reduce
       (fn [[cc predmap] n]
@@ -329,7 +329,7 @@ can use these functions."
   "Return the density of graph g"
   [g & {:keys [loops] :or {loops false}}]
   (let [order (count (nodes g))]
-    (/ (count (edges g))
+    (/ (count (directed-edges g)) ;TODO: Is it correct to use directed-edges?
        (* order (if loops
                   order
                   (dec order))))))
@@ -337,16 +337,17 @@ can use these functions."
 (defn loners
   "Return nodes with no connections to other nodes (i.e., isolated nodes)"
   [g]
-  (let [degree-total (if (directed? g)
-                       #(+ (in-degree g %) (degree g %))
-                       #(degree g %))]
-    (filter (comp zero? degree-total) (nodes g))))
+  (if (directed? g)
+    (filter #(and (nil? (seq (direct-successors g %)))
+                  (nil? (seq (direct-predecessors g %))))
+            (nodes g))
+    (filter (comp nil? seq (direct-successors g)) (nodes g))))
 
 (defn distinct-edges
   "Distinct edges of g. Only useful for undirected graphs"
   [g]
   (if (directed? g)
-    (edges g)
+    (directed-edges g)
     (second
      (reduce
       (fn [[seen es] e]
@@ -356,7 +357,7 @@ can use these functions."
             [(conj seen eset)
              (conj es e)])))
       [#{} []]
-      (edges g)))))
+      (directed-edges g)))))
 
 (defn bipartite-color
   "Attempt a two-coloring of graph g. When successful, returns a map of
@@ -412,7 +413,7 @@ can use these functions."
      :method :algorithm to use.  Currently, the only option is :edmonds-karp ."
   [g source sink & {:keys [method] :or {method :edmonds-karp}}]
   (let [method-set #{:edmonds-karp}
-        n (nb g), i (incoming g), c (wt g), s source, t sink
+        n (nb g), i (direct-predecessors g), c (wt g), s source, t sink
         [flow-map flow-value] (case method
                                     :edmonds-karp (flow/edmonds-karp n i c s t)
                                     (throw
@@ -420,7 +421,7 @@ can use these functions."
                                       (str "Method not found.  Choose from: "
                                                  method-set))))]
     [flow-map flow-value]))
-                                                   
-                                                   
-                                                        
+
+
+
 ;; TODO: MST, coloring, matching, etc etc
