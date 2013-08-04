@@ -1,4 +1,4 @@
-(ns ^{:doc "Defines an interface between Titanium and loom."
+(ns ^{:doc "Defines an interface between Titanium and Loom."
       :author "Aysylu"}
   loom.titanium
   (:require [clojure.set :as set])
@@ -10,7 +10,7 @@
   (:use [loom.graph]))
 
 (defn titanium->loom
-  "Converts titanium graph into loom representation"
+  "Converts titanium graph into Loom representation"
   ([titanium-graph &
     {:keys [node-fn edge-fn weight-fn]
      :or {node-fn (nodes/get-all-vertices)
@@ -46,4 +46,3 @@
                 (fn [n1 n2]
                   (mapv edges/to-map
                         (edges/edges-between n1 n2)))))
-
