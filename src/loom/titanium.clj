@@ -26,21 +26,19 @@
      (edges [_] edges-set)
      (has-node? [g node] (contains? (nodes g) node))
      (has-edge? [g n1 n2] (contains? (edges g) [n1 n2]))
-     (neighbors [g] (partial neighbors g))
-     (neighbors [g node] (filter (nodes g) (seq (nodes/connected-out-vertices node))))
-     (degree [g node] (count (neighbors g node)))
+     (successors [g] (partial successors g))
+     (successors [g node] (filter (nodes g) (seq (nodes/connected-out-vertices node))))
+     (out-degree [g node] (count (successors g node)))
      Digraph
-     (incoming [g] (partial incoming g))
-     (incoming [g node] (filter (nodes g) (seq (nodes/connected-in-vertices node))))
+     (predecessors [g] (partial predecessors g))
+     (predecessors [g node] (filter (nodes g) (seq (nodes/connected-in-vertices node))))
      (in-degree [g node] (count (incoming g node)))
      WeightedGraph
      (weight [g] (partial weight g))
      (weight [g n1 n2] (weight-fn n1 n2))))))
 
 (defn view [g]
-  (loom.io/view (if (satisfies? Graph g)
-                  g
-                  (titanium->loom g))
+  (loom.io/view (titanium->loom g)
                 :node-label nodes/to-map
                 :edge-label
                 (fn [n1 n2]
