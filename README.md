@@ -2,10 +2,6 @@
 
 **Caveat coder**: this lib is alpha-stage. The API may change in future versions.
 
-This library is based off of Justin Kramer's Loom library.
-
-Contact: email [robertlachlan@gmail.com](mailto:robertlachlan@gmail.com), [aysylu7 [at] gmail [dot] com](mailto:aysylu7@gmail.com), twitter: [aysylu22](http://twitter.com/aysylu22)
-
 ## Usage
 
 ### Leiningen/Clojars [group-id/name version]
@@ -31,7 +27,7 @@ Create a graph:
     (def wg (weighted-graph {:a {:b 10 :c 20} :c {:d 30} :e {:b 5 :d 5}}))
     (def wdg (weighted-digraph [:a :b 10] [:a :c 20] [:c :d 30] [:d :b 10]))
     (def rwg (gen-rand (weighted-graph) 10 20 :max-weight 100))
-    (def fg (fly-graph :neighbors range :weight (constantly 77)))
+    (def fg (fly-graph :successors range :weight (constantly 77)))
 
 If you have [GraphViz](http://www.graphviz.org) installed, and its binaries are in the path, you can view graphs with <code>loom.io/view</code>:
 
@@ -45,13 +41,13 @@ Inspect:
     (edges wdg)
     => ([:a :c] [:a :b] [:c :d] [:d :b])
     
-    (neighbors g 3)
+    (successors g 3)
     => #{2 4}
     
-    (incoming wdg :b)
+    (predecessors wdg :b)
     => #{:a :d}
     
-    (degree g 3)
+    (out-degree g 3)
     => 2
     
     (in-degree wdg :b)
@@ -136,6 +132,15 @@ Nothing but Clojure. There is optional support for visualization via [GrapViz](h
 * Implement more algorithms
 * Test & profile more with big, varied graphs
 * Multigraphs, hypergraphs, adjacency matrix-based graphs?
+
+## Contributors
+
+Names in no particular order:
+
+* [Justin Kramer](https://github.com/jkk/)
+* [Aysylu Greenberg] (https://github.com/aysylu),[aysylu [dot] greenberg [at] gmail [dot] com](mailto:aysylu.greenberg@gmail.com),[@aysylu22](http://twitter.com/aysylu22)
+* [Robert Lachlan](https://github.com/heffalump),[robertlachlan@gmail.com](mailto:robertlachlan@gmail.com)
+* [Stephen Kockentiedt](https://github.com/s-k)
 
 ## License
 

@@ -21,11 +21,11 @@ on adjacency lists."
   (edges [g] "Edges in g. May return each edge twice in an undirected graph")
   (has-node? [g node] "Return true when node is in g")
   (has-edge? [g n1 n2] "Return true when edge [n1 n2] is in g")
-  (neighbors [g] [g node] "Return adjacent nodes, or (partial neighbors g)")
-  (degree [g node] "Return the number of nodes adjacent to node"))
+  (successors [g] [g node] "Return direct successors of node, or (partial successors g)")
+  (out-degree [g node] "Return the number of direct successors of node"))
 
 (defprotocol Digraph
-  (incoming [g] [g node] "Return direct predecessors of node, or (partial incoming g)")
+  (predecessors [g] [g node] "Return direct predecessors of node, or (partial predecessors g)")
   (in-degree [g node] "Return the number direct predecessors to node")
   (transpose [g] "Return a graph with all edges reversed"))
 
@@ -81,13 +81,13 @@ on adjacency lists."
              (:nodeset g))
     :edges (fn [g]
              (for [n1 (nodes g)
-                   n2 (neighbors g n1)]
+                   n2 (successors g n1)]
                [n1 n2]))
     :has-node? (fn [g node]
                  (contains? (:nodeset g) node))
     :has-edge? (fn [g n1 n2]
                  (contains? (get-in g [:adj n1]) n2))
-    :degree (fn [g node]
+    :out-degree (fn [g node]
               (count (get-in g [:adj node])))}
 
    ;; Unweighted graphs store adjacencies as {node #{neighbor}}
@@ -99,8 +99,8 @@ on adjacency lists."
                          (update-in [:nodeset] conj n)
                          (assoc-in [:adj n] (or ((:adj g) n) #{}))))
                    g nodes))
-    :neighbors (fn
-                 ([g] (partial neighbors g))
+    :successors (fn
+                 ([g] (partial successors g))
                  ([g node] (get-in g [:adj node])))}
    
    ;; Weighted graphs store adjacencies as {node {neighbor weight}}
@@ -112,13 +112,13 @@ on adjacency lists."
                          (update-in [:nodeset] conj n)
                          (assoc-in [:adj n] (or ((:adj g) n) {}))))
                    g nodes))
-    :neighbors (fn
-                 ([g] (partial neighbors g))
+    :successors (fn
+                 ([g] (partial successors g))
                  ([g node] (keys (get-in g [:adj node]))))}})
 
 (def default-digraph-impl
-  {:incoming (fn
-               ([g] (partial incoming g))
+  {:predecessors (fn
+               ([g] (partial predecessors g))
                ([g node] (get-in g [:in node])))
    :in-degree (fn [g node]
                 (count (get-in g [:in node])))})
@@ -153,7 +153,7 @@ on adjacency lists."
     
     :remove-nodes*
     (fn [g nodes]
-      (let [nbrs (mapcat #(neighbors g %) nodes)]
+      (let [nbrs (mapcat #(successors g %) nodes)]
         (-> g
             (update-in [:nodeset] #(apply disj % nodes))
             (assoc :adj (remove-adj-nodes (:adj g) nodes nbrs disj)))))
@@ -187,8 +187,8 @@ on adjacency lists."
     
     :remove-nodes*
     (fn [g nodes]
-      (let [ins (mapcat #(incoming g %) nodes)
-            outs (mapcat #(neighbors g %) nodes)]
+      (let [ins (mapcat #(predecessors g %) nodes)
+            outs (mapcat #(successors g %) nodes)]
         (-> g
             (update-in [:nodeset] #(apply disj % nodes))
             (assoc :adj (remove-adj-nodes (:adj g) nodes ins disj))
@@ -228,7 +228,7 @@ on adjacency lists."
     
     :remove-nodes*
     (fn [g nodes]
-      (let [nbrs (mapcat #(neighbors g %) nodes)]
+      (let [nbrs (mapcat #(successors g %) nodes)]
         (-> g
             (update-in [:nodeset] #(apply disj % nodes))
             (assoc :adj (remove-adj-nodes (:adj g) nodes nbrs dissoc)))))
@@ -265,8 +265,8 @@ on adjacency lists."
     
     :remove-nodes*
     (fn [g nodes]
-      (let [ins (mapcat #(incoming g %) nodes)
-            outs (mapcat #(neighbors g %) nodes)]
+      (let [ins (mapcat #(predecessors g %) nodes)
+            outs (mapcat #(successors g %) nodes)]
         (-> g
             (update-in [:nodeset] #(apply disj % nodes))
             (assoc :adj (remove-adj-nodes (:adj g) nodes ins dissoc))
@@ -299,8 +299,8 @@ on adjacency lists."
 ;;;
 ;;; FlyGraph -- a read-only, ad-hoc graph which uses provided functions to
 ;;; return values for nodes, edges, etc. Members which are not functions get
-;;; returned as-is. Edges can be inferred if nodes and neighbors are provided.
-;;; Nodes and edges can be inferred if neighbors and start are provided.
+;;; returned as-is. Edges can be inferred if nodes and successors are provided.
+;;; Nodes and edges can be inferred if successors and start are provided.
 ;;;
 
 (defn- call-or-return [f & args]
@@ -313,30 +313,30 @@ on adjacency lists."
   {:nodes (fn [g]
             (if (or (:fnodes g) (not (:start g)))
               (call-or-return (:fnodes g))
-              (bf-traverse (neighbors g) (:start g))))
+              (bf-traverse (successors g) (:start g))))
    :edges (fn [g]
             (if (:fedges g)
               (call-or-return (:fedges g))
               (for [n (nodes g)
-                    nbr (neighbors g n)]
+                    nbr (successors g n)]
                 [n nbr])))
-   :neighbors (fn
-                ([g] (partial neighbors g))
-                ([g node] (call-or-return (:fneighbors g) node)))
-   :degree (fn [g node]
-             (count (neighbors g node)))})
+   :successors (fn
+                ([g] (partial successors g))
+                ([g node] (call-or-return (:fsuccessors g) node)))
+   :out-degree (fn [g node]
+             (count (successors g node)))})
 
 (def ^{:private true} default-flygraph-digraph-impl
-  {:incoming (fn [g node] (call-or-return (:fincoming g) node))
-   :in-degree (fn [g node] (count (incoming g node)))})
+  {:predecessors (fn [g node] (call-or-return (:fpredecessors g) node))
+   :in-degree (fn [g node] (count (predecessors g node)))})
 
 (def ^{:private true} default-flygraph-weighted-impl
   {:weight (fn [g n1 n2] (call-or-return (:fweight g) n1 n2))})
 
-(defrecord FlyGraph [fnodes fedges fneighbors start])
-(defrecord FlyDigraph [fnodes fedges fneighbors fincoming start])
-(defrecord WeightedFlyGraph [fnodes fedges fneighbors fweight start])
-(defrecord WeightedFlyDigraph [fnodes fedges fneighbors fincoming fweight start])
+(defrecord FlyGraph [fnodes fedges fsuccessors start])
+(defrecord FlyDigraph [fnodes fedges fsuccessors fpredecessors start])
+(defrecord WeightedFlyGraph [fnodes fedges fsuccessors fweight start])
+(defrecord WeightedFlyDigraph [fnodes fedges fsuccessors fpredecessors fweight start])
 
 ;; Deprecate the flygraphs?  Instead provide interfaces on algorithms to 
 ;; run the algorithm on 
@@ -455,15 +455,15 @@ on adjacency lists."
   "Create a read-only, ad-hoc graph which uses the provided functions
   to return values for nodes, edges, etc. If any members are not functions,
   they will be returned as-is. Edges can be inferred if nodes and
-  neighbors are provided. Nodes and edges can be inferred if neighbors and
+  succesors are provided. Nodes and edges can be inferred if successors and
   start are provided."
-  [& {:keys [nodes edges neighbors incoming weight start]}]
+  [& {:keys [nodes edges successors predecessors weight start]}]
   (cond
-   (and incoming weight)
-   (WeightedFlyDigraph. nodes edges neighbors incoming weight start)
-   incoming
-   (FlyDigraph. nodes edges neighbors incoming start)
+   (and predecessors weight)
+   (WeightedFlyDigraph. nodes edges successors predecessors weight start)
+   predecessors
+   (FlyDigraph. nodes edges successors predecessors start)
    weight
-   (WeightedFlyGraph. nodes edges neighbors weight start)
+   (WeightedFlyGraph. nodes edges successors weight start)
    :else
-   (FlyGraph. nodes edges neighbors start)))
+   (FlyGraph. nodes edges successors start)))
