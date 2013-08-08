@@ -138,8 +138,8 @@ Nothing but Clojure. There is optional support for visualization via [GrapViz](h
 Names in no particular order:
 
 * [Justin Kramer](https://github.com/jkk/)
-* [Aysylu Greenberg] (https://github.com/aysylu),[aysylu [dot] greenberg [at] gmail [dot] com](mailto:aysylu.greenberg@gmail.com),[@aysylu22](http://twitter.com/aysylu22)
-* [Robert Lachlan](https://github.com/heffalump),[robertlachlan@gmail.com](mailto:robertlachlan@gmail.com)
+* [Aysylu Greenberg] (https://github.com/aysylu), [aysylu [dot] greenberg [at] gmail [dot] com](mailto:aysylu.greenberg@gmail.com), [@aysylu22](http://twitter.com/aysylu22)
+* [Robert Lachlan](https://github.com/heffalump), [robertlachlan@gmail.com](mailto:robertlachlan@gmail.com)
 * [Stephen Kockentiedt](https://github.com/s-k)
 
 ## License
