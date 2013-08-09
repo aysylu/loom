@@ -144,6 +144,6 @@ Names in no particular order:
 
 ## License
 
-Copyright (C) 2010 Justin Kramer jkkramer@gmail.com
+Copyright (C) 2010-2012 Aysylu Greenberg & Justin Kramer (jkkramer@gmail.com)
 
 Distributed under the [Eclipse Public License](http://opensource.org/licenses/eclipse-1.0.php), the same as Clojure.

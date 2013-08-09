@@ -29,7 +29,7 @@
 
 (defn pre-traverse
   "Traverses a graph depth-first preorder from start, successors being a
-  function that returns adjacent nodes. Returns a lazy seq of nodes."
+  function that returns direct successors for the node. Returns a lazy seq of nodes."
   [successors start & {:keys [seen] :or {seen #{}}}]
   (letfn [(step [stack seen]
             (when-let [node (peek stack)]
