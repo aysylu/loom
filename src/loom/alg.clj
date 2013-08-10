@@ -179,8 +179,7 @@ can use these functions."
         sum (+ ud weight)]
     (if (can-relax-edge? edge weight costs)
       [(assoc costs v sum) (assoc paths v u)]
-      estimates
-      )))
+      estimates)))
 
 (defn- relax-edges
   "Performs edge relaxation on all edges in weighted directed graph"

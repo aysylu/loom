@@ -1,5 +1,4 @@
 (ns ^{:doc "Defines protocols for graphs, digraphs, and weighted graphs.
-
 Also provides record implementations and constructors for simple graphs --
 weighted, unweighted, directed, and undirected. The implementations are based
 on adjacency lists."
@@ -31,8 +30,6 @@ on adjacency lists."
 
 (defprotocol WeightedGraph
   (weight [g] [g n1 n2] "Return weight of edge [n1 n2] or (partial weight g)"))
-
-(defprotocol VertexLabelled)
 
 ;; Variadic wrappers
 
