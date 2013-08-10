@@ -6,7 +6,7 @@
 
 ### Leiningen/Clojars [group-id/name version]
 
-    [haeffalump/loom "0.3.0-SNAPSHOT"]
+    [aysylu/loom "0.3.1"]
 
 ### Namespaces
 
