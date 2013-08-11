@@ -83,6 +83,17 @@
     second
     :blocks))
 
+(def ssb
+  (->
+    (parse-to-state-machine
+      '[(if (> (+ x 1 2 y) 0)
+          (+ x 1)
+          (+ x 2))])
+    second
+    :blocks))
+
+#_(view (ssa->loom ssb ssa-nodes-fn ssa-edges-fn))
+
 #_(clojure.pprint/pprint ssa)
 
 #_(view (ssa->loom ssa ssa-nodes-fn ssa-edges-fn))
@@ -218,59 +229,6 @@
     [1 2]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-#_(defn dataflow-analysis
-  "Performs dataflow analysis using initialization, transfer and join functions on SSA form."
-  [entry ssa init transfer join]
-  (let [outs (init (g/nodes ssa))] ;outs is a map from block to out(block) value
-    ; TODO should feed them in order from entry 
-    (loop [worklist outs] ; worklist init'd to init state of blocks
-      (let [n (peek worklist) ; pop off the worklist
-            in (reduce
-                 (fn [out predecesor]
-                   (join out (get outs predecessor)))
-                 {} (g/incoming ssa n))
-            out (transfer n in)])
-      (cond
-        (not (= out (get outs n))) (do
-                                     (conj outs {n out})
-                                     (recur (cons (pop worklist) (g/neighbors ssa n))))
-        (not (empty? worklist)) (recur (pop worklist))
-        :else outs))))
-
-#_(defn global-cse
-  "Performs Global Common Subexpression Elimination optimization on CSE."
-  [entry ssa init trasfer join]
-  (dataflow-analysis entry ssa init transfer join))
-
-#_(defn init-cse
-  [blocks]
-  (reduce
-    (fn [outs block]
-      (conj outs {block #{}}))
-    {} blocks))
-
-#_(defn transfer-cse
-  [computed-exprs block]
-  (->
-    (reduce
-      (fn [new-block {f :refs id :id :as instr}]
-        (if (contains? computed-exprs f)
-          (conj new-block {:id id :value (get computed-exprs f)})
-          (conj new-block instr)))
-      [] (:data block))) 
-  (union computed-exprs))
-
-#_(defn join-cse
-  [out predecessor]
-  (reduce
-    (fn [outs {f :refs id :id :as expr}]
-      (if (not (contains? out f))
-        (conj outs expr)
-        (let [ex-expr (get )])
-        )
-      )
-    )
-  )
 
 #_(defn cse
   "Performs local common subexpression elimination on a basic block on pure functions."
