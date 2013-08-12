@@ -31,8 +31,8 @@
 
 
 (deftest edmonds-karp-test
-  (are [max-value network] (let [[flow value] (edmonds-karp (neighbors network)
-                                                            (incoming network)
+  (are [max-value network] (let [[flow value] (edmonds-karp (successors network)
+                                                            (predecessors network)
                                                             (weight network)
                                                             :s :t)]
                              (and (= max-value value)

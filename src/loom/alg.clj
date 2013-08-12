@@ -6,9 +6,9 @@ can use these functions."
   (:require [loom.alg-generic :as gen]
             [loom.flow :as flow])
   (:use [loom.graph
-         :only [add-edges nodes edges neighbors weight incoming degree
+         :only [add-edges nodes edges successors weight predecessors out-degree
                 in-degree weighted? directed? graph transpose]
-         :rename {neighbors nb weight wt}]
+         :rename {successors nb weight wt}]
         [loom.alg-generic :only [trace-path preds->span]]))
 
 ;;;
@@ -79,7 +79,7 @@ can use these functions."
   "Traverses graph g breadth-first from start. When option :f is provided,
   returns a lazy seq of (f node predecessor-map depth) for each node traversed.
   Otherwise, returns a lazy seq of the nodes. When option :when is provided,
-  filters neighbors with (f neighbor predecessor depth)."
+  filters successors with (f neighbor predecessor depth)."
   ([g]
      (first
       (reduce
@@ -126,7 +126,7 @@ can use these functions."
   faster than a unidirectional search on certain types of graphs"
   [g start end]
   (if (directed? g)
-    (gen/bf-path-bi (nb g) (incoming g) start end)
+    (gen/bf-path-bi (nb g) (predecessors g) start end)
     (gen/bf-path-bi (nb g) (nb g) start end)))
 
 (defn dijkstra-traverse
@@ -179,8 +179,7 @@ can use these functions."
         sum (+ ud weight)]
     (if (can-relax-edge? edge weight costs)
       [(assoc costs v sum) (assoc paths v u)]
-      estimates
-      )))
+      estimates)))
 
 (defn- relax-edges
   "Performs edge relaxation on all edges in weighted directed graph"
@@ -280,7 +279,7 @@ can use these functions."
   is directed, returns the weakly-connected components."
   [g]
   (let [nb (if-not (directed? g) (nb g)
-                   #(concat (nb g %) (incoming g %)))]
+                   #(concat (nb g %) (predecessors g %)))]
     (first
      (reduce
       (fn [[cc predmap] n]
@@ -338,8 +337,8 @@ can use these functions."
   "Return nodes with no connections to other nodes (i.e., isolated nodes)"
   [g]
   (let [degree-total (if (directed? g)
-                       #(+ (in-degree g %) (degree g %))
-                       #(degree g %))]
+                       #(+ (in-degree g %) (out-degree g %))
+                       #(out-degree g %))]
     (filter (comp zero? degree-total) (nodes g))))
 
 (defn distinct-edges
@@ -412,7 +411,7 @@ can use these functions."
      :method :algorithm to use.  Currently, the only option is :edmonds-karp ."
   [g source sink & {:keys [method] :or {method :edmonds-karp}}]
   (let [method-set #{:edmonds-karp}
-        n (nb g), i (incoming g), c (wt g), s source, t sink
+        n (nb g), i (predecessors g), c (wt g), s source, t sink
         [flow-map flow-value] (case method
                                     :edmonds-karp (flow/edmonds-karp n i c s t)
                                     (throw
