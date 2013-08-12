@@ -32,7 +32,7 @@
      Digraph
      (predecessors [g] (partial predecessors g))
      (predecessors [g node] (filter (nodes g) (seq (nodes/connected-in-vertices node))))
-     (in-degree [g node] (count (incoming g node)))
+     (in-degree [g node] (count (predecessors g node)))
      WeightedGraph
      (weight [g] (partial weight g))
      (weight [g n1 n2] (weight-fn n1 n2))))))
