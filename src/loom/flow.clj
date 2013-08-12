@@ -38,10 +38,10 @@
   "Given a flow map, and a capacity function, verifies that the flow on each edge
    is <= capacity of that edge."
   (empty?
-   (remove (fn [[node flow-to-neighbors]]
+   (remove (fn [[node flow-to-successors]]
              (every?
               (fn [[neighbor flow-value]] (<= flow-value (capacity node neighbor)))
-              (seq flow-to-neighbors)))
+              (seq flow-to-successors)))
            (seq flow))))
 
 (defn is-admissible-flow? [flow capacity source sink]
@@ -56,16 +56,16 @@
    missing, returns 0."
   (reduce min (map #(or (apply weight-fn %) 0)  (partition 2 1 path))))
 
-(defn bf-find-augmenting-path [neighbors incoming capacity flow s t]
+(defn bf-find-augmenting-path [successors predecessors capacity flow s t]
   "Finds a shortest path in the flow network along which there remains residual
-   capacity.  Neighbours is a function which, given a vertex, returns the
-   vertices connected by outgoing edges.  Incoming, similarly is a function to get
+   capacity.  Successors is a function which, given a vertex, returns the
+   vertices connected by outgoing edges.  Predecessors, similarly is a function to get
    vertices connected by incoming edges.  Capacity is a function which takes two
    vertices and returns the capacity between them.  Flow is an adjacency map which
    contains the current value of network flow.  s is the source node, t the sink."
   (gen/bf-path
    (fn [vertex] (distinct (filter #(> (residual-capacity capacity flow vertex %) 0)
-                                  (concat (neighbors vertex) (incoming vertex)))))
+                                  (concat (successors vertex) (predecessors vertex)))))
    s t))
 
 (defn augment-along-path [flow capacity path increase]
@@ -94,8 +94,8 @@
         
 (defn edmonds-karp
   "Computes the maximum flow on a network, using the edmonds-karp algorithm.
-   Neighbors is a function that returns the outgoing neighbor vertices of a
-   vertex.  Incoming is a function that returns the incoming neighbor vertices
+   Successors is a function that returns the outgoing neighbor vertices of a
+   vertex.  Predecessors is a function that returns the incoming neighbor vertices
    for a vertex.  Capacity is a function of two vertices that returns the
    capacity on the edge between them.  Source and sink are the unique vertices
    which supply and consume flow respectively.
@@ -103,12 +103,12 @@
    Returns a vector [flow value], where flow is an adjacency map that represents
    flows between vertices, and value is the quantity of flow passing from source
    to sink."
-  ([neighbors incoming capacity source sink]
-     (edmonds-karp neighbors incoming capacity source sink {}))
-  ([neighbors incoming capacity source sink flow]
-     (if-let [path (bf-find-augmenting-path neighbors
-                                            incoming capacity flow source sink)]
-       (recur neighbors incoming capacity source sink
+  ([successors predecessors capacity source sink]
+     (edmonds-karp successors predecessors capacity source sink {}))
+  ([successors predecessors capacity source sink flow]
+     (if-let [path (bf-find-augmenting-path successors
+                                            predecessors capacity flow source sink)]
+       (recur successors predecessors capacity source sink
               (augment-along-path flow capacity path
                                   (min-weight-along-path
                                    path (partial residual-capacity capacity flow))))
