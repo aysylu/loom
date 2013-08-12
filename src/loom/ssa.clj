@@ -83,23 +83,11 @@
     second
     :blocks))
 
-(def ssb
-  (->
-    (parse-to-state-machine
-      '[(if (> (+ x 1 2 y) 0)
-          (+ x 1)
-          (+ x 2))])
-    second
-    :blocks))
-
-#_(view (ssa->loom ssb ssa-nodes-fn ssa-edges-fn))
-
 #_(clojure.pprint/pprint ssa)
 
 #_(view (ssa->loom ssa ssa-nodes-fn ssa-edges-fn))
 
-(let [[node & worklist] (into clojure.lang.PersistentQueue/EMPTY [1 2 3 4])]
-  (println node (class worklist))) 
+;;;;;;;;;; Dataflow analysis ;;;;;;;;;;;
 
 (defn dataflow-analysis
   "Performs dataflow analysis.
@@ -123,40 +111,6 @@
         (if (seq worklist)
           (recur out-values worklist)
           out-values)))))
-
-#_(defn global-cse
-  [graph node-data start]
-  (letfn [(pure? [instr] (contains? instr :refs))
-          (global-cse-join
-            [values]
-            (apply set/intersection values))
-          (global-cse-transfer
-            [node in-value]
-            (into in-value (filter pure? (node-data node))))]
-    (dataflow-analysis
-      :start start
-      :graph graph
-      :join global-cse-join
-      :transfer global-cse-transfer)))
-
-#_(defn global-cse
-  [ssa]
-  (let [{graph :graph node-data :data} (ssa->loom (:blocks ssa) ssa-nodes-fn ssa-edges-fn)
-        start (:start-block ssa)]
-    (letfn [(pure? [instr] (contains? instr :refs))
-          (global-cse-join
-            [values]
-            (if (seq values)
-              (apply set/intersection values)
-              #{}))
-          (global-cse-transfer
-            [node in-value]
-            (into in-value (map :refs (filter pure? (node-data node)))))]
-    (dataflow-analysis
-      :start start
-      :graph graph
-      :join global-cse-join
-      :transfer global-cse-transfer))))
 
 (defn global-cse
   [ssa]
@@ -186,6 +140,11 @@
 (def graph (:graph (ssa->loom (:blocks test) ssa-nodes-fn ssa-edges-fn)))
 (def data (:data (ssa->loom (:blocks test) ssa-nodes-fn ssa-edges-fn)))
 
+(clojure.pprint/pprint test)
+(clojure.pprint/pprint
+  (global-cse test))
+
+
 (defn find-cse-in-block
   [block out-values predecessors]
   (let [in-value (if (seq predecessors)
@@ -198,17 +157,11 @@
           (conj new-block (assoc instr :repeated false))))
       [] block)))
 
-(clojure.pprint/pprint test)
-(clojure.pprint/pprint
-  (global-cse test))
-
 (clojure.pprint/pprint
   (for [n (g/nodes graph)
         :let [ps (g/incoming graph n)
               out-values (global-cse test)]]
     [n (find-cse-in-block (get data n) out-values ps)]))
-
-(clojure.pprint/pprint data)
 
 (clojure.pprint/pprint
   (find-cse-in-block
