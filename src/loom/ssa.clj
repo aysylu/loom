@@ -140,8 +140,8 @@
 (def graph (:graph (ssa->loom (:blocks test) ssa-nodes-fn ssa-edges-fn)))
 (def data (:data (ssa->loom (:blocks test) ssa-nodes-fn ssa-edges-fn)))
 
-(clojure.pprint/pprint test)
-(clojure.pprint/pprint
+#_(clojure.pprint/pprint test)
+#_(clojure.pprint/pprint
   (global-cse test))
 
 
@@ -157,13 +157,13 @@
           (conj new-block (assoc instr :repeated false))))
       [] block)))
 
-(clojure.pprint/pprint
+#_(clojure.pprint/pprint
   (for [n (g/nodes graph)
         :let [ps (g/predecessors graph n)
               out-values (global-cse test)]]
     [n (find-cse-in-block (get data n) out-values ps)]))
 
-(clojure.pprint/pprint
+#_(clojure.pprint/pprint
   (find-cse-in-block
     [{:refs [clojure.core/inc 7]}
      {:refs [clojure.core/+ 1]}]
@@ -171,7 +171,7 @@
          [clojure.core/+ 2]}}
     [1]))
 
-(clojure.pprint/pprint
+#_(clojure.pprint/pprint
   (find-cse-in-block
     [{:refs [clojure.core/inc 7]}
      {:refs [clojure.core/+ 1]}]
