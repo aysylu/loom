@@ -19,19 +19,19 @@
                (edges [g] @edges)
                (has-node? [g node] (contains? @nodes node))
                (has-edge? [g n1 n2] (contains? @edges [n1 n2]))
-               (neighbors [g] (partial g/neighbors g))
-               (neighbors [g node] (->>
+               (successors [g] (partial g/successors g))
+               (successors [g node] (->>
                                      @edges 
                                      (filter (fn [[n1 n2]] (= n1 node)))
                                      (map second)))
-               (degree [g node] (count (g/neighbors g node)))
+               (out-degree [g node] (count (g/successors g node)))
                g/Digraph
-               (incoming [g] (partial g/incoming g))
-               (incoming [g node] (->>
+               (predecessors [g] (partial g/predecessors g))
+               (predecessors [g node] (->>
                                     @edges   
                                     (filter (fn [[n1 n2]] (= n2 node)))
                                     (map first)))
-               (in-degree [g node] (count (g/incoming g node))))
+               (in-degree [g node] (count (g/predecessors g node))))
       :data ssa})))
 
 (defn ssa-nodes-fn
@@ -99,14 +99,14 @@
                 :else #{start})]
     (loop [out-values {} 
            [node & worklist] (into clojure.lang.PersistentQueue/EMPTY start)]
-      (let [in-value (join (mapv out-values (g/incoming graph node)))
+      (let [in-value (join (mapv out-values (g/predecessors graph node)))
             out (transfer node in-value)
             update? (not= out (get out-values node))
             out-values (if update?
                          (assoc out-values node out)
                          out-values)
             worklist (if update?
-                       (into worklist (g/neighbors graph node))
+                       (into worklist (g/successors graph node))
                        worklist)]
         (if (seq worklist)
           (recur out-values worklist)
@@ -159,7 +159,7 @@
 
 (clojure.pprint/pprint
   (for [n (g/nodes graph)
-        :let [ps (g/incoming graph n)
+        :let [ps (g/predecessors graph n)
               out-values (global-cse test)]]
     [n (find-cse-in-block (get data n) out-values ps)]))
 
@@ -209,9 +209,9 @@
        (edges [g#] (edges g#))
        (has-node? [g# node] (contains? (g/nodes g#) node))
        (has-edge? [g# n1 n2] (contains? (g/edges g#) [n1 n2]))
-       (neighbors [g#] (partial g/neighbors g#))
-       (neighbors [g# node] (seq (g/nodes g#)))
-       (degree [g# node] (count (g/neighbors g# node))))
+       (successors [g#] (partial g/successors g#))
+       (successors [g# node] (seq (g/nodes g#)))
+       (out-degree [g# node] (count (g/successors g# node))))
      ~@body))
 
 
