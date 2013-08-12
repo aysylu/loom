@@ -166,9 +166,7 @@ can use these functions."
   (let [vd (get costs v)
         ud (get costs u)
         sum (+ ud weight)]
-    (if (> vd sum)
-      true
-      false)))
+    (> vd sum)))
 
 (defn- relax-edge
   "If there's a shorter path from s to v via u,
