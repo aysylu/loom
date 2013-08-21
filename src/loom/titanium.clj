@@ -14,12 +14,12 @@
   ([titanium-graph &
     {:keys [node-fn edge-fn weight-fn]
      :or {node-fn (nodes/get-all-vertices)
-          edge-fn (map (juxt edges/tail-vertex
-                             edges/head-vertex)
-                       (edges/get-all-edges))
+          edge-fn (edges/get-all-edges)
           weight-fn (constantly 1)}}]
    (let [nodes-set (set node-fn)
-         edges-set (set edge-fn)]
+         edges-set (set (map (juxt edges/tail-vertex
+                                   edges/head-vertex)
+                             edge-fn))]
    (reify
      Graph
      (nodes [_] nodes-set)
