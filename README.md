@@ -124,6 +124,10 @@ TODO: link to autodocs
 
 Nothing but Clojure. There is optional support for visualization via [GrapViz](http://graphviz.org).
 
+## Continuous Integration
+
+[![Build Status](https://travis-ci.org/aysylu/loom.png)](http://travis-ci.org/aysylu/loom)
+
 ## TODO
 
 * Use deftype instead of defrecord
