@@ -1,4 +1,6 @@
-![Loom logo](https://raw.github.com/aysylu/loom/master/doc/loom_logo.png "Loom") [![Build Status](https://travis-ci.org/aysylu/loom.png)](http://travis-ci.org/aysylu/loom)
+![Loom logo](https://raw.github.com/aysylu/loom/master/doc/loom_logo.png "Loom")
+
+[![Build Status](https://travis-ci.org/aysylu/loom.png)](http://travis-ci.org/aysylu/loom)
 
 **Caveat coder**: this lib is alpha-stage. The API may change in future versions.
 
