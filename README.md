@@ -1,4 +1,4 @@
-![Loom logo](https://raw.github.com/aysylu/loom/master/doc/loom_logo.png "Loom")
+![Loom logo](https://raw.github.com/aysylu/loom/master/doc/loom_logo.png "Loom") [![Build Status](https://travis-ci.org/aysylu/loom.png)](http://travis-ci.org/aysylu/loom)
 
 **Caveat coder**: this lib is alpha-stage. The API may change in future versions.
 
@@ -123,10 +123,6 @@ TODO: link to autodocs
 ## Dependencies
 
 Nothing but Clojure. There is optional support for visualization via [GrapViz](http://graphviz.org).
-
-## Continuous Integration
-
-[![Build Status](https://travis-ci.org/aysylu/loom.png)](http://travis-ci.org/aysylu/loom)
 
 ## TODO
 
