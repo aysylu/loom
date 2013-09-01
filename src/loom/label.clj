@@ -3,8 +3,8 @@
   loom.label
   (:use [loom.attr :only [add-attr remove-attr attr]]
         [loom.graph :only [add-nodes add-edges]])
-  (:import [loom.graph SimpleGraph SimpleDigraph
-            SimpleWeightedGraph SimpleWeightedDigraph
+  (:import [loom.graph BasicEditableGraph BasicEditableDigraph
+            BasicEditableWeightedGraph BasicEditableWeightedDigraph
             FlyGraph FlyDigraph WeightedFlyGraph WeightedFlyDigraph]))
 
 (defprotocol LabeledGraph
@@ -29,19 +29,19 @@
             ([g n1 n2]
                (attr g n1 n2 :label)))})
 
-(extend SimpleGraph
+(extend BasicEditableGraph
   LabeledGraph
   default-labeled-graph-impl)
 
-(extend SimpleDigraph
+(extend BasicEditableDigraph
   LabeledGraph
   default-labeled-graph-impl)
 
-(extend SimpleWeightedGraph
+(extend BasicEditableWeightedGraph
   LabeledGraph
   default-labeled-graph-impl)
 
-(extend SimpleWeightedDigraph
+(extend BasicEditableWeightedDigraph
   LabeledGraph
   default-labeled-graph-impl)
 

@@ -4,8 +4,8 @@ thickness, etc)."
       :author "Justin Kramer"}
   loom.attr
   (use [loom.graph :only [directed? nodes edges]])
-  (:import [loom.graph SimpleGraph SimpleDigraph
-            SimpleWeightedGraph SimpleWeightedDigraph
+  (:import [loom.graph BasicEditableGraph BasicEditableDigraph
+            BasicEditableWeightedGraph BasicEditableWeightedDigraph
             FlyGraph FlyDigraph WeightedFlyGraph WeightedFlyDigraph]))
 
 (defprotocol AttrGraph
@@ -39,19 +39,19 @@ thickness, etc)."
             ([g n1 n2]
                (get-in g [:attrs n1 ::edge-attrs n2])))})
 
-(extend SimpleGraph
+(extend BasicEditableGraph
   AttrGraph
   default-attr-graph-impl)
 
-(extend SimpleDigraph
+(extend BasicEditableDigraph
   AttrGraph
   default-attr-graph-impl)
 
-(extend SimpleWeightedGraph
+(extend BasicEditableWeightedGraph
   AttrGraph
   default-attr-graph-impl)
 
-(extend SimpleWeightedDigraph
+(extend BasicEditableWeightedDigraph
   AttrGraph
   default-attr-graph-impl)
 
