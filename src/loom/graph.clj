@@ -58,17 +58,17 @@ on adjacency lists."
   (remove-edges* g edges))
 
 ;;;
-;;; Records for simple graphs -- one edge per vertex pair/direction,
+;;; Records for basic graphs -- one edge per vertex pair/direction,
 ;;; loops allowed
 ;;;
 ;; TODO: allow custom weight fn?
 ;; TODO: preserve metadata?
 ;; TODO: leverage zippers for faster record updates?
 
-(defrecord SimpleGraph [nodeset adj])
-(defrecord SimpleDigraph [nodeset adj in])
-(defrecord SimpleWeightedGraph [nodeset adj])
-(defrecord SimpleWeightedDigraph [nodeset adj in])
+(defrecord BasicEditableGraph [nodeset adj])
+(defrecord BasicEditableDigraph [nodeset adj in])
+(defrecord BasicEditableWeightedGraph [nodeset adj])
+(defrecord BasicEditableWeightedDigraph [nodeset adj in])
 
 (def ^{:dynamic true
        :doc "Weight used when none is given for edges in weighted graphs"}
@@ -136,162 +136,194 @@ on adjacency lists."
    (apply dissoc m nodes)
    adjacents))
 
-(extend SimpleGraph
+(extend BasicEditableGraph
   Graph
-  (assoc (apply merge (map default-graph-impls [:all :unweighted]))
+  (let [{:keys [all unweighted]} default-graph-impls]
+    (merge all unweighted)) 
 
-    :add-edges*
-    (fn [g edges]
-      (reduce
+  EditableGraph
+  {:add-nodes*
+   (fn [g nodes]
+     (reduce
+       (fn [g node] (update-in g [:nodeset] conj node))
+       g nodes))
+
+   :add-edges*
+   (fn [g edges]
+     (reduce
        (fn [g [n1 n2]]
          (-> g
              (update-in [:nodeset] conj n1 n2)
              (update-in [:adj n1] (fnil conj #{}) n2)
              (update-in [:adj n2] (fnil conj #{}) n1)))
        g edges))
-    
-    :remove-nodes*
-    (fn [g nodes]
-      (let [nbrs (mapcat #(successors g %) nodes)]
-        (-> g
-            (update-in [:nodeset] #(apply disj % nodes))
-            (assoc :adj (remove-adj-nodes (:adj g) nodes nbrs disj)))))
-    
-    :remove-edges*
-    (fn [g edges]
-      (reduce
+
+   :remove-nodes*
+   (fn [g nodes]
+     (let [nbrs (mapcat #(successors g %) nodes)]
+       (-> g
+           (update-in [:nodeset] #(apply disj % nodes))
+           (assoc :adj (remove-adj-nodes (:adj g) nodes nbrs disj)))))
+
+   :remove-edges*
+   (fn [g edges]
+     (reduce
        (fn [g [n1 n2]]
          (-> g
              (update-in [:adj n1] disj n2)
              (update-in [:adj n2] disj n1)))
        g edges))
 
-    :remove-all
-    (fn [g]
-      (assoc g :nodeset #{} :adj {}))))
+   :remove-all
+   (fn [g]
+     (assoc g :nodeset #{} :adj {}))})
 
-(extend SimpleDigraph
+(extend BasicEditableDigraph
   Graph
-  (assoc (apply merge (map default-graph-impls [:all :unweighted]))
-    
-    :add-edges*
-    (fn [g edges]
-      (reduce
+  (let [{:keys [all unweighted]} default-graph-impls]
+    (merge all unweighted)) 
+
+  EditableGraph
+  {:add-nodes*
+   (fn [g nodes]
+     (reduce
+       (fn [g node] (update-in g [:nodeset] conj node))
+       g nodes))
+
+   :add-edges*
+   (fn [g edges]
+     (reduce
        (fn [g [n1 n2]]
          (-> g
              (update-in [:nodeset] conj n1 n2)
              (update-in [:adj n1] (fnil conj #{}) n2)
              (update-in [:in n2] (fnil conj #{}) n1)))
        g edges))
-    
-    :remove-nodes*
-    (fn [g nodes]
-      (let [ins (mapcat #(predecessors g %) nodes)
-            outs (mapcat #(successors g %) nodes)]
-        (-> g
-            (update-in [:nodeset] #(apply disj % nodes))
-            (assoc :adj (remove-adj-nodes (:adj g) nodes ins disj))
-            (assoc :in (remove-adj-nodes (:in g) nodes outs disj)))))
-    
-    :remove-edges*
-    (fn [g edges]
-      (reduce
+
+   :remove-nodes*
+   (fn [g nodes]
+     (let [ins (mapcat #(predecessors g %) nodes)
+           outs (mapcat #(successors g %) nodes)]
+       (-> g
+           (update-in [:nodeset] #(apply disj % nodes))
+           (assoc :adj (remove-adj-nodes (:adj g) nodes ins disj))
+           (assoc :in (remove-adj-nodes (:in g) nodes outs disj)))))
+
+   :remove-edges*
+   (fn [g edges]
+     (reduce
        (fn [g [n1 n2]]
          (-> g
              (update-in [:adj n1] disj n2)
              (update-in [:in n2] disj n1)))
        g edges))
 
-    :remove-all
-    (fn [g]
-      (assoc g :nodeset #{} :adj {} :in {})))
+   :remove-all
+   (fn [g]
+     (assoc g :nodeset #{} :adj {} :in {}))}
 
   Digraph
   (assoc default-digraph-impl
-    :transpose (fn [g]
-                 (assoc g :adj (:in g) :in (:adj g)))))
+         :transpose (fn [g]
+                      (assoc g :adj (:in g) :in (:adj g)))))
 
-(extend SimpleWeightedGraph
+(extend BasicEditableWeightedGraph
   Graph
-  (assoc (apply merge (map default-graph-impls [:all :weighted]))
+  (let [{:keys [all weighted]} default-graph-impls]
+    (merge all weighted)) 
 
-    :add-edges*
-    (fn [g edges]
-      (reduce
+  EditableGraph
+  {:add-nodes*
+   (fn [g nodes]
+     (reduce
+       (fn [g node] (update-in g [:nodeset] conj node))
+       g nodes))
+
+   :add-edges*
+   (fn [g edges]
+     (reduce
        (fn [g [n1 n2 & [w]]]
          (-> g
              (update-in [:nodeset] conj n1 n2)
              (assoc-in [:adj n1 n2] (or w *default-weight*))
              (assoc-in [:adj n2 n1] (or w *default-weight*))))
        g edges))
-    
-    :remove-nodes*
-    (fn [g nodes]
-      (let [nbrs (mapcat #(successors g %) nodes)]
-        (-> g
-            (update-in [:nodeset] #(apply disj % nodes))
-            (assoc :adj (remove-adj-nodes (:adj g) nodes nbrs dissoc)))))
-    
-    :remove-edges*
-    (fn [g edges]
-      (reduce
+
+   :remove-nodes*
+   (fn [g nodes]
+     (let [nbrs (mapcat #(successors g %) nodes)]
+       (-> g
+           (update-in [:nodeset] #(apply disj % nodes))
+           (assoc :adj (remove-adj-nodes (:adj g) nodes nbrs dissoc)))))
+
+   :remove-edges*
+   (fn [g edges]
+     (reduce
        (fn [g [n1 n2]]
          (-> g
              (update-in [:adj n1] dissoc n2)
              (update-in [:adj n2] dissoc n1)))
        g edges))
 
-    :remove-all
-    (fn [g]
-      (assoc g :nodeset #{} :adj {})))
-  
+   :remove-all
+   (fn [g]
+     (assoc g :nodeset #{} :adj {}))}
+
   WeightedGraph
   default-weighted-graph-impl)
 
-(extend SimpleWeightedDigraph
+(extend BasicEditableWeightedDigraph
   Graph
-  (assoc (apply merge (map default-graph-impls [:all :weighted]))
-    
-    :add-edges*
-    (fn [g edges]
-      (reduce
+  (let [{:keys [all weighted]} default-graph-impls]
+    (merge all weighted)) 
+
+  EditableGraph
+  {:add-nodes*
+   (fn [g nodes]
+     (reduce
+       (fn [g node] (update-in g [:nodeset] conj node))
+       g nodes))
+
+   :add-edges*
+   (fn [g edges]
+     (reduce
        (fn [g [n1 n2 & [w]]]
          (-> g
              (update-in [:nodeset] conj n1 n2)
              (assoc-in [:adj n1 n2] (or w *default-weight*))
              (update-in [:in n2] (fnil conj #{}) n1)))
        g edges))
-    
-    :remove-nodes*
-    (fn [g nodes]
-      (let [ins (mapcat #(predecessors g %) nodes)
-            outs (mapcat #(successors g %) nodes)]
-        (-> g
-            (update-in [:nodeset] #(apply disj % nodes))
-            (assoc :adj (remove-adj-nodes (:adj g) nodes ins dissoc))
-            (assoc :in (remove-adj-nodes (:in g) nodes outs disj)))))
-    
-    :remove-edges*
-    (fn [g edges]
-      (reduce
+
+   :remove-nodes*
+   (fn [g nodes]
+     (let [ins (mapcat #(predecessors g %) nodes)
+           outs (mapcat #(successors g %) nodes)]
+       (-> g
+           (update-in [:nodeset] #(apply disj % nodes))
+           (assoc :adj (remove-adj-nodes (:adj g) nodes ins dissoc))
+           (assoc :in (remove-adj-nodes (:in g) nodes outs disj)))))
+
+   :remove-edges*
+   (fn [g edges]
+     (reduce
        (fn [g [n1 n2]]
          (-> g
              (update-in [:adj n1] dissoc n2)
              (update-in [:in n2] disj n1)))
        g edges))
 
-    :remove-all
-    (fn [g]
-      (assoc g :nodeset #{} :adj {} :in {})))
+   :remove-all
+   (fn [g]
+     (assoc g :nodeset #{} :adj {} :in {}))}
 
   Digraph
   (assoc default-digraph-impl
-    :transpose (fn [g]
-                 (reduce (fn [tg [n1 n2]]
-                             (add-edges* tg [[n2 n1 (weight g n1 n2)]]))
-                         (assoc g :adj {} :in {})
-                         (edges g))))
-  
+         :transpose (fn [g]
+                      (reduce (fn [tg [n1 n2]]
+                                (add-edges* tg [[n2 n1 (weight g n1 n2)]]))
+                              (assoc g :adj {} :in {})
+                              (edges g))))
+
   WeightedGraph
   default-weighted-graph-impl)
 
@@ -392,6 +424,11 @@ on adjacency lists."
   [g]
   (satisfies? WeightedGraph g))
 
+(defn editable?
+  "Return true if g satisfies the Graph protocol"
+  [g]
+  (satisfies? EditableGraph g))
+
 (defn build-graph
   "Builds up a graph (i.e. adds edges and nodes) from any combination of
   other graphs, adjacency maps, edges, or nodes."
@@ -430,25 +467,25 @@ on adjacency lists."
   "Create an unweighted, undirected graph. inits can be edges, adjacency maps,
   or graphs"
   [& inits]
-  (apply build-graph (SimpleGraph. #{} {}) inits))
+  (apply build-graph (BasicEditableGraph. #{} {}) inits))
 
 (defn digraph
   "Create an unweighted, directed graph. inits can be edges, adjacency maps,
   or graphs"
   [& inits]
-  (apply build-graph (SimpleDigraph. #{} {} {}) inits))
+  (apply build-graph (BasicEditableDigraph. #{} {} {}) inits))
 
 (defn weighted-graph
   [& inits]
   "Create an weighted, undirected graph. inits can be edges, adjacency maps,
   or graphs"
-  (apply build-graph (SimpleWeightedGraph. #{} {}) inits))
+  (apply build-graph (BasicEditableWeightedGraph. #{} {}) inits))
 
 (defn weighted-digraph
   "Create an weighted, directed graph. inits can be edges, adjacency maps,
   or graphs"
   [& inits]
-  (apply build-graph (SimpleWeightedDigraph. #{} {} {}) inits))
+  (apply build-graph (BasicEditableWeightedDigraph. #{} {} {}) inits))
 
 (defn fly-graph
   "Create a read-only, ad-hoc graph which uses the provided functions
