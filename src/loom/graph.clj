@@ -11,11 +11,6 @@ on adjacency lists."
 ;;;
 
 (defprotocol Graph
-  (add-nodes* [g nodes] "Add nodes to graph g. See add-nodes")
-  (add-edges* [g edges] "Add edges to graph g. See add-edges")
-  (remove-nodes* [g nodes] "Remove nodes from graph g. See remove-nodes")
-  (remove-edges* [g edges] "Removes edges from graph g. See remove-edges")
-  (remove-all [g] "Removes all nodes and edges from graph g")
   (nodes [g] "Return a collection of the nodes in graph g")
   (edges [g] "Edges in g. May return each edge twice in an undirected graph")
   (has-node? [g node] "Return true when node is in g")
@@ -30,6 +25,13 @@ on adjacency lists."
 
 (defprotocol WeightedGraph
   (weight [g] [g n1 n2] "Return weight of edge [n1 n2] or (partial weight g)"))
+
+(defprotocol EditableGraph
+  (add-nodes* [g nodes] "Add nodes to graph g. See add-nodes")
+  (add-edges* [g edges] "Add edges to graph g. See add-edges")
+  (remove-nodes* [g nodes] "Remove nodes from graph g. See remove-nodes")
+  (remove-edges* [g edges] "Removes edges from graph g. See remove-edges")
+  (remove-all [g] "Removes all nodes and edges from graph g"))
 
 ;; Variadic wrappers
 
