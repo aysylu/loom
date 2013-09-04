@@ -1,6 +1,6 @@
 (ns loom.test.label
-  (:use [loom graph label])
-  (:use [clojure.test]))
+  (:use [loom graph label]
+        [clojure.test]))
 
 (deftest labeled-graph-test
   (let [g (digraph [1 2] [2 3] [2 4] [3 5] [4 5])
