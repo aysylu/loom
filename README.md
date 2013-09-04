@@ -8,7 +8,7 @@
 
 ### Leiningen/Clojars [group-id/name version]
 
-    [aysylu/loom "0.3.1"]
+    [aysylu/loom "0.4.0"]
 
 ### Namespaces
 
