@@ -4,6 +4,10 @@
 
 **Caveat coder**: this lib is alpha-stage. The API may change in future versions.
 
+## Video and Slides
+
+Watch the [talk on Loom](http://youtu.be/Iev7zavblqg) and view [slides](http://www.slideshare.net/aysylu/aysylu-loom).
+
 ## Usage
 
 ### Leiningen/Clojars [group-id/name version]
