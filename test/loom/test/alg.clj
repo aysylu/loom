@@ -86,6 +86,27 @@
                     [:d :e 2]
                     [:e :b -7]))
 
+;; Directed graph with 4 strongly connected components.
+(def g13
+  (digraph [1 5]
+           [2 4]
+           [3 1]
+           [3 2]
+           [3 6]
+           [4 10]
+           [5 3]
+           [6 1]
+           [6 10]
+           [7 8]
+           [8 9]
+           [8 11]
+           [9 3]
+           [9 5]
+           [9 7]
+           [10 2]
+           [11 2]
+           [11 4]))
+
 (deftest depth-first-test
   (are [expected got] (= expected got)
     #{1 2 3 5 6 7} (set (pre-traverse g7))
@@ -224,4 +245,7 @@
     true (bipartite? g8)
     false (bipartite? g1)
     #{#{2 3 4 6 7 8} #{1 5}} (set (bipartite-sets g8))))
-    
+
+(deftest scc-test
+  (are [expected got] (= expected got)
+    #{#{2 4 10} #{1 3 5 6} #{11} #{7 8 9}} (set (map set (scc g13)))))
