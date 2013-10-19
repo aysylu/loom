@@ -23,7 +23,7 @@ can use these functions."
       (if (seen n)
         [seen trav]
         (let [ctrav (traverse n :seen (conj seen n))]
-          [(into seen ctrav) (concat ctrav trav)])))
+          [(into seen ctrav) (concat trav ctrav)])))
     [#{} []]
     nodes)))
 
