@@ -2,7 +2,8 @@
 
 [![Build Status](https://travis-ci.org/aysylu/loom.png)](http://travis-ci.org/aysylu/loom)
 
-**Caveat coder**: this lib is alpha-stage. The API may change in future versions.
+**Caveat coder**: This library is not yet battle-tested.
+
 
 ## Video and Slides
 
@@ -10,9 +11,11 @@ Watch the [talk on Loom](http://youtu.be/Iev7zavblqg) and view [slides](http://w
 
 ## Usage
 
+The namespace `loom.graph` must be AOT compiled. You can include `:aot [loom.graph]` in your project.clj to do this. This is due to the issue described [on the Clojure mailing list here](https://groups.google.com/forum/?hl=en#!topic/clojure/ZeENLkHAQTU).
+
 ### Leiningen/Clojars [group-id/name version]
 
-    [aysylu/loom "0.3.1"]
+    [aysylu/loom "0.4.1"]
 
 ### Namespaces
 
