@@ -23,7 +23,7 @@ can use these functions."
       (if (seen n)
         [seen trav]
         (let [ctrav (traverse n :seen (conj seen n))]
-          [(into seen ctrav) (concat trav ctrav)])))
+          [(into seen ctrav) (doall (concat trav ctrav))])))
     [#{} []]
     nodes)))
 
@@ -309,7 +309,7 @@ can use these functions."
         cc
         (let [[c seen] (post-traverse gt (first stack)
                                       :seen seen :return-seen true)]
-          (recur (remove seen stack)
+          (recur (doall (remove seen stack))
                  seen
                  (conj cc c)))))))
 
