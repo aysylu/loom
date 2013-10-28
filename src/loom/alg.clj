@@ -419,5 +419,96 @@ can use these functions."
     [flow-map flow-value]))
                                                    
                                                    
+(defn- assoc-noclobber 
+  "An assoc wrapper which ensures that existing keys will not be
+  clobbered by subsequent assoc invocations. 
+
+  Used as a helper for locking-memoize to ensure that (delay) refs
+  cannot be lost by swap! retry behavior."
+  
+  [m k v]
+  (if (contains? m k) m
+      (assoc m k v)))
+
+(defn- locking-memoize 
+  "Memoizes the function f, using the same approach as
+  clojure.core/memoize. The practical difference is that this function
+  provides the gurantee that in spite of parallel invocations of the
+  memoized function each input to f will only ever be memoized
+  once. This resolves an implementation detail in clojure.core/memoize
+  which allows f to be applied to args without locking the cache to
+  prevent other threads duplicating the work."
+
+  [f]
+  (let [mem (atom {})]
+    (fn [ & args ]
+      (println args)
+      (if (= :_SKETCHY_TESTING_RESET
+             (first args))
+        (reset! mem {})
+        (if-let [e (find @mem args)]
+          (deref (val e))
+          (-> (swap! mem assoc-noclobber
+                     args (delay (apply f args)))
+              (get args)
+              (deref)))))))
+
+
+(def ^:dynamic *hash-algo* "MD5")
+
+(defn -hash 
+  ([data]
+     (-hash data *hash-algo*))
+
+  ([data algo]
+     (->> (doto (java.security.MessageDigest/getInstance algo)
+            .reset
+            (.update (.getBytes data)))
+          (.digest)
+          (map (partial format "%02x"))
+          (apply str))))
+
+(def -node-hash
+  (locking-memoize
+   (fn [graph seen node]
+     (println (format "[%s %s %s]" graph seen node))
+     (let [children (-> graph
+                        (nb node)
+                        seq)]
+     (cond ;; Repeated visit (cycle breaking case)
+           (seen node)
+             (-hash (apply str (repeat 128 \0)))
+           
+           ;; Island case
+           (empty? children)
+             (-hash (apply str (repeat 128 \1)))
+           
+           :else
+             (->> children
+                  (pmap (partial -node-hash graph (conj seen node)))
+                  (sort)
+                  (apply str)
+                  (-hash)))))))
+
+(defn structural-hash
+  "Returns an hash string, representing the structure of the input as
+  proposed in TE Portegys \"General Graph Identification With
+  Hashing\". By rebinding the variable *hash-algo* the exact hashing
+  algorithm may be controlled. \"MD5\" is used by default, but any
+  hash implemented by java.security.MessageDigest will work."
+
+  [graph]
+  (->> graph nodes seq
+       (pmap (partial -node-hash graph #{}))
+       sort (apply str) -hash))
+
+(defn isomorphic?
+  "Predicate testing structural isomorphism of G and H. Note that this
+  is a strict structural isomorphism test, if G is a subgraph of H or
+  vice-versa false will be returned."
+  [g h]
+  (or (= g h) ;; wiseguy case
+      (= (structural-hash g)
+         (structural-hash h))))
                                                         
 ;; TODO: MST, coloring, matching, etc etc
