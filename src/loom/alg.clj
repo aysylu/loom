@@ -225,10 +225,10 @@ can use these functions."
               (can-relax-edge? edge (wt g u v) costs))
             edges)
         false
-        [costs 
+        [costs
          (->> (keys paths)
               ;remove vertices that are unreachable from source
-              (remove #(= Double/POSITIVE_INFINITY (get costs %))) 
+              (remove #(= Double/POSITIVE_INFINITY (get costs %)))
               (reduce
                 (fn [final-paths v]
                   (assoc final-paths v
@@ -418,11 +418,10 @@ can use these functions."
                                       (str "Method not found.  Choose from: "
                                                  method-set))))]
     [flow-map flow-value]))
-                                                   
 
 (def ^:dynamic *hash-algo* "MD5")
 
-(defn -hash 
+(defn -hash
   ([data]
      (-hash data *hash-algo*))
 
@@ -443,11 +442,11 @@ can use these functions."
      (cond ;; Repeated visit (cycle breaking case)
            (seen node)
              (-hash (apply str (repeat 128 \0)))
-           
+
            ;; Island case
            (empty? children)
              (-hash (apply str (repeat 128 \1)))
-           
+
            :else
              (->> children
                   (pmap (partial -node-hash graph (conj seen node)))
@@ -476,5 +475,5 @@ can use these functions."
   (or (= g h) ;; wiseguy case
       (= (structural-hash g)
          (structural-hash h))))
-                                                        
+
 ;; TODO: MST, coloring, matching, etc etc
