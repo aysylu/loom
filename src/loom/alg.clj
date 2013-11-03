@@ -442,7 +442,6 @@ can use these functions."
   [f]
   (let [mem (atom {})]
     (fn [ & args ]
-      (println args)
       (if (= :_SKETCHY_TESTING_RESET
              (first args))
         (reset! mem {})
@@ -452,7 +451,6 @@ can use these functions."
                      args (delay (apply f args)))
               (get args)
               (deref)))))))
-
 
 (def ^:dynamic *hash-algo* "MD5")
 
@@ -471,7 +469,6 @@ can use these functions."
 (def -node-hash
   (locking-memoize
    (fn [graph seen node]
-     (println (format "[%s %s %s]" graph seen node))
      (let [children (-> graph
                         (nb node)
                         seq)]
