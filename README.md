@@ -15,7 +15,7 @@ The namespace `loom.graph` must be AOT compiled. You can include `:aot [loom.gra
 
 ### Leiningen/Clojars [group-id/name version]
 
-    [aysylu/loom "0.4.1"]
+    [aysylu/loom "0.4.2"]
 
 ### Namespaces
 
