@@ -137,7 +137,7 @@ Nothing but Clojure. There is optional support for visualization via [GrapViz](h
 
 * Use deftype instead of defrecord
 * Do more functional graph research
-* Solidify basic API, guarantees
+* Solidify performance guarantees
 * Implement more algorithms
 * Test & profile more with big, varied graphs
 * Multigraphs, hypergraphs, adjacency matrix-based graphs?
