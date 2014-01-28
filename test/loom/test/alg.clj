@@ -249,3 +249,34 @@
 (deftest scc-test
   (are [expected got] (= expected got)
     #{#{2 4 10} #{1 3 5 6} #{11} #{7 8 9}} (set (map set (scc g13)))))
+
+(deftest isomorphism-test
+  (are [expected got] (= expected got)
+    (structural-hash g2) "feb38d2fe6a73abd6d6bed5d1ab008d0"
+    (structural-hash g4) "875d83e639479ea3cbddf92c67789fd4"
+    (isomorphic? g2 g4) false
+    (isomorphic? g4 g2) false
+    (isomorphic? g2 g2) true
+    (isomorphic? g4 g4) true
+
+    (isomorphic? (digraph [1 2] [3 4])  ;; directed graph, 1->2, 3->4
+                 (graph   [1 2] [3 4])) ;; undirected, 1->2->1, 3->4->3
+        false
+
+    (isomorphic? (weighted-digraph [:a :b 1]
+                                   [:b :c 200])
+                 (digraph [1 2] [2 3]))
+        true
+
+    (isomorphic? (weighted-digraph [:a :b 1] [:b :a 1]
+                                   [:b :c 1] [:c :b 1])
+                 (weighted-graph   [:a :b 1]
+                                   [:b :c 1]))
+        true
+
+    ;; missing back edges in the digraph again
+    (isomorphic? (weighted-digraph [:a :b 1] [:b :a 1])
+                 (weighted-graph   [:a :b 1]
+                                   [:b :c 1]))
+        false
+    ))

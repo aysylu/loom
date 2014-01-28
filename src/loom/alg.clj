@@ -4,7 +4,8 @@ can use these functions."
       :author "Justin Kramer"}
   loom.alg
   (:require [loom.alg-generic :as gen]
-            [loom.flow :as flow])
+            [loom.flow :as flow]
+            clojure.core.memoize)
   (:use [loom.graph
          :only [add-edges nodes edges successors weight predecessors out-degree
                 in-degree weighted? directed? graph transpose]
@@ -224,10 +225,10 @@ can use these functions."
               (can-relax-edge? edge (wt g u v) costs))
             edges)
         false
-        [costs 
+        [costs
          (->> (keys paths)
               ;remove vertices that are unreachable from source
-              (remove #(= Double/POSITIVE_INFINITY (get costs %))) 
+              (remove #(= Double/POSITIVE_INFINITY (get costs %)))
               (reduce
                 (fn [final-paths v]
                   (assoc final-paths v
@@ -417,7 +418,62 @@ can use these functions."
                                       (str "Method not found.  Choose from: "
                                                  method-set))))]
     [flow-map flow-value]))
-                                                   
-                                                   
-                                                        
+
+(def ^:dynamic *hash-algo* "MD5")
+
+(defn -hash
+  ([data]
+     (-hash data *hash-algo*))
+
+  ([data algo]
+     (->> (doto (java.security.MessageDigest/getInstance algo)
+            .reset
+            (.update (.getBytes data)))
+          (.digest)
+          (map (partial format "%02x"))
+          (apply str))))
+
+(def -node-hash
+  (clojure.core.memoize/lu
+   (fn [graph seen node]
+     (let [children (-> graph
+                        (nb node)
+                        seq)]
+     (cond ;; Repeated visit (cycle breaking case)
+           (seen node)
+             (-hash (apply str (repeat 128 \0)))
+
+           ;; Island case
+           (empty? children)
+             (-hash (apply str (repeat 128 \1)))
+
+           :else
+             (->> children
+                  (pmap (partial -node-hash graph (conj seen node)))
+                  (sort)
+                  (apply str)
+                  (-hash)))))
+   :lu/threshold 256))
+
+(defn structural-hash
+  "Returns an hash string, representing the structure of the input as
+  proposed in TE Portegys \"General Graph Identification With
+  Hashing\". By rebinding the variable *hash-algo* the exact hashing
+  algorithm may be controlled. \"MD5\" is used by default, but any
+  hash implemented by java.security.MessageDigest will work."
+
+  [graph]
+  (->> graph nodes seq
+       (pmap (partial -node-hash graph #{}))
+       sort (apply str) -hash))
+
+(defn isomorphic?
+  "Predicate testing structural isomorphism of G and H. Note that this
+  is a strict structural isomorphism test, if G is a subgraph of H or
+  vice-versa false will be returned."
+  [g h]
+  (or (= g h) ;; wiseguy case
+      (= (structural-hash g)
+         (structural-hash h))))
+
 ;; TODO: MST, coloring, matching, etc etc
