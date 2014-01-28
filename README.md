@@ -26,6 +26,10 @@ The namespace `loom.graph` must be AOT compiled. You can include `:aot [loom.gra
     loom.label - graph labels
     loom.io    - read, write, and view graphs in external formats
 
+### Documentation
+
+[API Reference](http://aysy.lu/loom/)
+
 ### Basics
 
 Create a graph:
@@ -126,8 +130,6 @@ Other stuff:
     
     (dijkstra-span wg :a)
     => {:a {:b 10, :c 20}, :b {:e 15}, :e {:d 20}}
-
-TODO: link to autodocs
 
 ## Dependencies
 
