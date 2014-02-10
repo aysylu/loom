@@ -30,6 +30,8 @@ The namespace `loom.graph` must be AOT compiled. You can include `:aot [loom.gra
 
 [API Reference](http://aysy.lu/loom/)
 
+[Frequently Asked Questions](http://aysy.lu/loom/faq.html)
+
 ### Basics
 
 Create a graph:
