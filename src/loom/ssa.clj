@@ -98,16 +98,20 @@
                 (coll? start) (set start)
                 :else #{start})]
     (loop [out-values {} 
-           [node & worklist] (into clojure.lang.PersistentQueue/EMPTY start)]
-      (let [in-value (join (mapv out-values (g/predecessors graph node)))
+           queue (into clojure.lang.PersistentQueue/EMPTY start)]
+      (let [node (peek queue)
+            worklist (pop queue)
+            in-value (join (mapv out-values (g/predecessors graph node)))
             out (transfer node in-value)
             update? (not= out (get out-values node))
             out-values (if update?
                          (assoc out-values node out)
                          out-values)
+            workset (set worklist)
             worklist (if update?
-                       (into worklist (g/successors graph node))
-                       worklist)]
+                       (->> (g/successors graph node)
+                            (remove workset)
+                            (into worklist)))]
         (if (seq worklist)
           (recur out-values worklist)
           out-values)))))
