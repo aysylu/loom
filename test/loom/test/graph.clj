@@ -1,5 +1,6 @@
 (ns loom.test.graph
   (:use [loom.graph] :reload)
+  (:use [loom.attr] :reload)
   (:use [clojure.test]))
 
 (deftest simple-graph-test
@@ -151,7 +152,23 @@
         g3 (weighted-digraph g1)
         g4 (weighted-digraph g3 (weighted-graph [5 6 88]) [7 8] 9)
         g5 (weighted-digraph)
-        g6 (transpose g1)]
+        g6 (transpose g1)
+        ;;
+        g7 (-> (weighted-digraph)
+               (add-nodes 1 2 3 4)
+               (add-edges [1 3] [2 3] [3 4])
+               (add-attr 1 :type :var)
+               (add-attr 2 :type :val)
+               (add-attr 3 :type :op)
+               (add-attr 4 :type :res)
+               (rename-nodes [3 4] [:a :b]))
+        g8 (-> (weighted-digraph)
+               (add-nodes 1 2 :a :b)
+               (add-edges [1 :a] [2 :a] [:a :b])
+               (add-attr 1 :type :var)
+               (add-attr 2 :type :val)
+               (add-attr :a :type :op)
+               (add-attr :b :type :res))]
     (testing "Construction, nodes, edges"
       (are [expected got] (= expected got)
         #{1 2 3 4} (set (nodes g1))
@@ -196,6 +213,8 @@
         #{[1 2]} (set (edges (remove-nodes g1 3 4)))
         #{1 2 3 4} (set (nodes (remove-edges g1 [1 2] [1 3])))
         #{[2 3]} (set (edges (remove-edges g1 [1 2] [1 3])))))
+    (testing "Rename"
+      (is (= g7 g8)))
     (testing "Weight"
       (are [expected got] (= expected got)
         77 (weight g1 1 2)

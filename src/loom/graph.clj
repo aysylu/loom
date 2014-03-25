@@ -31,7 +31,9 @@ on adjacency lists."
   (add-edges* [g edges] "Add edges to graph g. See add-edges")
   (remove-nodes* [g nodes] "Remove nodes from graph g. See remove-nodes")
   (remove-edges* [g edges] "Removes edges from graph g. See remove-edges")
+  (rename-nodes* [g old-names new-names] "Rename nodes in g. Does not descend into :attrs content maps, just like remove-nodes*.")
   (remove-all [g] "Removes all nodes and edges from graph g"))
+
 
 ;; Variadic wrappers
 
@@ -56,6 +58,11 @@ on adjacency lists."
   "Remove edges from graph g. Do not include weights"
   [g & edges]
   (remove-edges* g edges))
+
+(defn rename-nodes
+  "Rename nodes in g."
+  [g & [oldn newn]]
+  (rename-nodes* g oldn newn))
 
 ;;;
 ;;; Records for basic graphs -- one edge per vertex pair/direction,
@@ -136,6 +143,34 @@ on adjacency lists."
    (apply dissoc m nodes)
    adjacents))
 
+;; from tools.core
+(defn- subj
+  ([s oldk newk] (subj s (apply hash-map (interleave oldk newk))))
+  ([s km] (letfn [(subst [s [ok nk]]
+                    (if (contains? s ok)
+                      (-> s
+                          (disj ok)
+                          (conj nk))
+                      s))]
+            (reduce subst s (seq km)))))
+
+(defn- rename-keys
+  ([m oldk newk] (rename-keys m (apply hash-map (interleave oldk newk))))
+  ([m km] (letfn [(subst [m [ok nk]]
+                    (if (contains? m ok)
+                      (-> m
+                          (dissoc ok)
+                          (assoc nk (m ok)))
+                      m))]
+            (reduce subst m (seq km)))))
+
+(defn- updates-in
+  [m ks f & params]
+  (reduce
+    #(apply (partial update-in %1 %2 f) params)
+    m
+    ks))
+
 (extend BasicEditableGraph
   Graph
   (let [{:keys [all unweighted]} default-graph-impls]
@@ -173,6 +208,10 @@ on adjacency lists."
              (update-in [:adj n1] disj n2)
              (update-in [:adj n2] disj n1)))
        g edges))
+
+   :rename-nodes*
+   (fn [g oldn newn]
+     :todo)
 
    :remove-all
    (fn [g]
@@ -217,6 +256,10 @@ on adjacency lists."
              (update-in [:adj n1] disj n2)
              (update-in [:in n2] disj n1)))
        g edges))
+
+   :rename-nodes*
+   (fn [g oldn newn]
+     :todo)
 
    :remove-all
    (fn [g]
@@ -265,6 +308,10 @@ on adjacency lists."
              (update-in [:adj n2] dissoc n1)))
        g edges))
 
+   :rename-nodes*
+   (fn [g oldn newn]
+     :todo)
+
    :remove-all
    (fn [g]
      (assoc g :nodeset #{} :adj {}))}
@@ -311,6 +358,35 @@ on adjacency lists."
              (update-in [:adj n1] dissoc n2)
              (update-in [:in n2] disj n1)))
        g edges))
+
+   :rename-nodes*
+   ;; TODO: 
+   ;;  0- figure out if attrs should be descended into
+   (fn [g oldn newn]
+     (let [ins (mapcat #(predecessors g %) oldn)
+           outs (mapcat #(successors g %) oldn)
+           swaps (apply hash-map (interleave oldn newn))]
+       (-> g
+           ; nodeset
+           (update-in [:nodeset] #(subj % oldn newn))
+           ; adj
+           (update-in [:adj] #(-> %
+                                  ; rename in node adj maps
+                                  (updates-in (map vector ins) rename-keys oldn newn)
+                                  ; rename in adj list top
+                                  (rename-keys oldn newn)))
+           ; in
+           (update-in [:in] #(-> %
+                                 ; rename in adj sets
+                                 (updates-in (map vector outs) subj oldn newn)
+                                 ; rename in is list top
+                                 (rename-keys oldn newn)))
+           ; attrs
+           (update-in [:attrs] #(-> %
+                                    ; TODO
+                                    ; should we offer to pass in update-f value-maps?
+                                    ; rename attrs list top
+                                    (rename-keys oldn newn))))))
 
    :remove-all
    (fn [g]
