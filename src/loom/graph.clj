@@ -425,7 +425,7 @@ on adjacency lists."
   (satisfies? WeightedGraph g))
 
 (defn editable?
-  "Return true if g satisfies the Graph protocol"
+  "Return true if g satisfies the EditableGraph protocol"
   [g]
   (satisfies? EditableGraph g))
 
