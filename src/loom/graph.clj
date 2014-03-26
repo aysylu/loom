@@ -31,7 +31,8 @@ on adjacency lists."
   (add-edges* [g edges] "Add edges to graph g. See add-edges")
   (remove-nodes* [g nodes] "Remove nodes from graph g. See remove-nodes")
   (remove-edges* [g edges] "Removes edges from graph g. See remove-edges")
-  (rename-nodes* [g old-names new-names] "Rename nodes in g. Does not descend into :attrs content maps, just like remove-nodes*.")
+  (rename-nodes* [g old-names new-names attr-processor] "Rename nodes in g. 
+                                                        (defn attr-processor [attr-map old-names new-names] ...)")
   (remove-all [g] "Removes all nodes and edges from graph g"))
 
 
@@ -60,9 +61,17 @@ on adjacency lists."
   (remove-edges* g edges))
 
 (defn rename-nodes
-  "Rename nodes in g."
-  [g & [oldn newn]]
-  (rename-nodes* g oldn newn))
+  "Rename nodes in g. Sequentially renames, thus cannot handle 
+  name swapping; do not use as (rename-nodes g [1 2] [2 1]), it will
+  not operate correctly. If such a thing is necessary, gensym 
+  temporary names."
+  [g & rst]
+  (let [oldn (first rst)
+        newn (second rst)
+        attrs-processor (or (nth rst 2 nil) (fn [attrs oldn newn] attrs))]
+    (if (and oldn newn)
+      (rename-nodes* g oldn newn attrs-processor)
+      g)))
 
 ;;;
 ;;; Records for basic graphs -- one edge per vertex pair/direction,
@@ -360,12 +369,9 @@ on adjacency lists."
        g edges))
 
    :rename-nodes*
-   ;; TODO: 
-   ;;  0- figure out if attrs should be descended into
-   (fn [g oldn newn]
+   (fn [g oldn newn attr-processor]
      (let [ins (mapcat #(predecessors g %) oldn)
-           outs (mapcat #(successors g %) oldn)
-           swaps (apply hash-map (interleave oldn newn))]
+           outs (mapcat #(successors g %) oldn)]
        (-> g
            ; nodeset
            (update-in [:nodeset] #(subj % oldn newn))
@@ -383,8 +389,8 @@ on adjacency lists."
                                  (rename-keys oldn newn)))
            ; attrs
            (update-in [:attrs] #(-> %
-                                    ; TODO
-                                    ; should we offer to pass in update-f value-maps?
+                                    ; call user specified :attrs processing
+                                    (attr-processor oldn newn)
                                     ; rename attrs list top
                                     (rename-keys oldn newn))))))
 
