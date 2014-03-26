@@ -26,6 +26,12 @@ The namespace `loom.graph` must be AOT compiled. You can include `:aot [loom.gra
     loom.label - graph labels
     loom.io    - read, write, and view graphs in external formats
 
+### Documentation
+
+[API Reference](http://aysy.lu/loom/)
+
+[Frequently Asked Questions](http://aysy.lu/loom/faq.html)
+
 ### Basics
 
 Create a graph:
@@ -126,8 +132,51 @@ Other stuff:
     
     (dijkstra-span wg :a)
     => {:a {:b 10, :c 20}, :b {:e 15}, :e {:d 20}}
+    
+Attributes on nodes and edges:
 
-TODO: link to autodocs
+    (def attr-graph (-> g
+                    (add-attr 1 :label "node 1")
+                    (add-attr 4 :label "node 4")
+                    (add-attr-to-nodes :parity "even" [2 4])
+                    (add-attr-to-edges :label "edge from node 5" [[5 6] [5 7]])))
+    
+    ; Return attribute value on node 1 with key :label               
+    (attr attr-graph 1 :label)
+    => "node 1"
+    
+    ; Return attribute value on node 2 with key :parity
+    (attr attr-graph 2 :parity)
+    => "even"
+    
+    ; Getting an attribute that doesn't exist returns nil
+    (attr attr-graph 3 :label)
+    => nil
+    
+    ; Return all attributes for node 4
+    ; Two attributes found
+    (attrs attr-graph 4)
+    => {:parity "even", :label "node 4"}
+    
+    ; Return attribute value for edge between nodes 5 and 6 with key :label
+    (attr attr-graph 5 6 :label)
+    => "edge from node 5"
+    
+    ; Return all attributes for edge between nodes 5 and 7
+    (attrs attr-graph 5 7)
+    => {:label "edge from node 5"}
+    
+    ; Getting an attribute that doesn't exist returns nil
+    (attrs attr-graph 3 4)
+    => nil
+    
+    ; Remove the attribute of node 4 with key :label
+    (def attr-graph (remove-attr attr-graph 4 :label))
+    
+    ; Return all attributes for node 4
+    : One attribute found because the other has been removed
+    (attrs attr-graph 4)
+    => {:parity "even"}
 
 ## Dependencies
 
@@ -137,7 +186,7 @@ Nothing but Clojure. There is optional support for visualization via [GrapViz](h
 
 * Use deftype instead of defrecord
 * Do more functional graph research
-* Solidify basic API, guarantees
+* Solidify performance guarantees
 * Implement more algorithms
 * Test & profile more with big, varied graphs
 * Multigraphs, hypergraphs, adjacency matrix-based graphs?
