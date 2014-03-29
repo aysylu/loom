@@ -51,4 +51,3 @@
     (-> g
         (add-nodes* nodes)
         (add-edges* edges))))
-

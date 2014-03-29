@@ -44,7 +44,9 @@ can use these functions."
        (fn [[seen span] n]
          (if (seen n)
            [seen span]
-           (let [[cspan seen] (gen/pre-span (graph/successors g) n :seen seen :return-seen true)]
+           (let [[cspan seen] (gen/pre-span
+                               (graph/successors g)
+                               n :seen seen :return-seen true)]
              [seen (merge span {n []} cspan)])))
        [#{} {}]
        (nodes g))))
@@ -70,7 +72,8 @@ can use these functions."
          result
          (if (seen n)
            (recur seen result ns)
-           (when-let [cresult (gen/topsort-component (graph/successors g) n seen seen)]
+           (when-let [cresult (gen/topsort-component
+                               (graph/successors g) n seen seen)]
              (recur (into seen cresult) (concat cresult result) ns))))))
   ([g start]
      (gen/topsort-component (graph/successors g) start)))
@@ -130,21 +133,23 @@ can use these functions."
     (gen/bf-path-bi (graph/successors g) (graph/successors g) start end)))
 
 (defn dijkstra-traverse
-  "Returns a lazy-seq of [current-node state] where state is a map in the
-  format {node [distance predecessor]}. When f is provided, returns
-  a lazy-seq of (f node state) for each node"
+  "Returns a lazy-seq of [current-node state] where state is a map in
+  the format {node [distance predecessor]}. When f is provided,
+  returns a lazy-seq of (f node state) for each node"
   ([g]
-     (gen/dijkstra-traverse (graph/successors g) (graph/weight g) (first (nodes g))))
+     (gen/dijkstra-traverse
+      (graph/successors g) (graph/weight g) (first (nodes g))))
   ([g start]
      (gen/dijkstra-traverse (graph/successors g) (graph/weight g) start vector))
   ([g start f]
      (gen/dijkstra-traverse (graph/successors g) (graph/weight g) start f)))
 
 (defn dijkstra-span
-  "Finds all shortest distances from start. Returns a map in the format
-  {node {successor distance}}"
+  "Finds all shortest distances from start. Returns a map in the
+  format {node {successor distance}}"
   ([g]
-     (gen/dijkstra-span (graph/successors g) (graph/weight g) (first (nodes g))))
+     (gen/dijkstra-span
+      (graph/successors g) (graph/weight g) (first (nodes g))))
   ([g start]
      (gen/dijkstra-span (graph/successors g) (graph/weight g) start)))
 
@@ -208,12 +213,13 @@ can use these functions."
 
 (defn bellman-ford
   "Given a weighted, directed graph G = (V, E) with source start,
-   the Bellman-Ford algorithm produces map of single source shortest paths and their costs
-   if no negative-weight cycle that is reachable from the source exits,
-   and false otherwise, indicating that no solution exists."
+   the Bellman-Ford algorithm produces map of single source shortest
+   paths and their costs if no negative-weight cycle that is reachable
+   from the source exits, and false otherwise, indicating that no
+   solution exists."
   [g start]
   (let [initial-estimates (init-estimates g start)
-                                        ;relax-edges is calculated for all edges V-1 times
+        ;;relax-edges is calculated for all edges V-1 times
         [costs paths] (reduce (fn [estimates _]
                                 (relax-edges g start estimates))
                               initial-estimates
@@ -226,13 +232,13 @@ can use these functions."
       false
       [costs
        (->> (keys paths)
-                                        ;remove vertices that are unreachable from source
+            ;;remove vertices that are unreachable from source
             (remove #(= Double/POSITIVE_INFINITY (get costs %)))
             (reduce
              (fn [final-paths v]
                (assoc final-paths v
-                                        ; follows the parent pointers
-                                        ; to construct path from source to node v
+                      ;; follows the parent pointers
+                      ;; to construct path from source to node v
                       (loop [node v
                              path ()]
                         (if node
@@ -409,7 +415,11 @@ can use these functions."
      :method :algorithm to use.  Currently, the only option is :edmonds-karp ."
   [g source sink & {:keys [method] :or {method :edmonds-karp}}]
   (let [method-set #{:edmonds-karp}
-        n (graph/successors g), i (predecessors g), c (graph/weight g), s source, t sink
+        n (graph/successors g),
+        i (predecessors g),
+        c (graph/weight g),
+        s source,
+        t sink
         [flow-map flow-value] (case method
                                 :edmonds-karp (flow/edmonds-karp n i c s t)
                                 (throw

@@ -31,13 +31,14 @@
 
 
 (deftest edmonds-karp-test
-  (are [max-value network] (let [[flow value] (edmonds-karp (successors network)
-                                                            (predecessors network)
-                                                            (weight network)
-                                                            :s :t)]
-                             (and (= max-value value)
-                                  (is-admissible-flow? flow (weight network)
-                                                       :s :t)))
+  (are [max-value network]
+       (let [[flow value] (edmonds-karp (successors network)
+                                        (predecessors network)
+                                        (weight network)
+                                        :s :t)]
+         (and (= max-value value)
+              (is-admissible-flow? flow (weight network)
+                                   :s :t)))
        23 g1
        100 g0
        0 g2))

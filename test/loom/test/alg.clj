@@ -109,75 +109,75 @@
 
 (deftest depth-first-test
   (are [expected got] (= expected got)
-    #{1 2 3 5 6 7} (set (pre-traverse g7))
-    #{1 2 3} (set (pre-traverse g7 1))
-    #{1 2 3 4 5 6 7 8} (set (pre-traverse g8))
-    #{1 2 3 4 5 6 7 8} (set (post-traverse g8))
-    [:d :e :f :c :b :a :g] (post-traverse g5 :g)
-    false (not (some #{(post-traverse g7 1)} [[3 2 1] [2 3 1]]))
-    #{1 2 3 4 5 6 7 8} (set (nodes (digraph (pre-span g8))))
-    #{2 3 4} (set (successors (digraph (pre-span g8)) 1))
-    #{1 5} (set (successors (digraph (pre-span g6)) 0))
-    true (let [span (digraph (pre-span g6))]
-           (and (or (= #{3} (set (successors span 4)))
-                    (= #{2} (set (successors span 4))))
-                (or (= #{3} (set (successors span 1)))
-                    (= #{2} (set (successors span 1))))))
-    [:g :a :b :c :f :e :d] (topsort g5)
-    nil (topsort g7)
-    [5 6 7] (topsort g7 5)))
+       #{1 2 3 5 6 7} (set (pre-traverse g7))
+       #{1 2 3} (set (pre-traverse g7 1))
+       #{1 2 3 4 5 6 7 8} (set (pre-traverse g8))
+       #{1 2 3 4 5 6 7 8} (set (post-traverse g8))
+       [:d :e :f :c :b :a :g] (post-traverse g5 :g)
+       false (not (some #{(post-traverse g7 1)} [[3 2 1] [2 3 1]]))
+       #{1 2 3 4 5 6 7 8} (set (nodes (digraph (pre-span g8))))
+       #{2 3 4} (set (successors (digraph (pre-span g8)) 1))
+       #{1 5} (set (successors (digraph (pre-span g6)) 0))
+       true (let [span (digraph (pre-span g6))]
+              (and (or (= #{3} (set (successors span 4)))
+                       (= #{2} (set (successors span 4))))
+                   (or (= #{3} (set (successors span 1)))
+                       (= #{2} (set (successors span 1))))))
+       [:g :a :b :c :f :e :d] (topsort g5)
+       nil (topsort g7)
+       [5 6 7] (topsort g7 5)))
 
 (deftest breadth-first-test
   (are [expected got] (= expected got)
-    #{1 2 3 5 6 7} (set (bf-traverse g7))
-    #{1 2 3} (set (bf-traverse g7 1))
-    #{1 2 3 4 5 6 7 8} (set (bf-traverse g8))
-    #{1 2 3 4 5 6 7 8} (set (nodes (digraph (bf-span g8))))
-    #{2 3} (set (successors (digraph (bf-span g6)) 1))
-    false (not (some #{(bf-traverse (remove-nodes g6 5))}
-                     [[0 1 2 3 4] [0 1 3 2 4]]))
-    #{:r} (set (bf-traverse g2 :r :when #(< %3 1)))
-    #{:r :o :b :g} (set (bf-traverse g2 :r :when #(< %3 2)))
-    #{:r :o :b :g :p} (set (bf-traverse g2 :r :when #(< %3 3)))
-    [:a :e :j] (bf-path g4 :a :j)
-    [:a :c :h :j] (bf-path g4 :a :j :when (fn [n p d] (not= :e n)))
-    [:a :e :j] (bf-path-bi g4 :a :j)
-    true (some #(= % (bf-path-bi g5 :g :d)) [[:g :a :b :d] [:g :f :e :d]])))
+       #{1 2 3 5 6 7} (set (bf-traverse g7))
+       #{1 2 3} (set (bf-traverse g7 1))
+       #{1 2 3 4 5 6 7 8} (set (bf-traverse g8))
+       #{1 2 3 4 5 6 7 8} (set (nodes (digraph (bf-span g8))))
+       #{2 3} (set (successors (digraph (bf-span g6)) 1))
+       false (not (some #{(bf-traverse (remove-nodes g6 5))}
+                        [[0 1 2 3 4] [0 1 3 2 4]]))
+       #{:r} (set (bf-traverse g2 :r :when #(< %3 1)))
+       #{:r :o :b :g} (set (bf-traverse g2 :r :when #(< %3 2)))
+       #{:r :o :b :g :p} (set (bf-traverse g2 :r :when #(< %3 3)))
+       [:a :e :j] (bf-path g4 :a :j)
+       [:a :c :h :j] (bf-path g4 :a :j :when (fn [n p d] (not= :e n)))
+       [:a :e :j] (bf-path-bi g4 :a :j)
+       true (some #(= % (bf-path-bi g5 :g :d)) [[:g :a :b :d] [:g :f :e :d]])))
 
 (deftest dijkstra-test
   (are [expected got] (= expected got)
-    [:a :c :h :j] (dijkstra-path g4 :a :j)
-    [[:a :c :h :j] 487] (dijkstra-path-dist g4 :a :j)
-    [[:r :o :p] 10] (dijkstra-path-dist g2 :r :p)
-    #{:r :g :b :o :p} (set (map first (dijkstra-traverse g2)))
-    {:r {:o 8 :b 5} :b {:g 8} :o {:p 10}} (dijkstra-span g2 :r)))
+       [:a :c :h :j] (dijkstra-path g4 :a :j)
+       [[:a :c :h :j] 487] (dijkstra-path-dist g4 :a :j)
+       [[:r :o :p] 10] (dijkstra-path-dist g2 :r :p)
+       #{:r :g :b :o :p} (set (map first (dijkstra-traverse g2)))
+       {:r {:o 8 :b 5} :b {:g 8} :o {:p 10}} (dijkstra-span g2 :r)))
 
 (deftest connectivity-test
   (are [expected got] (= expected got)
-    [#{1 2 3 4} #{5 6 7 8} #{9}] (map set (connected-components
-                                           (add-nodes g8 9)))
-    [#{:r :g :b :o :p}] (map set (connected-components g2))
-    [#{1 2 3 4 5 6 8 7}] (map set (connected-components g9))
-    true (connected? g6)
-    false (connected? g7)
-    true (connected? g9)
-    #{#{2 3 4 1} #{8} #{7 5 6}} (set (map set (scc g9)))
-    #{#{:b :e :a} #{:h :d :c} #{:f :g}} (set (map set (scc g10)))
-    false (strongly-connected? g9)
-    true (strongly-connected? (digraph g2))
-    #{1 2 3 4 5 6 7 8} (set (nodes (connect g8)))
-    #{:r :g :b :o :p} (set (nodes (connect g2)))))
+       [#{1 2 3 4} #{5 6 7 8} #{9}] (map set (connected-components
+                                              (add-nodes g8 9)))
+       [#{:r :g :b :o :p}] (map set (connected-components g2))
+       [#{1 2 3 4 5 6 8 7}] (map set (connected-components g9))
+       true (connected? g6)
+       false (connected? g7)
+       true (connected? g9)
+       #{#{2 3 4 1} #{8} #{7 5 6}} (set (map set (scc g9)))
+       #{#{:b :e :a} #{:h :d :c} #{:f :g}} (set (map set (scc g10)))
+       false (strongly-connected? g9)
+       true (strongly-connected? (digraph g2))
+       #{1 2 3 4 5 6 7 8} (set (nodes (connect g8)))
+       #{:r :g :b :o :p} (set (nodes (connect g2)))))
 
 (deftest other-stuff-test
   (are [expected got] (= expected got)
-    false (dag? g2)
-    true (dag? (digraph (bf-span g2)))
-    true (dag? g5)
-    [:a :c :h :j] (shortest-path g4 :a :j)
-    [:a :e :j] (shortest-path (graph g4) :a :j)
-    #{9 10} (set (loners (add-nodes g8 9 10)))
-    ;; TODO: the rest
-    ))
+       false (dag? g2)
+       true (dag? (digraph (bf-span g2)))
+       true (dag? g5)
+       [:a :c :h :j] (shortest-path g4 :a :j)
+       [:a :e :j] (shortest-path (graph g4) :a :j)
+       #{9 10} (set (loners (add-nodes g8 9 10)))
+       ;; TODO: the rest
+       ))
 
 (deftest bellman-ford-test
   (are [expected graph start]
@@ -189,63 +189,63 @@
          :d Double/POSITIVE_INFINITY,
          :b Double/POSITIVE_INFINITY,
          :a Double/POSITIVE_INFINITY,
-         :c 0}{:c [:c]}] g11 :c 
-       false g11 :d
-       false g11 :e
-       [{:e 10,
-         :d 8,
-         :b 3,
-         :c 7,
-         :a 0}
-        {:a [:a],
-         :c [:a :b :c],
-         :b [:a :b],
-         :d [:a :b :d],
-         :e [:a :b :d :e]}] g12 :a
-       [{:e 7,
-         :d 5,
-         :c 4,
-         :a Double/POSITIVE_INFINITY,
-         :b 0}
-        {:b [:b],
-         :c [:b :c],
-         :d [:b :d],
-         :e [:b :d :e]}] g12 :b
-       [{:e Double/POSITIVE_INFINITY,
-         :d Double/POSITIVE_INFINITY,
-         :b Double/POSITIVE_INFINITY,
-         :a Double/POSITIVE_INFINITY,
-         :c 0}
-        {:c [:c]}] g12 :c 
-       [{:e 2,
-         :b -5,
-         :c -1,
-         :a Double/POSITIVE_INFINITY,
-         :d 0}
-        {:d [:d],
-         :c [:d :e :b :c],
-         :b [:d :e :b],
-         :e [:d :e]}] g12 :d
-       [{:d -2,
-         :b -7,
-         :c -3,
-         :a Double/POSITIVE_INFINITY,
-         :e 0}
-        {:e [:e],
-         :c [:e :b :c],
-         :b [:e :b],
-         :d [:e :b :d]}] g12 :e))
+         :c 0}{:c [:c]}] g11 :c
+         false g11 :d
+         false g11 :e
+         [{:e 10,
+           :d 8,
+           :b 3,
+           :c 7,
+           :a 0}
+          {:a [:a],
+           :c [:a :b :c],
+           :b [:a :b],
+           :d [:a :b :d],
+           :e [:a :b :d :e]}] g12 :a
+           [{:e 7,
+             :d 5,
+             :c 4,
+             :a Double/POSITIVE_INFINITY,
+             :b 0}
+            {:b [:b],
+             :c [:b :c],
+             :d [:b :d],
+             :e [:b :d :e]}] g12 :b
+             [{:e Double/POSITIVE_INFINITY,
+               :d Double/POSITIVE_INFINITY,
+               :b Double/POSITIVE_INFINITY,
+               :a Double/POSITIVE_INFINITY,
+               :c 0}
+              {:c [:c]}] g12 :c
+              [{:e 2,
+                :b -5,
+                :c -1,
+                :a Double/POSITIVE_INFINITY,
+                :d 0}
+               {:d [:d],
+                :c [:d :e :b :c],
+                :b [:d :e :b],
+                :e [:d :e]}] g12 :d
+                [{:d -2,
+                  :b -7,
+                  :c -3,
+                  :a Double/POSITIVE_INFINITY,
+                  :e 0}
+                 {:e [:e],
+                  :c [:e :b :c],
+                  :b [:e :b],
+                  :d [:e :b :d]}] g12 :e))
 
 (deftest bipartite-test
   (are [expected got] (= expected got)
-    {0 1, 1 0, 5 0, 2 1, 3 1, 4 0} (bipartite-color g6)
-    {5 1, 1 1, 2 0, 3 0, 4 0, 6 0, 7 0, 8 0} (bipartite-color g8)
-    nil (bipartite-color g1)
-    true (bipartite? g6)
-    true (bipartite? g8)
-    false (bipartite? g1)
-    #{#{2 3 4 6 7 8} #{1 5}} (set (bipartite-sets g8))))
+       {0 1, 1 0, 5 0, 2 1, 3 1, 4 0} (bipartite-color g6)
+       {5 1, 1 1, 2 0, 3 0, 4 0, 6 0, 7 0, 8 0} (bipartite-color g8)
+       nil (bipartite-color g1)
+       true (bipartite? g6)
+       true (bipartite? g8)
+       false (bipartite? g1)
+       #{#{2 3 4 6 7 8} #{1 5}} (set (bipartite-sets g8))))
 
 (deftest scc-test
   (are [expected got] (= expected got)
-    #{#{2 4 10} #{1 3 5 6} #{11} #{7 8 9}} (set (map set (scc g13)))))
+       #{#{2 4 10} #{1 3 5 6} #{11} #{7 8 9}} (set (map set (scc g13)))))

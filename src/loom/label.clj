@@ -1,4 +1,5 @@
-(ns ^{:doc "Graph label protocol and implementations for records from loom.graph"
+(ns ^{:doc
+      "Graph label protocol and implementations for records from loom.graph"
       :author "Justin Kramer"}
   loom.label
   (:require [loom.attr :refer [add-attr remove-attr attr]]
