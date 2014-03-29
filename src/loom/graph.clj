@@ -4,7 +4,7 @@ weighted, unweighted, directed, and undirected. The implementations are based
 on adjacency lists."
       :author "Justin Kramer"}
   loom.graph
-  (:use [loom.alg-generic :only [bf-traverse]]))
+  (:require [loom.alg-generic :refer [bf-traverse]]))
 
 ;;;
 ;;; Protocols

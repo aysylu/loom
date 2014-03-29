@@ -1,11 +1,12 @@
 (ns ^{:doc "Output and view graphs in various formats"
       :author "Justin Kramer"}
   loom.io
-  (:use [loom.graph :only [directed? weighted? nodes edges weight]]
-        [loom.alg :only [distinct-edges loners]]
-        [loom.attr :only [attr? attr attrs]]
-        [clojure.string :only [escape]]
-        [clojure.java [io :only [file]] [shell :only [sh]]]))
+  (:require [loom.graph :refer [directed? weighted? nodes edges weight]]
+            [loom.alg :refer [distinct-edges loners]]
+            [loom.attr :refer [attr? attr attrs]]
+            [clojure.string :refer [escape]]
+            [clojure.java.io :refer [file]]
+            [clojure.java.shell :refer [sh]]))
 
 (defn- dot-esc
   [s]
@@ -106,9 +107,9 @@
     ;; Maybe it's ok for Linux?
     (do
       (condp = (os)
-          :mac (sh "open" (str f))
-          :win (sh "cmd" (str "/c start " (-> f .toURI .toURL str)))
-          :unix (sh "xdg-open" (str f)))
+        :mac (sh "open" (str f))
+        :win (sh "cmd" (str "/c start " (-> f .toURI .toURL str)))
+        :unix (sh "xdg-open" (str f)))
       nil)))
 
 (defn- open-data
