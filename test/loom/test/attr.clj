@@ -1,6 +1,7 @@
 (ns loom.test.attr
-  (:use [loom graph attr]
-        [clojure.test]))
+  (:require [loom.graph :refer :all]
+            [loom.attr :refer :all]
+            [clojure.test :refer :all]))
 
 (deftest attr-graph-test
   (let [g (digraph [1 2] [2 3] [2 4] [3 5] [4 5])
@@ -18,12 +19,12 @@
                  :label "edge to node 5" [[3 5] [4 5]]))]
     (is (= "node label" (attr lg1 1 :label)))
     (is (= "edge label" (attr lg1 2 3 :label)))
-    (is (= "node odd") (attr lg2 1 :label))
-    (is (= "node odd") (attr lg2 3 :label))
-    (is (= "node odd") (attr lg2 5 :label))
-    (is (= "node even") (attr lg2 2 :label))
-    (is (= "node even") (attr lg2 4 :label))
-    (is (= "edge from node 2") (attr lg2 2 3 :label))
-    (is (= "edge from node 2") (attr lg2 2 4 :label))
-    (is (= "edge to node 5") (attr lg2 3 5 :label))
-    (is (= "edge to node 5") (attr lg2 4 5 :label))))
+    (is (= "node odd" (attr lg2 1 :label)))
+    (is (= "node odd" (attr lg2 3 :label)))
+    (is (= "node odd" (attr lg2 5 :label)))
+    (is (= "node even" (attr lg2 2 :label)))
+    (is (= "node even" (attr lg2 4 :label)))
+    (is (= "edge from node 2" (attr lg2 2 3 :label)))
+    (is (= "edge from node 2" (attr lg2 2 4 :label)))
+    (is (= "edge to node 5" (attr lg2 3 5 :label)))
+    (is (= "edge to node 5" (attr lg2 4 5 :label)))))

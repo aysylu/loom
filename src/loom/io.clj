@@ -88,8 +88,9 @@
   [g f & args]
   (spit (str (file f)) (apply dot-str g args)))
 
-(defn- os []
+(defn- os
   "Returns :win, :mac, :unix, or nil"
+  []
   (condp
       #(<= 0 (.indexOf ^String %2 ^String %1))
       (.toLowerCase (System/getProperty "os.name"))
