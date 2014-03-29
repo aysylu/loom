@@ -6,7 +6,9 @@
             [loom.attr :refer [attr? attr attrs]]
             [clojure.string :refer [escape]]
             [clojure.java.io :refer [file]]
-            [clojure.java.shell :refer [sh]]))
+            [clojure.java.shell :refer [sh]])
+  (:import (java.io FileWriter
+                    FileOutputStream)))
 
 (defn- dot-esc
   [s]
@@ -89,7 +91,7 @@
 (defn- os []
   "Returns :win, :mac, :unix, or nil"
   (condp
-      #(<= 0 (.indexOf %2 %1))
+      #(<= 0 (.indexOf ^String %2 ^String %1))
       (.toLowerCase (System/getProperty "os.name"))
     "win" :win
     "mac" :mac
@@ -121,10 +123,11 @@
   (let [ext (name ext)
         ext (if (= \. (first ext)) ext (str \. ext))
         tmp (java.io.File/createTempFile (subs ext 1) ext)]
-    (with-open [w (if (string? data)
-                    (java.io.FileWriter. tmp)
-                    (java.io.FileOutputStream. tmp))]
-      (.write w data))
+    (if (string? data)
+      (with-open [w (java.io.FileWriter. tmp)]
+        (.write w ^String data))
+      (with-open [w (java.io.FileOutputStream. tmp)]
+        (.write w ^bytes data)))
     (open tmp)))
 
 (defn view
