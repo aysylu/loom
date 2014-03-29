@@ -1,7 +1,7 @@
 (ns loom.test.alg
-  (:use [loom.graph] :reload)
-  (:use [loom.alg]
-        [clojure.test]))
+  (:require [loom.graph :refer :all]
+            [loom.alg :refer :all]
+            [clojure.test :refer :all]))
 
 ;; http://en.wikipedia.org/wiki/Dijkstra's_algorithm
 (def g1

@@ -1,6 +1,6 @@
 (ns loom.test.graph
-  (:use [loom.graph] :reload)
-  (:use [clojure.test]))
+  (:require [loom.graph :refer :all]
+            [clojure.test :refer :all]))
 
 (deftest simple-graph-test
   (let [g1 (graph [1 2] [1 3] [2 3] 4)

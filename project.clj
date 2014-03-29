@@ -6,5 +6,4 @@
   :url "https://github.com/aysylu/loom"
   :profiles {:dev 
              {:dependencies [[org.clojure/clojure "1.5.1"]]}}
-  :aliases {"release" ["do" "clean," "with-profile" "default" "deploy" "clojars"]}
-  :aot [loom.graph])
+  :aliases {"release" ["do" "clean," "with-profile" "default" "deploy" "clojars"]})
