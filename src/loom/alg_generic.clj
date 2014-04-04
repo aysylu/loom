@@ -28,8 +28,9 @@
 ;;;
 
 (defn pre-traverse
-  "Traverses a graph depth-first preorder from start, successors being a
-  function that returns direct successors for the node. Returns a lazy seq of nodes."
+  "Traverses a graph depth-first preorder from start, successors being
+  a function that returns direct successors for the node. Returns a
+  lazy seq of nodes."
   [successors start & {:keys [seen] :or {seen #{}}}]
   (letfn [(step [stack seen]
             (when-let [node (peek stack)]
@@ -62,8 +63,8 @@
           (recur seen preds (pop stack)))))))
 
 (defn post-traverse
-  "Traverses a graph depth-first postorder from start, successors being a
-  function that returns adjacent nodes. Returns a vector"
+  "Traverses a graph depth-first postorder from start, successors
+  being a function that returns adjacent nodes. Returns a vector"
   [successors start & {:keys [seen return-seen] :or {seen #{}}}]
   ;; For most graphs, being lazy wouldn't matter
   (loop [seen seen
@@ -109,8 +110,8 @@
 
 (defn bf-traverse
   "Traverses a graph breadth-first from start, successors being a
-  function that returns adjacent nodes. When :f is provided, returns
-  a lazy seq of (f node predecessor-map depth) for each node traversed.
+  function that returns adjacent nodes. When :f is provided, returns a
+  lazy seq of (f node predecessor-map depth) for each node traversed.
   Otherwise, returns a lazy seq of the nodes. When :when is provided,
   filters successors with (f neighbor predecessor depth)."
   [successors start & {:keys [f when seen]}]
@@ -132,7 +133,8 @@
               (into {start nil} (for [s seen] [s nil])))))))
 
 (defn bf-span
-  "Return a breadth-first spanning tree of the form {node [successors]}"
+  "Return a breadth-first spanning tree of the form {node
+  [successors]}"
   [successors start & {:keys [seen]}]
   (preds->span
    (last
@@ -145,8 +147,9 @@
   of edge weights), successors being a function that returns adjacent nodes"
   [successors start end & {:as opts}]
   (let [opts (merge opts {:f vector})]
-    (when-let [preds (some (fn [[_ pm _]] (when (pm end) pm))
-                           (apply bf-traverse successors start (apply concat opts)))]
+    (when-let [preds (some
+                      (fn [[_ pm _]] (when (pm end) pm))
+                      (apply bf-traverse successors start (apply concat opts)))]
       (reverse (trace-path preds end)))))
 
 (defn- shared-keys
@@ -157,10 +160,11 @@
     (filter (partial contains? m2) (keys m1))))
 
 (defn bf-path-bi
-  "Using a bidirectional breadth-first search, finds a path from start to
-  end with the fewest hops (i.e. irrespective of edge weights), outgoing
-  and predecessors being functions which return adjacent nodes. Can be much faster
-  than a unidirectional search on certain types of graphs"
+  "Using a bidirectional breadth-first search, finds a path from start
+  to end with the fewest hops (i.e. irrespective of edge weights),
+  outgoing and predecessors being functions which return adjacent
+  nodes. Can be much faster than a unidirectional search on certain
+  types of graphs"
   [outgoing predecessors start end]
   (let [done? (atom false)
         preds1 (atom {}) ;from start to end
@@ -194,34 +198,34 @@
 
 ;; FIXME: Decide whether this can be optimized and is worth keeping
 #_(defn bf-path-bi2
-  "Non-threaded version of bf-path-bi. Tends to be slower."
-  [outgoing predecessors start end]
-  (loop [preds {start nil}
-         succs {end nil}
-         q1 [start]
-         q2 [end]]
-    (when (and (seq q1) (seq q2))
-      (if (<= (count q1) (count q2))
-        (let [pairs (for [node q1 nbr (outgoing node)
-                          :when (not (contains? preds nbr))]
-                      [nbr node])
-              preds (into preds pairs)
-              q1 (map first pairs)]
-          (if-let [i (some #(when (contains? succs %) %) q1)]
-            (concat
-             (reverse (trace-path preds i))
-             (rest (trace-path succs i)))
-            (recur preds succs q1 q2)))
-        (let [pairs (for [node q2 nbr (predecessors node)
-                          :when (not (contains? succs nbr))]
-                      [nbr node])
-              succs (into succs pairs)
-              q2 (map first pairs)]
-          (if-let [i (some #(when (contains? preds %) %) q2)]
-            (concat
-             (reverse (trace-path preds i))
-             (rest (trace-path succs i)))
-            (recur preds succs q1 q2)))))))
+    "Non-threaded version of bf-path-bi. Tends to be slower."
+    [outgoing predecessors start end]
+    (loop [preds {start nil}
+           succs {end nil}
+           q1 [start]
+           q2 [end]]
+      (when (and (seq q1) (seq q2))
+        (if (<= (count q1) (count q2))
+          (let [pairs (for [node q1 nbr (outgoing node)
+                            :when (not (contains? preds nbr))]
+                        [nbr node])
+                preds (into preds pairs)
+                q1 (map first pairs)]
+            (if-let [i (some #(when (contains? succs %) %) q1)]
+              (concat
+               (reverse (trace-path preds i))
+               (rest (trace-path succs i)))
+              (recur preds succs q1 q2)))
+          (let [pairs (for [node q2 nbr (predecessors node)
+                            :when (not (contains? succs nbr))]
+                        [nbr node])
+                succs (into succs pairs)
+                q2 (map first pairs)]
+            (if-let [i (some #(when (contains? preds %) %) q2)]
+              (concat
+               (reverse (trace-path preds i))
+               (rest (trace-path succs i)))
+              (recur preds succs q1 q2)))))))
 
 ;;;
 ;;; Dijkstra
@@ -293,42 +297,41 @@
 
 ;; FIXME: Research proper way to do this
 #_(defn dijkstra-path-dist-bi
-  "Finds a path -- not necessarily the shortest -- from start to end
+    "Finds a path -- not necessarily the shortest -- from start to end
   birectionally, where successors and dist are functions called as
   (successors node) and (dist node1 node2). Returns a vector: [path distance]"
-  [successors dist start end]
-  ;; TODO: make this work better with directed graphs (predecessors fn)
-  (let [done? (atom false)
-        processed1 (atom #{})
-        processed2 (atom #{})
-        state1 (atom nil)
-        state2 (atom nil)
-        find-intersect (fn [] (some #(when (@processed1 %) %) @processed2))
-        search (fn [n processed state]
-                 (dorun
-                  (take-while
-                   (fn [_] (not @done?))
-                   (dijkstra-traverse successors dist n 
-                                      #(do
-                                         (swap! processed conj %1)
-                                         (reset! state %2))))))
-        search1 (future (search start processed1 state1))
-        search2 (future (search end processed2 state2))]
-    (loop [intersect (find-intersect)]
-      (if (or intersect (future-done? search1))
-        (do
-          (prn intersect)
-          (reset! done? true)
-          (cond
-           intersect [(concat
-                       (reverse (trace-path (comp second @state1) intersect))
-                       (rest (trace-path (comp second @state2) intersect)))
-                      (+ (first (@state1 intersect))
-                         (first (@state2 intersect)))]
-           (@state1 end) [(reverse (trace-path (comp second @state1) end))
-                          (first (@state1 end))]
-           (@state2 start) [(trace-path (comp second @state2) start)
-                            (first (@state2 start))]))
-          
-        (recur (find-intersect))))))
+    [successors dist start end]
+    ;; TODO: make this work better with directed graphs (predecessors fn)
+    (let [done? (atom false)
+          processed1 (atom #{})
+          processed2 (atom #{})
+          state1 (atom nil)
+          state2 (atom nil)
+          find-intersect (fn [] (some #(when (@processed1 %) %) @processed2))
+          search (fn [n processed state]
+                   (dorun
+                    (take-while
+                     (fn [_] (not @done?))
+                     (dijkstra-traverse successors dist n
+                                        #(do
+                                           (swap! processed conj %1)
+                                           (reset! state %2))))))
+          search1 (future (search start processed1 state1))
+          search2 (future (search end processed2 state2))]
+      (loop [intersect (find-intersect)]
+        (if (or intersect (future-done? search1))
+          (do
+            (prn intersect)
+            (reset! done? true)
+            (cond
+             intersect [(concat
+                         (reverse (trace-path (comp second @state1) intersect))
+                         (rest (trace-path (comp second @state2) intersect)))
+                        (+ (first (@state1 intersect))
+                           (first (@state2 intersect)))]
+             (@state1 end) [(reverse (trace-path (comp second @state1) end))
+                            (first (@state1 end))]
+             (@state2 start) [(trace-path (comp second @state2) start)
+                              (first (@state2 start))]))
 
+          (recur (find-intersect))))))
