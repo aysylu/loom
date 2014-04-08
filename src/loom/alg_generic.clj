@@ -1,6 +1,8 @@
 (ns ^{:doc "Graph algorithms for use on any type of graph"
       :author "Justin Kramer"}
-  loom.alg-generic)
+  loom.alg-generic
+  (:refer-clojure :exclude [ancestors])
+  (:import [java.util Arrays]))
 
 ;;;
 ;;; Utility functions
@@ -335,3 +337,123 @@
                               (first (@state2 start))]))
 
           (recur (find-intersect))))))
+
+;;;
+;;; Node-bitmap based fast DAG ancestry cache implementation
+;;;
+
+;;; Ancestry node-bitmap helper vars/fns
+
+(def ^Long bits-per-long (long (Long/SIZE)))
+
+(defn ^Long bm-longs [bits]
+  "Return the number of longs required to store bits count bits in a bitmap."
+  (long (Math/ceil (/ bits bits-per-long))))
+
+(defn ^longs bm-new []
+  "Create new empty bitmap."
+  (long-array 1))
+
+(defn ^longs bm-set
+  [^longs bitmap idx]
+  "Set boolean state of bit in 'bitmap at 'idx to true."
+  (let [size (max (count bitmap) (bm-longs (inc idx)))
+        new-bitmap (Arrays/copyOf bitmap ^Long size)
+        chunk (quot idx bits-per-long)
+        offset (mod idx bits-per-long)
+        mask (bit-set 0 offset)
+        value (aget new-bitmap chunk)
+        new-value (bit-or value ^Long mask)]
+    (aset new-bitmap chunk new-value)
+    new-bitmap))
+
+(defn bm-get
+  "Get boolean state of bit in 'bitmap at 'idx."
+  [^longs bitmap idx]
+  (when (<= (bm-longs (inc idx)) (count bitmap))
+    (let [chunk (quot idx bits-per-long)
+          offset (mod idx bits-per-long)
+          mask (bit-set 0 offset)
+          value (aget bitmap chunk)
+          masked-value (bit-and value mask)]
+      (not (zero? masked-value)))))
+
+(defn ^longs bm-or
+  "Logically OR 'bitmaps together."
+  [& bitmaps]
+  (if (empty? bitmaps)
+    (bm-new)
+    (let [size (apply max (map count bitmaps))
+          new-bitmap (Arrays/copyOf ^longs (first bitmaps) ^Long size)]
+      (doseq [bitmap (rest bitmaps)
+              [idx value] (map-indexed list bitmap)
+              :let [masked-value (bit-or value (aget new-bitmap idx))]]
+        (aset new-bitmap idx masked-value))
+      new-bitmap)))
+
+(defn bm-get-indicies
+  "Get the indicies of set bits in 'bitmap."
+  [^longs bitmap]
+  (for [chunk (range (count bitmap))
+        offset (range bits-per-long)
+        :let [idx (+ (* chunk bits-per-long) offset)]
+        :when (bm-get bitmap idx)]
+    idx))
+
+;;; Ancestry public API
+
+(defrecord Ancestry [node->idx idx->node bitmaps])
+
+(defn ancestry-new
+  "Create a new, empty Ancestry cache."
+  []
+  (->Ancestry {} {} []))
+
+(defn ancestry-contains?
+  "Finds if a 'node is contained in the 'ancestry cache."
+  [ancestry node]
+  (-> ancestry :node->idx (contains? node)))
+
+(defn ancestry-add
+  "Add a 'node and its 'parents associations to the 'ancestry cache."
+  [ancestry node & parents]
+  (if (ancestry-contains? ancestry node)
+    ;; TODO Should we throw instead of drop?
+    ancestry
+    (let [{:keys [node->idx idx->node bitmaps]} ancestry
+          nid (count node->idx)
+          node->idx (assoc node->idx node nid)
+          idx->node (assoc idx->node nid node)
+          pidxs (map node->idx parents)
+          new-bitmap (if (empty? pidxs)
+                       (bm-new)
+                       (apply bm-or (map bitmaps pidxs)))
+          new-bitmap (reduce bm-set new-bitmap pidxs)
+          bitmaps (conj bitmaps new-bitmap)]
+      (->Ancestry node->idx idx->node bitmaps))))
+
+(defn ancestor?
+  "Find if the 'parenter node is an ancestor of 'childer node for the given
+  'ancestry cache."
+  [ancestry childer parenter]
+  (let [{:keys [node->idx bitmaps]} ancestry
+        cidx (node->idx childer)
+        pidx (node->idx parenter)]
+    (boolean
+     (when (and cidx pidx)
+       (bm-get (get bitmaps cidx)
+               pidx)))))
+
+(defn ancestors
+  "Return all of the ancestors of 'child node."
+  [ancestry child]
+  (let [{:keys [node->idx idx->node bitmaps]} ancestry
+        cidx (node->idx child)]
+    (->> (get bitmaps cidx)
+         bm-get-indicies
+         (map idx->node))))
+
+(defn ancestry-nodes
+  "Return all of the nodes in an 'ancestry."
+  [ancestry]
+  (-> ancestry :node->idx keys))
