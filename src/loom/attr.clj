@@ -3,39 +3,47 @@ loom.graph. Common uses for attributes include labels and styling (color,
 thickness, etc)."
       :author "Justin Kramer"}
   loom.attr
-  (use [loom.graph :only [directed? nodes edges]])
+  (use [loom.graph :only [directed? nodes edges src dest has-node?]])
   (:import [loom.graph BasicEditableGraph BasicEditableDigraph
             BasicEditableWeightedGraph BasicEditableWeightedDigraph
             FlyGraph FlyDigraph WeightedFlyGraph WeightedFlyDigraph]))
 
 (defprotocol AttrGraph
-  (add-attr [g node k v] [g n1 n2 k v] "Add an attribute to node or edge")
-  (remove-attr [g node k] [g n1 n2 k] "Remove an attribute from a node or edge")
-  (attr [g node k] [g n1 n2 k] "Return the attribute on a node or edge")
-  (attrs [g node] [g n1 n2] "Return all attributes on a node or edge"))
+  (add-attr [g node-or-edge k v] [g n1 n2 k v] "Add an attribute to node or edge")
+  (remove-attr [g node-or-edge k] [g n1 n2 k] "Remove an attribute from a node or edge")
+  (attr [g node-or-edge k] [g n1 n2 k] "Return the attribute on a node or edge")
+  (attrs [g node-or-edge] [g n1 n2] "Return all attributes on a node or edge"))
 
 (def default-attr-graph-impl
   {:add-attr (fn
-               ([g node k v]
-                  (assoc-in g [:attrs node k] v))
+               ([g node-or-edge k v]
+                 (if (has-node? g node-or-edge)
+                   (assoc-in g [:attrs node-or-edge k] v)
+                   (add-attr g (src node-or-edge) (dest node-or-edge) k v)))
                ([g n1 n2 k v]
                   (let [g (assoc-in g [:attrs n1 ::edge-attrs n2 k] v)
                         g (if (directed? g) g
                               (assoc-in g [:attrs n2 ::edge-attrs n1 k] v))]
                     g)))
    :remove-attr (fn
-                  ([g node k]
-                     (update-in g [:attrs node] dissoc k))
+                  ([g node-or-edge k]
+                    (if (has-node? g node-or-edge)                      
+                      (update-in g [:attrs node-or-edge] dissoc k)
+                      (remove-attr g (src node-or-edge) (dest node-or-edge) k)))
                   ([g n1 n2 k]
                      (update-in g [:attrs n1 ::edge-attrs n2] dissoc k)))
    :attr (fn
-           ([g node k]
-              (get-in g [:attrs node k]))
+           ([g node-or-edge k]
+             (if (has-node? g node-or-edge)
+               (get-in g [:attrs node-or-edge k])
+               (attr g (src node-or-edge) (dest node-or-edge) k)))
            ([g n1 n2 k]
               (get-in g [:attrs n1 ::edge-attrs n2 k])))
    :attrs (fn
-            ([g node]
-               (dissoc (get-in g [:attrs node]) ::edge-attrs))
+            ([g node-or-edge]
+              (if (has-node? g node-or-edge)
+                (dissoc (get-in g [:attrs node-or-edge]) ::edge-attrs)
+                (attrs g (src node-or-edge) (dest node-or-edge))))
             ([g n1 n2]
                (get-in g [:attrs n1 ::edge-attrs n2])))})
 
