@@ -1,7 +1,7 @@
 (ns ^{:doc "Graph-generating functions"
       :author "Justin Kramer"}
   loom.gen
-  (:use [loom.graph :only [weighted? directed? add-nodes* add-edges*]]))
+  (:require [loom.graph :refer [weighted? directed? add-nodes* add-edges*]]))
 
 (defn gen-rand
   "Adds num-nodes nodes and approximately num-edges edges to graph g. Nodes
@@ -51,4 +51,3 @@
     (-> g
         (add-nodes* nodes)
         (add-edges* edges))))
-

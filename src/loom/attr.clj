@@ -3,7 +3,8 @@ loom.graph. Common uses for attributes include labels and styling (color,
 thickness, etc)."
       :author "Justin Kramer"}
   loom.attr
-  (use [loom.graph :only [directed? nodes edges src dest has-node?]])
+  (:require [loom.graph :refer [directed? nodes edges src dest has-node?]
+             :as graph])
   (:import [loom.graph BasicEditableGraph BasicEditableDigraph
             BasicEditableWeightedGraph BasicEditableWeightedDigraph
             FlyGraph FlyDigraph WeightedFlyGraph WeightedFlyDigraph]))

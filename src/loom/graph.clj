@@ -4,7 +4,7 @@ weighted, unweighted, directed, and undirected. The implementations are based
 on adjacency lists."
       :author "Justin Kramer"}
   loom.graph
-  (:use [loom.alg-generic :only [bf-traverse]]))
+  (:require [loom.alg-generic :refer [bf-traverse]]))
 
 ;;;
 ;;; Protocols
@@ -15,12 +15,14 @@ on adjacency lists."
   (edges [g] "Edges in g. May return each edge twice in an undirected graph")
   (has-node? [g node] "Return true when node is in g")
   (has-edge? [g n1 n2] "Return true when edge [n1 n2] is in g")
-  (successors [g] [g node] "Return direct successors of node, or (partial successors g)")
+  (successors [g] [g node]
+    "Return direct successors of node, or (partial successors g)")
   (out-degree [g node] "Return the number of outgoing edges of node")
   (out-edges [g node] "Return all the outgoing edges of node"))
 
 (defprotocol Digraph
-  (predecessors [g] [g node] "Return direct predecessors of node, or (partial predecessors g)")
+  (predecessors [g] [g node]
+    "Return direct predecessors of node, or (partial predecessors g)")
   (in-degree [g node] "Return the number direct predecessors to node")
   (in-edges [g node] "Return all the incoming edges of node")
   (transpose [g] "Return a graph with all edges reversed"))
@@ -105,7 +107,7 @@ on adjacency lists."
     :has-edge? (fn [g n1 n2]
                  (contains? (get-in g [:adj n1]) n2))
     :out-degree (fn [g node]
-              (count (get-in g [:adj node])))
+                 (count (get-in g [:adj node])))
     :out-edges (fn 
                  ([g] (partial out-edges g))
                  ([g node] (for [n2 (successors g node)] [node n2])))}
@@ -120,9 +122,9 @@ on adjacency lists."
                          (assoc-in [:adj n] (or ((:adj g) n) #{}))))
                    g nodes))
     :successors (fn
-                 ([g] (partial successors g))
-                 ([g node] (get-in g [:adj node])))}
-   
+                  ([g] (partial successors g))
+                  ([g node] (get-in g [:adj node])))}
+
    ;; Weighted graphs store adjacencies as {node {neighbor weight}}
    :weighted
    {:add-nodes* (fn [g nodes]
@@ -133,13 +135,13 @@ on adjacency lists."
                          (assoc-in [:adj n] (or ((:adj g) n) {}))))
                    g nodes))
     :successors (fn
-                 ([g] (partial successors g))
-                 ([g node] (keys (get-in g [:adj node]))))}})
+                  ([g] (partial successors g))
+                  ([g node] (keys (get-in g [:adj node]))))}})
 
 (def default-digraph-impl
   {:predecessors (fn
-               ([g] (partial predecessors g))
-               ([g node] (get-in g [:in node])))
+                   ([g] (partial predecessors g))
+                   ([g node] (get-in g [:in node])))
    :in-degree (fn [g node]
                 (count (get-in g [:in node])))
    :in-edges (fn 
@@ -164,24 +166,24 @@ on adjacency lists."
 (extend BasicEditableGraph
   Graph
   (let [{:keys [all unweighted]} default-graph-impls]
-    (merge all unweighted)) 
+    (merge all unweighted))
 
   EditableGraph
   {:add-nodes*
    (fn [g nodes]
      (reduce
-       (fn [g node] (update-in g [:nodeset] conj node))
-       g nodes))
+      (fn [g node] (update-in g [:nodeset] conj node))
+      g nodes))
 
    :add-edges*
    (fn [g edges]
      (reduce
-       (fn [g [n1 n2]]
-         (-> g
-             (update-in [:nodeset] conj n1 n2)
-             (update-in [:adj n1] (fnil conj #{}) n2)
-             (update-in [:adj n2] (fnil conj #{}) n1)))
-       g edges))
+      (fn [g [n1 n2]]
+        (-> g
+            (update-in [:nodeset] conj n1 n2)
+            (update-in [:adj n1] (fnil conj #{}) n2)
+            (update-in [:adj n2] (fnil conj #{}) n1)))
+      g edges))
 
    :remove-nodes*
    (fn [g nodes]
@@ -193,11 +195,11 @@ on adjacency lists."
    :remove-edges*
    (fn [g edges]
      (reduce
-       (fn [g [n1 n2]]
-         (-> g
-             (update-in [:adj n1] disj n2)
-             (update-in [:adj n2] disj n1)))
-       g edges))
+      (fn [g [n1 n2]]
+        (-> g
+            (update-in [:adj n1] disj n2)
+            (update-in [:adj n2] disj n1)))
+      g edges))
 
    :remove-all
    (fn [g]
@@ -206,24 +208,24 @@ on adjacency lists."
 (extend BasicEditableDigraph
   Graph
   (let [{:keys [all unweighted]} default-graph-impls]
-    (merge all unweighted)) 
+    (merge all unweighted))
 
   EditableGraph
   {:add-nodes*
    (fn [g nodes]
      (reduce
-       (fn [g node] (update-in g [:nodeset] conj node))
-       g nodes))
+      (fn [g node] (update-in g [:nodeset] conj node))
+      g nodes))
 
    :add-edges*
    (fn [g edges]
      (reduce
-       (fn [g [n1 n2]]
-         (-> g
-             (update-in [:nodeset] conj n1 n2)
-             (update-in [:adj n1] (fnil conj #{}) n2)
-             (update-in [:in n2] (fnil conj #{}) n1)))
-       g edges))
+      (fn [g [n1 n2]]
+        (-> g
+            (update-in [:nodeset] conj n1 n2)
+            (update-in [:adj n1] (fnil conj #{}) n2)
+            (update-in [:in n2] (fnil conj #{}) n1)))
+      g edges))
 
    :remove-nodes*
    (fn [g nodes]
@@ -237,11 +239,11 @@ on adjacency lists."
    :remove-edges*
    (fn [g edges]
      (reduce
-       (fn [g [n1 n2]]
-         (-> g
-             (update-in [:adj n1] disj n2)
-             (update-in [:in n2] disj n1)))
-       g edges))
+      (fn [g [n1 n2]]
+        (-> g
+            (update-in [:adj n1] disj n2)
+            (update-in [:in n2] disj n1)))
+      g edges))
 
    :remove-all
    (fn [g]
@@ -249,30 +251,30 @@ on adjacency lists."
 
   Digraph
   (assoc default-digraph-impl
-         :transpose (fn [g]
-                      (assoc g :adj (:in g) :in (:adj g)))))
+    :transpose (fn [g]
+                 (assoc g :adj (:in g) :in (:adj g)))))
 
 (extend BasicEditableWeightedGraph
   Graph
   (let [{:keys [all weighted]} default-graph-impls]
-    (merge all weighted)) 
+    (merge all weighted))
 
   EditableGraph
   {:add-nodes*
    (fn [g nodes]
      (reduce
-       (fn [g node] (update-in g [:nodeset] conj node))
-       g nodes))
+      (fn [g node] (update-in g [:nodeset] conj node))
+      g nodes))
 
    :add-edges*
    (fn [g edges]
      (reduce
-       (fn [g [n1 n2 & [w]]]
-         (-> g
-             (update-in [:nodeset] conj n1 n2)
-             (assoc-in [:adj n1 n2] (or w *default-weight*))
-             (assoc-in [:adj n2 n1] (or w *default-weight*))))
-       g edges))
+      (fn [g [n1 n2 & [w]]]
+        (-> g
+            (update-in [:nodeset] conj n1 n2)
+            (assoc-in [:adj n1 n2] (or w *default-weight*))
+            (assoc-in [:adj n2 n1] (or w *default-weight*))))
+      g edges))
 
    :remove-nodes*
    (fn [g nodes]
@@ -284,11 +286,11 @@ on adjacency lists."
    :remove-edges*
    (fn [g edges]
      (reduce
-       (fn [g [n1 n2]]
-         (-> g
-             (update-in [:adj n1] dissoc n2)
-             (update-in [:adj n2] dissoc n1)))
-       g edges))
+      (fn [g [n1 n2]]
+        (-> g
+            (update-in [:adj n1] dissoc n2)
+            (update-in [:adj n2] dissoc n1)))
+      g edges))
 
    :remove-all
    (fn [g]
@@ -300,24 +302,24 @@ on adjacency lists."
 (extend BasicEditableWeightedDigraph
   Graph
   (let [{:keys [all weighted]} default-graph-impls]
-    (merge all weighted)) 
+    (merge all weighted))
 
   EditableGraph
   {:add-nodes*
    (fn [g nodes]
      (reduce
-       (fn [g node] (update-in g [:nodeset] conj node))
-       g nodes))
+      (fn [g node] (update-in g [:nodeset] conj node))
+      g nodes))
 
    :add-edges*
    (fn [g edges]
      (reduce
-       (fn [g [n1 n2 & [w]]]
-         (-> g
-             (update-in [:nodeset] conj n1 n2)
-             (assoc-in [:adj n1 n2] (or w *default-weight*))
-             (update-in [:in n2] (fnil conj #{}) n1)))
-       g edges))
+      (fn [g [n1 n2 & [w]]]
+        (-> g
+            (update-in [:nodeset] conj n1 n2)
+            (assoc-in [:adj n1 n2] (or w *default-weight*))
+            (update-in [:in n2] (fnil conj #{}) n1)))
+      g edges))
 
    :remove-nodes*
    (fn [g nodes]
@@ -331,11 +333,11 @@ on adjacency lists."
    :remove-edges*
    (fn [g edges]
      (reduce
-       (fn [g [n1 n2]]
-         (-> g
-             (update-in [:adj n1] dissoc n2)
-             (update-in [:in n2] disj n1)))
-       g edges))
+      (fn [g [n1 n2]]
+        (-> g
+            (update-in [:adj n1] dissoc n2)
+            (update-in [:in n2] disj n1)))
+      g edges))
 
    :remove-all
    (fn [g]
@@ -343,11 +345,11 @@ on adjacency lists."
 
   Digraph
   (assoc default-digraph-impl
-         :transpose (fn [g]
-                      (reduce (fn [tg [n1 n2]]
-                                (add-edges* tg [[n2 n1 (weight g n1 n2)]]))
-                              (assoc g :adj {} :in {})
-                              (edges g))))
+    :transpose (fn [g]
+                 (reduce (fn [tg [n1 n2]]
+                           (add-edges* tg [[n2 n1 (weight g n1 n2)]]))
+                         (assoc g :adj {} :in {})
+                         (edges g))))
 
   WeightedGraph
   default-weighted-graph-impl)
@@ -377,8 +379,8 @@ on adjacency lists."
                     nbr (successors g n)]
                 [n nbr])))
    :successors (fn
-                ([g] (partial successors g))
-                ([g node] (call-or-return (:fsuccessors g) node)))
+                 ([g] (partial successors g))
+                 ([g node] (call-or-return (:fsuccessors g) node)))
    :out-degree (fn [g node]
                  (count (successors g node)))
    :out-edges (get-in default-graph-impls [:all :out-edges])})
@@ -397,10 +399,11 @@ on adjacency lists."
 (defrecord FlyGraph [fnodes fedges fsuccessors start])
 (defrecord FlyDigraph [fnodes fedges fsuccessors fpredecessors start])
 (defrecord WeightedFlyGraph [fnodes fedges fsuccessors fweight start])
-(defrecord WeightedFlyDigraph [fnodes fedges fsuccessors fpredecessors fweight start])
+(defrecord WeightedFlyDigraph
+    [fnodes fedges fsuccessors fpredecessors fweight start])
 
-;; Deprecate the flygraphs?  Instead provide interfaces on algorithms to 
-;; run the algorithm on 
+;; Deprecate the flygraphs?  Instead provide interfaces on algorithms to
+;; run the algorithm on
 
 (extend FlyGraph
   Graph default-flygraph-graph-impl)
@@ -506,9 +509,9 @@ on adjacency lists."
   (apply build-graph (BasicEditableDigraph. #{} {} {}) inits))
 
 (defn weighted-graph
-  [& inits]
   "Create an weighted, undirected graph. inits can be edges, adjacency maps,
   or graphs"
+  [& inits]
   (apply build-graph (BasicEditableWeightedGraph. #{} {}) inits))
 
 (defn weighted-digraph
