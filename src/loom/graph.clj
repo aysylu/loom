@@ -31,7 +31,7 @@ on adjacency lists."
   (add-edges* [g edges] "Add edges to graph g. See add-edges")
   (remove-nodes* [g nodes] "Remove nodes from graph g. See remove-nodes")
   (remove-edges* [g edges] "Removes edges from graph g. See remove-edges")
-  (rename-nodes* [g old-names new-names attr-processor] "Rename nodes in g. 
+  (rename-nodes* [g old-names new-names attr-processor] "Rename nodes in g.
                                                         (defn attr-processor [attr-map old-names new-names] ...)")
   (remove-all [g] "Removes all nodes and edges from graph g"))
 
@@ -61,9 +61,9 @@ on adjacency lists."
   (remove-edges* g edges))
 
 (defn rename-nodes
-  "Rename nodes in g. Sequentially renames, thus cannot handle 
+  "Rename nodes in g. Sequentially renames, thus cannot handle
   name swapping; do not use as (rename-nodes g [1 2] [2 1]), it will
-  not operate correctly. If such a thing is necessary, gensym 
+  not operate correctly. If such a thing is necessary, gensym
   temporary names."
   [g & rst]
   (let [oldn (first rst)
@@ -117,7 +117,7 @@ on adjacency lists."
     :successors (fn
                  ([g] (partial successors g))
                  ([g node] (get-in g [:adj node])))}
-   
+
    ;; Weighted graphs store adjacencies as {node {neighbor weight}}
    :weighted
    {:add-nodes* (fn [g nodes]
@@ -152,8 +152,14 @@ on adjacency lists."
    (apply dissoc m nodes)
    adjacents))
 
-;; from tools.core
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;
+;;; aux functions from tools.core
+;;;
 (defn- subj
+  "Conj, disj and subj. Substitution in sets.
+  Does not test for existence of keys that it adds
+  and will happily (subj #{:a :b} [:b :c] [:a :d]) ;=> #{:a}."
   ([s oldk newk] (subj s (apply hash-map (interleave oldk newk))))
   ([s km] (letfn [(subst [s [ok nk]]
                     (if (contains? s ok)
@@ -161,9 +167,10 @@ on adjacency lists."
                           (disj ok)
                           (conj nk))
                       s))]
-            (reduce subst s (seq km)))))
+            (reduce subst s km))))
 
 (defn- rename-keys
+  "Renames keys in a map."
   ([m oldk newk] (rename-keys m (apply hash-map (interleave oldk newk))))
   ([m km] (letfn [(subst [m [ok nk]]
                     (if (contains? m ok)
@@ -171,19 +178,21 @@ on adjacency lists."
                           (dissoc ok)
                           (assoc nk (m ok)))
                       m))]
-            (reduce subst m (seq km)))))
+            (reduce subst m km))))
 
 (defn- updates-in
+  "Runs multiple update-in on a map."
   [m ks f & params]
   (reduce
     #(apply (partial update-in %1 %2 f) params)
     m
     ks))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (extend BasicEditableGraph
   Graph
   (let [{:keys [all unweighted]} default-graph-impls]
-    (merge all unweighted)) 
+    (merge all unweighted))
 
   EditableGraph
   {:add-nodes*
@@ -229,7 +238,7 @@ on adjacency lists."
 (extend BasicEditableDigraph
   Graph
   (let [{:keys [all unweighted]} default-graph-impls]
-    (merge all unweighted)) 
+    (merge all unweighted))
 
   EditableGraph
   {:add-nodes*
@@ -282,7 +291,7 @@ on adjacency lists."
 (extend BasicEditableWeightedGraph
   Graph
   (let [{:keys [all weighted]} default-graph-impls]
-    (merge all weighted)) 
+    (merge all weighted))
 
   EditableGraph
   {:add-nodes*
@@ -331,7 +340,7 @@ on adjacency lists."
 (extend BasicEditableWeightedDigraph
   Graph
   (let [{:keys [all weighted]} default-graph-impls]
-    (merge all weighted)) 
+    (merge all weighted))
 
   EditableGraph
   {:add-nodes*
@@ -451,8 +460,8 @@ on adjacency lists."
 (defrecord WeightedFlyGraph [fnodes fedges fsuccessors fweight start])
 (defrecord WeightedFlyDigraph [fnodes fedges fsuccessors fpredecessors fweight start])
 
-;; Deprecate the flygraphs?  Instead provide interfaces on algorithms to 
-;; run the algorithm on 
+;; Deprecate the flygraphs?  Instead provide interfaces on algorithms to
+;; run the algorithm on
 
 (extend FlyGraph
   Graph default-flygraph-graph-impl)
