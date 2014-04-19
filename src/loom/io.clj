@@ -131,13 +131,22 @@
         (.write w ^bytes data)))
     (open tmp)))
 
-(defn view
-  "Converts graph g to a temporary PNG file using GraphViz and opens it
-  in the current desktop environment's default viewer for PNG files.
+(defn render-to-bytes
+  "Renders the graph g in the PNG format using GraphViz and returns PNG data
+  as a byte array.
   Requires GraphViz's 'dot' (or a specified algorithm) to be installed in
   the shell's path. Possible algorithms include :dot, :neato, :fdp, :sfdp,
   :twopi, and :circo"
   [g & {:keys [alg] :or {alg "dot"} :as opts}]
   (let [dot (apply dot-str g (apply concat opts))
         {png :out} (sh (name alg) "-Tpng" :in dot :out-enc :bytes)]
-    (open-data png :png)))
+    png))
+
+(defn view
+  "Converts graph g to a temporary PNG file using GraphViz and opens it
+  in the current desktop environment's default viewer for PNG files.
+  Requires GraphViz's 'dot' (or a specified algorithm) to be installed in
+  the shell's path. Possible algorithms include :dot, :neato, :fdp, :sfdp,
+  :twopi, and :circo"
+  [g & opts]
+    (open-data (apply render-to-bytes g opts) :png))
