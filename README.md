@@ -7,7 +7,7 @@
 
 ## Video and Slides
 
-Watch the [talk on Loom](http://youtu.be/Iev7zavblqg) and view [slides](http://www.slideshare.net/aysylu/aysylu-loom).
+Watch the talk on Loom [at Clojure/West 2014](https://www.youtube.com/watch?v=wEEutxTYQQU) and view [slides](http://www.slideshare.net/aysylu/loom-at-clojurewest-32794616). Also, there's a video of the talk at [LispNYC](http://youtu.be/Iev7zavblqg) and [slides](http://www.slideshare.net/aysylu/aysylu-loom).
 
 ## Usage
 
@@ -29,6 +29,8 @@ Watch the [talk on Loom](http://youtu.be/Iev7zavblqg) and view [slides](http://w
 [API Reference](http://aysy.lu/loom/)
 
 [Frequently Asked Questions](http://aysy.lu/loom/faq.html)
+
+Feel free to join [Loom mailing list](https://groups.google.com/forum/#!forum/loom-clj) and ask any questions you may have.
 
 ### Basics
 
