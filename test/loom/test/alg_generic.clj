@@ -1,6 +1,7 @@
 (ns loom.test.alg-generic
   (:require [loom.alg-generic :as lag]
             [clojure.set :as set]
+            [clojure.test :refer [deftest are]]
             [clojure.test.check :as tc]
             [clojure.test.check.clojure-test :refer [defspec]]
             [clojure.test.check.properties :as prop]
@@ -94,3 +95,43 @@
 (defspec ^:test-check-slow dag-similarity-2000
   2000
   dag-similarity-props)
+
+(def g1
+  {:a [:b :c]
+   :b [:d]
+   :c [:d]
+   :d nil})
+
+(def g2
+  {:a [:b]
+   :b [:a]})
+
+(def g3
+  {:a [:b]
+   :b [:a :c :d]
+   :c [:b :e]
+   :d [:b :c :e]
+   :e [:c :d :f]
+   :f []})
+
+(deftest tracing-paths
+  (are [g n p] (= (sort (lag/trace-paths g n)) p)
+       {:a nil} :a
+       [[:a]]
+
+       {:a #{:b} :b nil} :a
+       [[:a :b]]
+
+       g1 :a
+       [[:a :b :d] [:a :c :d]]))
+
+(deftest bf-paths-bi-test
+  (are [g start end paths] (= (lag/bf-paths-bi g g start end) paths)
+       g2 :a :b
+       [[:a :b]]
+
+       g3 :a :c
+       [[:a :b :c]]
+
+       g3 :a :e
+       [[:a :b :c :e] [:a :b :d :e]]))

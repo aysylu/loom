@@ -14,6 +14,23 @@
   [preds node]
   (take-while identity (iterate preds node)))
 
+(defn paths
+  "Returns a lazy seq of all non-looping path vectors starting with
+  [<start-node>]"
+  [preds path]
+  (let [this-node (peek path)]
+    (->> (preds this-node)
+         (filter #(not-any? (fn [edge] (= edge [this-node %]))
+                            (partition 2 1 path)))
+         (mapcat #(paths preds (conj path %)))
+         (cons path))))
+
+(defn trace-paths
+  "Given a function and a starting node, returns all possible paths
+  back to source. Cycles are not accounted for."
+  [preds start]
+  (remove #(preds (peek %)) (paths preds [start])))
+
 (defn preds->span
   "Converts a map of the form {node predecessor} to a spanning tree of the
   form {node [successors]}"
@@ -197,6 +214,49 @@
            (@preds1 end) (reverse (trace-path @preds1 end))
            (@preds2 start) (trace-path @preds2 start)))
         (recur (find-intersects))))))
+
+(defn- reverse-edges [successor-fn nodes coll]
+  (for [node nodes
+        nbr (successor-fn node)
+        :when (not (contains? coll nbr))]
+    [nbr node]))
+
+(defn- conj-paths [from-map to-map matches]
+  (for [n matches
+        from (map reverse (trace-paths from-map n))
+        to (map rest (trace-paths to-map n))]
+    (vec (concat from to))))
+
+(defn bf-paths-bi
+  "Using a bidirectional breadth-first search, returns all shortest
+  paths from start to end; predecessors is called on end and each
+  preceding node, successors is called on start, etc."
+  [successors predecessors start end]
+  (let [find-succs (partial reverse-edges successors)
+        find-preds (partial reverse-edges predecessors)
+        overlaps (fn [coll q] (seq (filter #(contains? coll %) q)))
+        map-set-pairs (fn [map pairs]
+                        (persistent! (reduce (fn [map [key val]]
+                                  (assoc! map key (conj (get map key #{}) val)))
+                                (transient map) pairs)))]
+    (loop [outgoing {start nil}
+           incoming {end nil}
+           q1 (list start)
+           q2 (list end)]
+      (when (and (seq q1) (seq q2))
+        (if (<= (count q1) (count q2))
+          (let [pairs (find-succs q1 outgoing)
+                outgoing (map-set-pairs outgoing pairs)
+                q1 (map first pairs)]
+            (if-let [all (overlaps incoming q1)]
+              (conj-paths outgoing incoming (set all))
+              (recur outgoing incoming q1 q2)))
+          (let [pairs (find-preds q2 incoming)
+                incoming (map-set-pairs incoming pairs)
+                q2 (map first pairs)]
+            (if-let [all (overlaps outgoing q2)]
+              (conj-paths outgoing incoming (set all))
+              (recur outgoing incoming q1 q2))))))))
 
 ;; FIXME: Decide whether this can be optimized and is worth keeping
 #_(defn bf-path-bi2
