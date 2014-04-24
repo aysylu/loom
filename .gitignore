@@ -3,3 +3,5 @@ pom.xml
 lib
 classes
 /bin
+/target
+/.lein-*
