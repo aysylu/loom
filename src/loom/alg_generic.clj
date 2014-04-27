@@ -113,15 +113,13 @@
             stack [start]]
        (if (empty? stack)
          result
-         (if (explored (peek stack))
-           (recur seen explored result (pop stack))
-           (let [v (peek stack)
-                 seen (conj seen v)
-                 us (remove explored (successors v))]
-             (if (seq us)
-               (when-not (some seen us)
-                 (recur seen explored result (into stack us)))
-               (recur seen (conj explored v) (conj result v) (pop stack)))))))))
+         (let [v (peek stack)
+               seen (conj seen v)
+               us (remove explored (successors v))]
+           (if (seq us)
+             (when-not (some seen us)
+               (recur seen explored result (conj stack (first us))))
+             (recur seen (conj explored v) (conj result v) (pop stack))))))))
 
 ;;;
 ;;; Breadth-first traversal

@@ -107,6 +107,16 @@
            [11 2]
            [11 4]))
 
+(def g14
+  (digraph [1 2]
+           [2 3]
+           [2 4]))
+
+(def g15
+  (digraph [1 2]
+           [3 2]
+           [2 4]))
+
 (deftest depth-first-test
   (are [expected got] (= expected got)
        #{1 2 3 5 6 7} (set (pre-traverse g7))
@@ -125,7 +135,9 @@
                        (= #{2} (set (successors span 1))))))
        [:g :a :b :c :f :e :d] (topsort g5)
        nil (topsort g7)
-       [5 6 7] (topsort g7 5)))
+       [5 6 7] (topsort g7 5)
+       [1 2 4 3] (topsort g14 1)
+       [1 2 4] (topsort g15 1)))
 
 (deftest breadth-first-test
   (are [expected got] (= expected got)
