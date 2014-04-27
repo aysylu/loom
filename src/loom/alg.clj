@@ -14,18 +14,17 @@ can use these functions."
 ;;;
 ;;; Convenience wrappers for loom.alg-generic functions
 ;;;
-
 (defn- traverse-all
   [nodes traverse]
-  (second
+  (persistent! (second
    (reduce
     (fn [[seen trav] n]
       (if (seen n)
         [seen trav]
         (let [ctrav (traverse n :seen (conj seen n))]
-          [(into seen ctrav) (doall (concat trav ctrav))])))
-    [#{} []]
-    nodes)))
+          [(into seen ctrav) (reduce conj! trav ctrav)])))
+    [#{} (transient [])]
+    nodes))))
 
 (defn pre-traverse
   "Traverses graph g depth-first from start. Returns a lazy seq of nodes.
@@ -310,14 +309,17 @@ can use these functions."
   (let [gt (transpose g)]
     (loop [stack (reverse (post-traverse g))
            seen #{}
-           cc []]
+           cc (transient [])]
       (if (empty? stack)
-        cc
-        (let [[c seen] (post-traverse gt (first stack)
+        (persistent! cc)
+        (if (seen (first stack))
+          (recur (rest stack) seen cc)
+          (let [[c seen] (post-traverse gt (first stack)
                                       :seen seen :return-seen true)]
-          (recur (doall (remove seen stack))
+            (recur (rest stack)
                  seen
-                 (conj cc c)))))))
+                 (conj! cc c))))
+        ))))
 
 (defn strongly-connected?
   [g]
