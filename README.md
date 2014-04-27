@@ -184,12 +184,7 @@ Nothing but Clojure. There is optional support for visualization via [GrapViz](h
 
 ## TODO
 
-* Use deftype instead of defrecord
-* Do more functional graph research
-* Solidify performance guarantees
-* Implement more algorithms
-* Test & profile more with big, varied graphs
-* Multigraphs, hypergraphs, adjacency matrix-based graphs?
+See [Loom TODO board](https://trello.com/b/VgPZkvjP/loom-todo).
 
 ## Contributors
 
