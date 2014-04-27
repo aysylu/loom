@@ -2,3 +2,6 @@ pom.xml
 *jar
 lib
 classes
+/bin
+/target
+/.lein-*

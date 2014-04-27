@@ -7,11 +7,9 @@
 
 ## Video and Slides
 
-Watch the [talk on Loom](http://youtu.be/Iev7zavblqg) and view [slides](http://www.slideshare.net/aysylu/aysylu-loom).
+Watch the talk on Loom [at Clojure/West 2014](https://www.youtube.com/watch?v=wEEutxTYQQU) and view [slides](http://www.slideshare.net/aysylu/loom-at-clojurewest-32794616). Also, there's a video of the talk at [LispNYC](http://youtu.be/Iev7zavblqg) and [slides](http://www.slideshare.net/aysylu/aysylu-loom).
 
 ## Usage
-
-The namespace `loom.graph` must be AOT compiled. You can include `:aot [loom.graph]` in your project.clj to do this. This is due to the issue described [on the Clojure mailing list here](https://groups.google.com/forum/?hl=en#!topic/clojure/ZeENLkHAQTU).
 
 ### Leiningen/Clojars [group-id/name version]
 
@@ -31,6 +29,8 @@ The namespace `loom.graph` must be AOT compiled. You can include `:aot [loom.gra
 [API Reference](http://aysy.lu/loom/)
 
 [Frequently Asked Questions](http://aysy.lu/loom/faq.html)
+
+Feel free to join [Loom mailing list](https://groups.google.com/forum/#!forum/loom-clj) and ask any questions you may have.
 
 ### Basics
 
@@ -184,12 +184,7 @@ Nothing but Clojure. There is optional support for visualization via [GrapViz](h
 
 ## TODO
 
-* Use deftype instead of defrecord
-* Do more functional graph research
-* Solidify performance guarantees
-* Implement more algorithms
-* Test & profile more with big, varied graphs
-* Multigraphs, hypergraphs, adjacency matrix-based graphs?
+See [Loom TODO board](https://trello.com/b/VgPZkvjP/loom-todo).
 
 ## Contributors
 

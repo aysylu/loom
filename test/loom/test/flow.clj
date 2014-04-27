@@ -1,8 +1,8 @@
 (ns loom.test.flow
-  (:use [loom.graph] :reload)
-  (:use [loom.flow]
-        [loom.alg :only [max-flow]]
-        [clojure.test]))
+  (:require [loom.graph :refer :all]
+            [loom.flow :refer :all]
+            [loom.alg :refer [max-flow]]
+            [clojure.test :refer :all]))
 
 
 ;; Trivial case
@@ -31,13 +31,14 @@
 
 
 (deftest edmonds-karp-test
-  (are [max-value network] (let [[flow value] (edmonds-karp (successors network)
-                                                            (predecessors network)
-                                                            (weight network)
-                                                            :s :t)]
-                             (and (= max-value value)
-                                  (is-admissible-flow? flow (weight network)
-                                                       :s :t)))
+  (are [max-value network]
+       (let [[flow value] (edmonds-karp (successors network)
+                                        (predecessors network)
+                                        (weight network)
+                                        :s :t)]
+         (and (= max-value value)
+              (is-admissible-flow? flow (weight network)
+                                   :s :t)))
        23 g1
        100 g0
        0 g2))
@@ -49,7 +50,3 @@
          (and (= max-value value)
               (is-admissible-flow? flow (weight network) :s :t)))
        23 g1))
-
-                                         
-
-
