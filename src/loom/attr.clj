@@ -46,7 +46,8 @@ thickness, etc)."
                 (dissoc (get-in g [:attrs node-or-edge]) ::edge-attrs)
                 (attrs g (src node-or-edge) (dest node-or-edge))))
             ([g n1 n2]
-               (get-in g [:attrs n1 ::edge-attrs n2])))})
+               (let [attributes (get-in g [:attrs n1 ::edge-attrs n2])]
+                 (when (seq attributes) attributes))))})
 
 (extend BasicEditableGraph
   AttrGraph

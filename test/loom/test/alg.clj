@@ -108,6 +108,16 @@
            [11 4]))
 
 
+(def g14
+  (digraph [1 2]
+           [2 3]
+           [2 4]))
+
+(def g15
+  (digraph [1 2]
+           [3 2]
+           [2 4]))
+
 ;; graphs for mst
 ;; http://en.wikipedia.org/wiki/Kruskal%27s_algorithm
 (def mst_wt_g1 (weighted-graph '(:a,:d, 5)
@@ -182,7 +192,9 @@
                        (= #{2} (set (successors span 1))))))
        [:g :a :b :c :f :e :d] (topsort g5)
        nil (topsort g7)
-       [5 6 7] (topsort g7 5)))
+       [5 6 7] (topsort g7 5)
+       [1 2 4 3] (topsort g14 1)
+       [1 2 4] (topsort g15 1)))
 
 (deftest breadth-first-test
   (are [expected got] (= expected got)
