@@ -107,6 +107,63 @@
            [11 2]
            [11 4]))
 
+
+;; graphs for mst
+;; http://en.wikipedia.org/wiki/Kruskal%27s_algorithm
+(def mst_wt_g1 (weighted-graph '(:a,:d, 5)
+                        '(:a,:b,7)
+                        '(:b,:d,9),
+                        '(:b,:c,8),
+                        '(:b,:e,7)
+                        '(:d,:e,15)
+                        '(:d,:f,6)
+                        '(:c,:e,5)
+                        '(:e,:f,8)
+                        '(:e,:g,9)
+                        '(:f,:g,11)))
+
+;; http://en.wikipedia.org/wiki/Kruskal's_algorithm
+(def mst_wt_g1 (weighted-graph '(:a, :e , 1)
+                        '(:c, :d ,2)
+                        '(:a,:b, 3),
+                        '(:b,:e,4),
+                        '(:b,:c,5)
+                        '(:e,:c,6)
+                        '(:e,:d,7)))
+
+;;graph with 2 components
+(def mst_wt_g2 (weighted-graph [:a :b 2]
+                              [:a :d 1]
+                              [:b :d 2]
+                              [:c :d 3]
+                              [:b :c 1]
+                              [:e :f 1]
+                             ))
+
+(def mst_unweighted_g3 (graph [:a :b] [:a :c] [:a :d] [:b :d] [:c :d]))
+
+(def mst_wt_g4 (weighted-graph [:a :b 1]))
+
+(def mst_wt_g5 (weighted-graph [:a :b 5] [:a :c 2] [:b :c 2]))
+
+;;graph from Cormen et all
+(def mst_wt_g6 (weighted-graph [:a :b 4] [:a :h 8]
+                               [:b :c 8] [:b :h 11]
+                               [:c :d 7] [:c :f 4] [:c :i 2]
+                               [:d :f 14] [:d :e 9]
+                               [:e :f 10]
+                               [:f :g 2]
+                               [:i :h 7] [:i :g 6]
+                               [:h :g 1] ))
+
+
+;;graph with 2 components and 2 isolated nodes
+(def mst_wt_g7 (weighted-graph [:a :b 2]
+                               [:b :d 2]
+                               [:e :f 1]
+                               :g :h
+                             ))
+
 (deftest depth-first-test
   (are [expected got] (= expected got)
        #{1 2 3 5 6 7} (set (pre-traverse g7))
@@ -249,3 +306,21 @@
 (deftest scc-test
   (are [expected got] (= expected got)
        #{#{2 4 10} #{1 3 5 6} #{11} #{7 8 9}} (set (map set (scc g13)))))
+
+(deftest prim-mst-edges-test
+  (are [expected got] (= expected got)
+       [[:a :e 1] [:a :b 3] [:b :c 5] [:c :d 2]] (prim-mst-edges mst_wt_g1)
+       [[:a :d 1] [:a :b 2] [:b :c 1] [:f :e 1]] (prim-mst-edges mst_wt_g2)
+       [[:a :c] [:a :b] [:b :d]] (prim-mst-edges mst_unweighted_g3)
+       [[:a :b 1]] (prim-mst-edges mst_wt_g4)
+       [[:a :c 2] [:c :b 2]] (prim-mst-edges mst_wt_g5)
+       [[:a :b 4] [:b :c 8] [:c :i 2] [:c :f 4] [:f :g 2]
+        [:g :h 1] [:c :d 7] [:d :e 9]]  (prim-mst-edges mst_wt_g6)))
+
+(deftest prim-mst-test
+  (are [expected got] (= expected got)
+       [#{:a :b :d :e :f :g :h} [[:a :b][:b :d][:b :a][:f :e][:d :b][:e :f]]]
+       (let [mst (prim-mst mst_wt_g7)]
+         [(nodes mst) (edges mst)])
+       [#{:a :b :c} [[:a :c] [:c :b] [:c :a] [:b :c]]] (let [mst (prim-mst mst_wt_g5)]
+              [(nodes mst) (edges mst)])))
