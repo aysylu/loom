@@ -129,6 +129,7 @@
         (.write w ^String data))
       (with-open [w (java.io.FileOutputStream. tmp)]
         (.write w ^bytes data)))
+    (.deleteOnExit tmp)
     (open tmp)))
 
 (defn render-to-bytes
