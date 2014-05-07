@@ -477,7 +477,8 @@ can use these functions."
      ))
 
 (defn prim-mst
-  "Minimum spanning tree of given graph."
+  "Minimum spanning tree of given graph. If the graph contains more than one
+   component then returns a spanning forest of minimum spanning trees."
   [wg]
   (let [mst (apply graph/weighted-graph (prim-mst-edges wg))
         ]
