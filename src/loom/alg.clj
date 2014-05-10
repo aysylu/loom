@@ -442,8 +442,8 @@ can use these functions."
   [wg v]
   (let [edge-weight (fn [u v]
                       (if (weighted? wg) (weight wg u v) 1) )]
-    (map #(vec [[v %1] (edge-weight v %1)])
-         (successors wg v))  )
+    (map #(vec [%1 [v (edge-weight v %1)] ])
+         (successors wg v)))
   )
 
 (defn prim-mst-edges
@@ -463,18 +463,24 @@ can use these functions."
      (cond
       (empty? n) acc
       (empty? h) (let [v (first n)
-                       h  (into (pm/priority-map) (edge-weights wg v))
+                       h  (into (partial (pm/priority-map-keyfn second)) (edge-weights wg v))
                        ]
                    (recur wg (disj n v) h (conj visited v) acc))
       :else (let [next_edge (peek h)
-                  u (first (first next_edge))
-                  v (second (first next_edge))]
-              (if (visited v)
-                (recur wg n (pop h) visited acc)
-                (let [wt (second next_edge)
-                      h (into (pop h) (edge-weights wg v))]
-                  (recur wg (disj n v) h (conj visited v)(conj acc [u v wt]))))))
-     ))
+                  u (first (second next_edge))
+                  v (first next_edge)
+                  update-dist (fn [h [v [u wt]]]
+                                (cond
+                                 (nil? (get h v)) (assoc h v [u wt])
+                                 (> (second (get h v)) wt) (assoc h v [u wt])
+                                 :else h)
+                                )]
+              (let [wt (second (second next_edge))
+                    visited (conj visited v)
+                    h (reduce update-dist (pop h)
+                              (filter #((complement visited) (first %) )
+                                      (edge-weights wg v)))]
+                (recur wg (disj n v) h (conj visited v)(conj acc [u v wt])))))))
 
 (defn prim-mst
   "Minimum spanning tree of given graph. If the graph contains more than one

@@ -323,7 +323,7 @@
   (are [expected got] (= expected got)
        [[:a :e 1] [:a :b 3] [:b :c 5] [:c :d 2]] (prim-mst-edges mst_wt_g1)
        [[:a :d 1] [:a :b 2] [:b :c 1] [:f :e 1]] (prim-mst-edges mst_wt_g2)
-       [[:a :c] [:a :b] [:b :d]] (prim-mst-edges mst_unweighted_g3)
+       [[:a :c] [:a :b] [:a :d]] (prim-mst-edges mst_unweighted_g3)
        [[:a :b 1]] (prim-mst-edges mst_wt_g4)
        [[:a :c 2] [:c :b 2]] (prim-mst-edges mst_wt_g5)
        [[:a :b 4] [:b :c 8] [:c :i 2] [:c :f 4] [:f :g 2]
