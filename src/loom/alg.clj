@@ -6,10 +6,11 @@ can use these functions."
   (:require [loom.alg-generic :as gen]
             [loom.flow :as flow])
   (:require [loom.graph
-             :refer [add-edges nodes edges successors weight predecessors
+             :refer [add-nodes add-edges nodes edges successors weight predecessors
                      out-degree in-degree weighted? directed? graph transpose]
              :as graph]
-            [loom.alg-generic :refer [trace-path preds->span]]))
+            [loom.alg-generic :refer [trace-path preds->span]])
+  (:require [clojure.data.priority-map :as pm]))
 
 ;;;
 ;;; Convenience wrappers for loom.alg-generic functions
@@ -432,4 +433,66 @@ can use these functions."
 
 
 
-;; TODO: MST, coloring, matching, etc etc
+;; mst algorithms
+;; convenience functions for mst algo
+(defn- edge-weights
+  "Wrapper function to return edges along with weights for a given graph.
+   For un-weighted graphs a default value of one is produced. The function
+   returns values of the form [[[u v] 10] [[x y] 20] ...]"
+  [wg v]
+  (let [edge-weight (fn [u v]
+                      (if (weighted? wg) (weight wg u v) 1) )]
+    (map #(vec [%1 [v (edge-weight v %1)] ])
+         (successors wg v)))
+  )
+
+(defn prim-mst-edges
+  "An edge-list of an minimum spanning tree along with weights that
+  represents an MST of the given  graph. Returns the MST edge-list
+  for un-weighted graphs."
+  ([wg]
+     (cond
+      (directed? wg) (throw (Exception.
+                             "Spanning tree only defined for undirected graphs"))
+      :else (let [mst (prim-mst-edges wg (nodes wg) nil #{} [])]
+              (if (weighted? wg)
+                mst
+                (map #(vec [(first %1) (second %1)]) mst))))
+     )
+  ([wg n h visited acc]
+     (cond
+      (empty? n) acc
+      (empty? h) (let [v (first n)
+                       h  (into (partial (pm/priority-map-keyfn second)) (edge-weights wg v))
+                       ]
+                   (recur wg (disj n v) h (conj visited v) acc))
+      :else (let [next_edge (peek h)
+                  u (first (second next_edge))
+                  v (first next_edge)
+                  update-dist (fn [h [v [u wt]]]
+                                (cond
+                                 (nil? (get h v)) (assoc h v [u wt])
+                                 (> (second (get h v)) wt) (assoc h v [u wt])
+                                 :else h)
+                                )]
+              (let [wt (second (second next_edge))
+                    visited (conj visited v)
+                    h (reduce update-dist (pop h)
+                              (filter #((complement visited) (first %) )
+                                      (edge-weights wg v)))]
+                (recur wg (disj n v) h (conj visited v)(conj acc [u v wt])))))))
+
+(defn prim-mst
+  "Minimum spanning tree of given graph. If the graph contains more than one
+   component then returns a spanning forest of minimum spanning trees."
+  [wg]
+  (let [mst (apply graph/weighted-graph (prim-mst-edges wg))
+        ]
+    (cond
+     (= ((comp count nodes) wg) ((comp count nodes) mst)) mst
+     :else (apply add-nodes mst (filter #(zero? (out-degree wg %)) (nodes wg)))
+     )))
+
+
+
+;; ;; Todo: MST, coloring, matching, etc etc
