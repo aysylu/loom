@@ -494,7 +494,7 @@ can use these functions."
      )))
 
 (defn astar-path
-  "Shortest path using A* algorithm. Returns a map of predecessors."
+  "Return the shortest path using A* algorithm. Returns a map of predecessors."
   ([g src target heur]
      (let [heur (if (nil? heur) (fn [x y] 0) heur)
            ;; store in q => {u [heur+dist parent act est]}
@@ -546,6 +546,8 @@ can use these functions."
               (recur g src target heur q explored)))))
 
 (defn astar-dist [g src target heur]
+  "Return the length of the shortest path between src and target using
+    the A* algorithm"
   (let [path (astar-path g src target heur)
         dist (reduce (fn [c [u v]]
                        (if (nil? v)
