@@ -375,3 +375,16 @@
        {:r nil, :o :r, :p :o} (astar-path g2 :r :p nil))
   (is (thrown? Exception (astar-path astar-with-unreachable-target-g2 :a :e nil))
       ))
+
+(deftest astar-dist-test
+  (are [expected got](= expected got)
+       4
+       (astar-dist astar-simple-path-g1 :a :e (fn [x y] 0))
+       2
+       (astar-dist astar-with-cycle-g3 :a :c (fn [x y] 0))
+       3
+       (astar-dist astar-with-cycle-g3 :a :d (fn [x y] 0))
+       35
+       (astar-dist astar-weighted-graph-g4 :a :d (fn [x y] 0))
+       )
+  )

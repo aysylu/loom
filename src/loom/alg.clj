@@ -545,4 +545,16 @@ can use these functions."
                            nbrs)]
               (recur g src target heur q explored)))))
 
+(defn astar-dist [g src target heur]
+  (let [path (astar-path g src target heur)
+        dist (reduce (fn [c [u v]]
+                       (if (nil? v)
+                         c
+                         (+ c (if (weighted? g) (weight g v u) 1))
+                         )
+                       ) 0 path)]
+    dist))
+
+
+
 ;; ;; Todo: MST, coloring, matching, etc etc
