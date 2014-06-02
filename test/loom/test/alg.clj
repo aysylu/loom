@@ -336,3 +336,55 @@
          [(nodes mst) (edges mst)])
        [#{:a :b :c} [[:a :c] [:c :b] [:c :a] [:b :c]]] (let [mst (prim-mst mst_wt_g5)]
               [(nodes mst) (edges mst)])))
+
+
+;;;;graphs for A* path
+(def astar-simple-path-g1 (graph [:a :b]
+                            [:b :c]
+                            [:c :d]
+                            [:d :e]))
+
+;;graph, with unreachable node
+(def astar-with-unreachable-target-g2 (graph [:a :b]
+                                              [:b :c]
+                                              [:d :e]))
+
+(def astar-with-cycle-g3 (digraph [:a :b]
+                             [:b :c]
+                             [:c :d]
+                             [:d :a]))
+
+(def astar-weighted-graph-g4 (weighted-digraph [:a :b 10]
+                                               [:b :c 20]
+                                               [:c :d 5]
+                                               [:a :e 10]
+                                               [:e :d 100]))
+
+(deftest astar-path-test
+  (are [expected got](= expected got)
+       {:e :d :d :c :c :b :b :a :a nil}
+       (astar-path astar-simple-path-g1 :a :e (fn [x y] 0))
+       {:a nil :b :a :c :b}
+       (astar-path astar-with-cycle-g3 :a :c (fn [x y] 0))
+       {:a nil :b :a :c :b :d :c}
+       (astar-path astar-with-cycle-g3 :a :d (fn [x y] 0))
+       {:a nil :b :a :c :b :d :c}
+       (astar-path astar-weighted-graph-g4 :a :d (fn [x y] 0))
+       ;;all test graphs used for Dijkstra should work for A* as well
+       {:a nil, :c :a, :h :c, :j :h} (astar-path g4 :a :j nil)
+       {:r nil, :o :r, :p :o} (astar-path g2 :r :p nil))
+  (is (thrown? Exception (astar-path astar-with-unreachable-target-g2 :a :e nil))
+      ))
+
+(deftest astar-dist-test
+  (are [expected got](= expected got)
+       4
+       (astar-dist astar-simple-path-g1 :a :e (fn [x y] 0))
+       2
+       (astar-dist astar-with-cycle-g3 :a :c (fn [x y] 0))
+       3
+       (astar-dist astar-with-cycle-g3 :a :d (fn [x y] 0))
+       35
+       (astar-dist astar-weighted-graph-g4 :a :d (fn [x y] 0))
+       )
+  )

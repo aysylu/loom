@@ -441,7 +441,7 @@ can use these functions."
    returns values of the form [[[u v] 10] [[x y] 20] ...]"
   [wg v]
   (let [edge-weight (fn [u v]
-                      (if (weighted? wg) (weight wg u v) 1) )]
+                      (if (weighted? wg) (weight wg u v) 1))]
     (map #(vec [%1 [v (edge-weight v %1)] ])
          (successors wg v)))
   )
@@ -492,6 +492,70 @@ can use these functions."
      (= ((comp count nodes) wg) ((comp count nodes) mst)) mst
      :else (apply add-nodes mst (filter #(zero? (out-degree wg %)) (nodes wg)))
      )))
+
+(defn astar-path
+  "Return the shortest path using A* algorithm. Returns a map of predecessors."
+  ([g src target heur]
+     (let [heur (if (nil? heur) (fn [x y] 0) heur)
+           ;; store in q => {u [heur+dist parent act est]}
+           q (pm/priority-map-keyfn first src [0 nil 0 0])
+           explored (hash-map)]
+       (astar-path g src target heur q explored))
+       )
+  ([g src target heur q explored]
+     (cond
+      ;; queue empty, target not reachable
+      (empty? q) (throw (Exception. "Target not reachable from source"))
+      ;; target found, build path and return
+      (= (first (peek q)) target) (let [u (first (peek q))
+                                        parent ((second (peek q)) 1)
+                                        explored(assoc explored target parent)
+                                        path (loop [s target acc {}]
+                                               (cond
+                                                (nil? s) acc
+                                                (= s src) (assoc acc s nil)
+                                                :else (recur (explored s)
+                                                             (assoc acc s (explored s)))))
+                                        ]
+                                    path
+                                    )
+      ;; continue searching
+      :else (let
+                [curr-node (first (peek q))
+                 curr-dist ((second (peek q)) 2)
+                 ;; update path
+                 explored (assoc explored curr-node ((second (peek q)) 1))
+                 nbrs (filter (complement explored) (successors g curr-node))
+                 ;; we do this for following reasons
+                 ;; a. avoiding duplicate heuristics computation
+                 ;; b. duplicate entries for nodes, which needs to be removed later
+                 ;; TODO: this could be sped up if we priority-map supported transients
+                 update-dist (fn [curr-node curr-dist q v]
+                               (let [act (+ curr-dist
+                                            (if (weighted? g) (weight g curr-node v) 1))
+                                     est (if (nil? (get q v))
+                                           (heur curr-node v) ((get q v) 3))
+                                  ]
+                                 (cond
+                                  (or (nil? (get q v))
+                                      (> ((get q v) 2) act))
+                                  (assoc q v [(+ act est ) curr-node act est])
+                                  :else q)))
+                 q (reduce (partial update-dist curr-node curr-dist) (pop q)
+                           nbrs)]
+              (recur g src target heur q explored)))))
+
+(defn astar-dist [g src target heur]
+  "Return the length of the shortest path between src and target using
+    the A* algorithm"
+  (let [path (astar-path g src target heur)
+        dist (reduce (fn [c [u v]]
+                       (if (nil? v)
+                         c
+                         (+ c (if (weighted? g) (weight g v u) 1))
+                         )
+                       ) 0 path)]
+    dist))
 
 
 
