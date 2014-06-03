@@ -41,13 +41,12 @@
   "Given a flow map, and a capacity function, verifies that the flow
    on each edge is <= capacity of that edge."
   [flow capacity]
-  (empty?
-   (remove (fn [[node flow-to-successors]]
-             (every?
-              (fn [[neighbor flow-value]]
-                (<= flow-value (capacity node neighbor)))
-              (seq flow-to-successors)))
-           (seq flow))))
+  (every? (fn [[node flow-to-successors]]
+            (every?
+             (fn [[neighbor flow-value]]
+               (<= flow-value (capacity node neighbor)))
+             (seq flow-to-successors)))
+          (seq flow)))
 
 (defn is-admissible-flow?
   "Verifies that a flow satisfies capacity and mass balance
@@ -83,8 +82,9 @@
   "Given a flow represented as an adjacency map, returns an updated flow.
    Capacity is a function of two vertices, path is a sequence of
    nodes, and increase is the amount by which the flow should be
-   augmented on this path.  An exception is thrown if the augmentation
-   is impossible given capacity constraints."
+   augmented on this path. If at any point the increase exceeds forward
+   capacity, the excess is pushed in the reverse direction.  An exception
+   is thrown if the augmentation is impossible given capacity constraints."
   [flow capacity path increase]
   (let [vn0 (first path)
         vn1 (second path)
