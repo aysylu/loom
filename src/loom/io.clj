@@ -5,9 +5,9 @@
             [loom.alg :refer [distinct-edges loners]]
             [loom.attr :refer [attr? attr attrs]]
             [clojure.string :refer [escape]]
-            [clojure.java.io :refer [file]]
+            [clojure.java.io :refer [file as-file]]
             [clojure.java.shell :refer [sh]])
-  (:import (java.io FileWriter
+  (:import (java.io File FileWriter
                     FileOutputStream)))
 
 (defn- dot-esc
@@ -141,6 +141,18 @@
   [g & {:keys [alg] :or {alg "dot"} :as opts}]
   (let [dot (apply dot-str g (apply concat opts))
         {png :out} (sh (name alg) "-Tpng" :in dot :out-enc :bytes)]
+    png))
+
+(defn render-to-file
+  "Renders the graph g in the PNG format using GraphViz and saves the
+  the image as a file. Returns the java.io.File object.
+  Requires GraphViz's 'dot' (or a specified algorithm) to be installed in
+  the shell's path. Possible algorithms include :dot, :neato, :fdp, :sfdp,
+  :twopi, and :circo"
+  [g f & {:keys [alg] :or {alg "dot"} :as opts}]
+  (let [dot (apply dot-str g (apply concat opts))
+        fname (.getAbsolutePath (as-file f))
+        {png :out} (sh (name alg) "-Tpng" (str "-o" fname) :in dot :out-enc :bytes)]
     png))
 
 (defn view
