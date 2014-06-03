@@ -114,6 +114,20 @@
    :e [:c :d :f]
    :f []})
 
+(def g4 ; like g3 with some loops
+  {:a [:b]
+   :b [:a :c :d]
+   :c [:b :c :e]
+   :d [:b :c :e]
+   :e [:c :d :f]
+   :f [:f]})
+
+(def g5 ; like g1 but as an undirected graph
+  {:a [:b :c]
+   :b [:d :a]
+   :c [:a :d]
+   :d [:c :b]})
+
 (deftest tracing-paths
   (are [g n p] (= (sort (lag/trace-paths g n)) p)
        {:a nil} :a
@@ -135,3 +149,42 @@
 
        g3 :a :e
        [[:a :b :c :e] [:a :b :d :e]]))
+
+(deftest edge-traverse
+  (are [g start f expected] (= expected (f g start))
+       g1 :a lag/pre-edge-traverse
+       '([:a :b] [:b :d] [:a :c] [:c :d])
+       
+       g1 :a lag/post-edge-traverse
+       '([:c :d] [:a :c] [:b :d] [:a :b])
+       
+       g1 :d lag/pre-edge-traverse
+       nil
+       
+       g1 :d lag/post-edge-traverse
+       ()
+       
+       g4 :a lag/pre-edge-traverse
+       '([:a :b] [:b :a] [:b :c] [:c :b] [:c :c] [:c :e] [:e :c] [:e :d] [:d :b] [:d :c] [:d :e] [:e :f] [:f :f] [:b :d])
+       
+       g4 :a lag/post-edge-traverse
+       '([:b :d] [:f :f] [:e :f] [:d :e] [:d :c] [:d :b] [:e :d] [:e :c] [:c :e] [:c :c] [:c :b] [:b :c] [:b :a] [:a :b])
+       
+       g4 :c lag/pre-edge-traverse
+       '([:c :b] [:b :a] [:a :b] [:b :c] [:b :d] [:d :b] [:d :c] [:d :e] [:e :c] [:e :d] [:e :f] [:f :f] [:c :c] [:c :e])
+       
+       g4 :c lag/post-edge-traverse
+       '([:c :e] [:c :c] [:f :f] [:e :f] [:e :d] [:e :c] [:d :e] [:d :c] [:d :b] [:b :d] [:b :c] [:a :b] [:b :a] [:c :b])
+       
+       g4 :f lag/pre-edge-traverse
+       '([:f :f])
+       
+       g4 :f lag/post-edge-traverse
+       '([:f :f])
+       
+       g5 :a lag/pre-edge-traverse
+       '([:a :b] [:b :d] [:d :c] [:c :a] [:c :d] [:d :b] [:b :a] [:a :c])
+       
+       g5 :a lag/post-edge-traverse
+       '([:a :c] [:b :a] [:d :b] [:c :d] [:c :a] [:d :c] [:b :d] [:a :b])
+       ))
