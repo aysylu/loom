@@ -80,10 +80,11 @@
               (step successors nbr (successors nbr)
                     (conj stack start) (conj nbrstack (next nbrs))
                     seen)))))
-     (when-let [parent (peek stack)]
-       (recur successors parent (peek nbrstack)
-              (pop stack) (pop nbrstack) (conj seen start)))))] 
-    (step successors start (successors start) [] [] (conj seen start))))
+      (when-let [parent (peek stack)]
+        (recur successors parent (peek nbrstack)
+               (pop stack) (pop nbrstack) (conj seen start)))))] 
+    (when-not (seen start)
+      (step successors start (successors start) [] [] (conj seen start)))))
 
 ;; TODO: graph-seq, analog of tree-seq
 
@@ -129,24 +130,30 @@
   seq of edges, each edge being a vector [source-node dest-node].
   Note that for undirected graphs each edge will be returned twice,
   once for each direction."
-  [successors start & {:keys [seen] :or {seen #{}}}]
-  (loop [start start
-         nbrs (successors start)
-         stack []
-         nbrstack []
-         seen seen
-         edges ()]
-    (let [seen (conj seen start)]
-      (if-let [nbr (first nbrs)]
-        (if (seen nbr)
-          (recur start (next nbrs) stack nbrstack seen (conj edges [start nbr]))
-          (recur nbr (successors nbr)
-                 (conj stack start) (conj nbrstack (next nbrs))
-                 seen (conj edges [start nbr])))
-        (if-let [parent (peek stack)]
-          (recur parent (peek nbrstack)
-                 (pop stack) (pop nbrstack) seen edges)
-          edges)))))
+  [successors start & {:keys [seen return-seen] :or {seen #{}}}]
+  (if (seen start)
+    (if return-seen
+      [nil seen]
+      nil)
+    (loop [start start
+          nbrs (successors start)
+          stack []
+          nbrstack []
+          seen seen
+          edges ()]
+      (let [seen (conj seen start)]
+        (if-let [nbr (first nbrs)]
+          (if (seen nbr)
+            (recur start (next nbrs) stack nbrstack seen (conj edges [start nbr]))
+            (recur nbr (successors nbr)
+                   (conj stack start) (conj nbrstack (next nbrs))
+                   seen (conj edges [start nbr])))
+          (if-let [parent (peek stack)]
+            (recur parent (peek nbrstack)
+                   (pop stack) (pop nbrstack) seen edges)
+            (if return-seen
+              [edges seen]
+              edges)))))))
 
 (defn topsort-component
   "Topological sort of a component of a (presumably) directed graph.
