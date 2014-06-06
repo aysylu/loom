@@ -191,7 +191,9 @@
   (are [g] (let [dg (g/digraph g)
                  edges (g/edges dg)
                  loop-post-traverse
-                     (loop [nodes (g/nodes dg)
+                     (loop [nodes (reverse (g/nodes dg))
+                            ; reverse makes this more interesting as graphs
+                            ; are often specified in the forward direction
                             seen #{}
                             acc ()]
                        (if-let [node (first nodes)]
