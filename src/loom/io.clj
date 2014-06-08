@@ -38,14 +38,20 @@
   too."
   [g & {:keys [graph-name node-label edge-label]
         :or {graph-name "graph"} :as opts }]
-  (let [node-label (if node-label node-label
-                       (if (attr? g)
-                         #(attr g % :label) (constantly nil)))
-        edge-label (if edge-label edge-label
-                       (if (attr? g)
-                         #(attr g %1 %2 :label) (constantly nil)))
-        d? (directed? g)
+  (let [d? (directed? g)
         w? (weighted? g)
+        a? (attr? g)
+        node-label (if node-label node-label
+                       (if a?
+                         #(attr g % :label)
+                         (constantly nil)))
+        edge-label (if edge-label edge-label
+                       (cond
+                         a? #(if-let [a (attr g %1 %2 :label)]
+                               a
+                               (if w? (weight g %1 %2)))
+                         w? #(weight g %1 %2)
+                         :else (constantly nil)))
         sb (doto (StringBuilder.
                   (if d? "digraph \"" "graph \""))
              (.append (dot-esc graph-name))
@@ -57,8 +63,8 @@
     (doseq [[n1 n2] (distinct-edges g)]
       (let [n1l (str (or (node-label n1) n1))
             n2l (str (or (node-label n2) n2))
-            el (if w? (weight g n1 n2) (edge-label n1 n2))
-            eattrs (assoc (if (attr? g)
+            el (edge-label n1 n2)
+            eattrs (assoc (if a?
                             (attrs g n1 n2) {})
                      :label el)]
         (doto sb
@@ -76,7 +82,7 @@
         (.append "  \"")
         (.append (dot-esc (str (or (node-label n) n))))
         (.append \"))
-      (when-let [nattrs (when (attr? g)
+      (when-let [nattrs (when a?
                           (dot-attrs (attrs g n)))]
         (.append sb \space)
         (.append sb nattrs))
