@@ -13,7 +13,7 @@ Watch the talk on Loom [at Clojure/West 2014](https://www.youtube.com/watch?v=wE
 
 ### Leiningen/Clojars [group-id/name version]
 
-    [aysylu/loom "0.4.2"]
+    [aysylu/loom "0.5.0"]
 
 ### Namespaces
 
