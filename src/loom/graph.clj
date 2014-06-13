@@ -524,7 +524,7 @@ on adjacency lists."
   "Create a read-only, ad-hoc graph which uses the provided functions
   to return values for nodes, edges, etc. If any members are not functions,
   they will be returned as-is. Edges can be inferred if nodes and
-  succesors are provided. Nodes and edges can be inferred if successors and
+  successors are provided. Nodes and edges can be inferred if successors and
   start are provided."
   [& {:keys [nodes edges successors predecessors weight start]}]
   (cond
