@@ -1,7 +1,11 @@
 (ns loom.test.graph
   (:use [loom.graph] :reload)
   (:use [loom.attr] :reload)
-  (:use [clojure.test]))
+  (:use [clojure.test])
+  ;; generative testing
+  (:require [clojure.test.check :as tc]
+            [clojure.test.check.generators :as gen]
+            [clojure.test.check.properties :as prop]))
 
 (deftest simple-graph-test
   (let [g1 (graph [1 2] [1 3] [2 3] 4)
@@ -270,4 +274,4 @@
         true (weighted? sg)
         #{[1 2] [2 3] [3 4] [4 5]} (set (edges pg))
         #{[1 2] [2 3] [3 1]} (set (edges cg))))))
-    
+
