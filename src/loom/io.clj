@@ -1,11 +1,14 @@
 (ns ^{:doc "Output and view graphs in various formats"
       :author "Justin Kramer"}
   loom.io
-  (:use [loom.graph :only [directed? weighted? nodes edges weight]]
-        [loom.alg :only [distinct-edges loners]]
-        [loom.attr :only [attr? attr attrs]]
-        [clojure.string :only [escape]]
-        [clojure.java [io :only [file]] [shell :only [sh]]]))
+  (:require [loom.graph :refer [directed? weighted? nodes edges weight]]
+            [loom.alg :refer [distinct-edges loners]]
+            [loom.attr :refer [attr? attr attrs]]
+            [clojure.string :refer [escape]]
+            [clojure.java.io :refer [file]]
+            [clojure.java.shell :refer [sh]])
+  (:import (java.io FileWriter
+                    FileOutputStream)))
 
 (defn- dot-esc
   [s]
@@ -85,10 +88,11 @@
   [g f & args]
   (spit (str (file f)) (apply dot-str g args)))
 
-(defn- os []
+(defn- os
   "Returns :win, :mac, :unix, or nil"
+  []
   (condp
-      #(<= 0 (.indexOf %2 %1))
+      #(<= 0 (.indexOf ^String %2 ^String %1))
       (.toLowerCase (System/getProperty "os.name"))
     "win" :win
     "mac" :mac
@@ -106,9 +110,9 @@
     ;; Maybe it's ok for Linux?
     (do
       (condp = (os)
-          :mac (sh "open" (str f))
-          :win (sh "cmd" (str "/c start " (-> f .toURI .toURL str)))
-          :unix (sh "xdg-open" (str f)))
+        :mac (sh "open" (str f))
+        :win (sh "cmd" (str "/c start " (-> f .toURI .toURL str)))
+        :unix (sh "xdg-open" (str f)))
       nil)))
 
 (defn- open-data
@@ -120,11 +124,24 @@
   (let [ext (name ext)
         ext (if (= \. (first ext)) ext (str \. ext))
         tmp (java.io.File/createTempFile (subs ext 1) ext)]
-    (with-open [w (if (string? data)
-                    (java.io.FileWriter. tmp)
-                    (java.io.FileOutputStream. tmp))]
-      (.write w data))
+    (if (string? data)
+      (with-open [w (java.io.FileWriter. tmp)]
+        (.write w ^String data))
+      (with-open [w (java.io.FileOutputStream. tmp)]
+        (.write w ^bytes data)))
+    (.deleteOnExit tmp)
     (open tmp)))
+
+(defn render-to-bytes
+  "Renders the graph g in the PNG format using GraphViz and returns PNG data
+  as a byte array.
+  Requires GraphViz's 'dot' (or a specified algorithm) to be installed in
+  the shell's path. Possible algorithms include :dot, :neato, :fdp, :sfdp,
+  :twopi, and :circo"
+  [g & {:keys [alg] :or {alg "dot"} :as opts}]
+  (let [dot (apply dot-str g (apply concat opts))
+        {png :out} (sh (name alg) "-Tpng" :in dot :out-enc :bytes)]
+    png))
 
 (defn view
   "Converts graph g to a temporary PNG file using GraphViz and opens it
@@ -132,7 +149,5 @@
   Requires GraphViz's 'dot' (or a specified algorithm) to be installed in
   the shell's path. Possible algorithms include :dot, :neato, :fdp, :sfdp,
   :twopi, and :circo"
-  [g & {:keys [alg] :or {alg "dot"} :as opts}]
-  (let [dot (apply dot-str g (apply concat opts))
-        {png :out} (sh (name alg) "-Tpng" :in dot :out-enc :bytes)]
-    (open-data png :png)))
+  [g & opts]
+    (open-data (apply render-to-bytes g opts) :png))
