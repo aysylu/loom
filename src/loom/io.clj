@@ -34,8 +34,8 @@
 (defn dot-str
   "Render graph g as a DOT-format string. Calls (node-label node) and
   (edge-label n1 n2) to determine what labels to use for nodes and edges,
-  if any. Will detect graphs that satisfy AttrGraph and include attributes,
-  too."
+  if any. Weights become edge labels unless a label is specified.
+  Labels also include attributes when the graph satisfies AttrGraph."
   [g & {:keys [graph-name node-label edge-label]
         :or {graph-name "graph"} :as opts }]
   (let [d? (directed? g)
