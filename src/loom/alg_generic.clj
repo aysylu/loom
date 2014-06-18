@@ -409,14 +409,14 @@
   [bits]
   (long (Math/ceil (/ bits bits-per-long))))
 
-(defn ^longs bm-new
+(defn bm-new
   "Create new empty bitmap."
-  []
+  ^longs []
   (long-array 1))
 
-(defn ^longs bm-set
+(defn bm-set
   "Set boolean state of bit in 'bitmap at 'idx to true."
-  [^longs bitmap idx]
+  ^longs [^longs bitmap idx]
   (let [size (max (count bitmap) (bm-longs (inc idx)))
         new-bitmap (Arrays/copyOf bitmap ^Long size)
         chunk (quot idx bits-per-long)
@@ -438,9 +438,9 @@
           masked-value (bit-and value mask)]
       (not (zero? masked-value)))))
 
-(defn ^longs bm-or
+(defn bm-or
   "Logically OR 'bitmaps together."
-  [& bitmaps]
+  ^longs [& bitmaps]
   (if (empty? bitmaps)
     (bm-new)
     (let [size (apply max (map count bitmaps))
