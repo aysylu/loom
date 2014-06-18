@@ -404,17 +404,19 @@
 
 (def ^Long bits-per-long (long (Long/SIZE)))
 
-(defn ^Long bm-longs [bits]
+(defn ^Long bm-longs
   "Return the number of longs required to store bits count bits in a bitmap."
+  [bits]
   (long (Math/ceil (/ bits bits-per-long))))
 
-(defn ^longs bm-new []
+(defn ^longs bm-new
   "Create new empty bitmap."
+  []
   (long-array 1))
 
 (defn ^longs bm-set
-  [^longs bitmap idx]
   "Set boolean state of bit in 'bitmap at 'idx to true."
+  [^longs bitmap idx]
   (let [size (max (count bitmap) (bm-longs (inc idx)))
         new-bitmap (Arrays/copyOf bitmap ^Long size)
         chunk (quot idx bits-per-long)
