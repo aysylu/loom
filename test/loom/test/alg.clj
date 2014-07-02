@@ -388,3 +388,33 @@
        (astar-dist astar-weighted-graph-g4 :a :d (fn [x y] 0))
        )
   )
+
+(def degeneracy-g1 (graph {:a [:b]
+                           :b [:c :d]}))
+
+(def degeneracy-g2 (graph {:a [:b]
+                           :b [:c :d :e :f]
+                           :d [:e :f]
+                           :e [:f]}))
+
+(deftest degeneracy-ordering-test
+  (let [ns (degeneracy-ordering degeneracy-g1)]
+    (is (= #{:a :c :b :d} (set ns)))
+    (is (contains? (set (drop 2 ns)) :b)))
+
+  (let [ns (degeneracy-ordering degeneracy-g2)]
+    (is (= #{:a :c :b :d :e :f} (set ns)))
+    (is (= #{:a :c} (set (take 2 ns))))
+    (is (contains? (set (drop 2 ns)) :b))))
+
+;; Graph with 4 maximal cliques: [:a :b :c], [:c :d], [:d :e :f :g], [:d :h].
+(def maximal-cliques-g1 (graph {:a [:b :c]
+                                :b [:c]
+                                :c [:d]
+                                :d [:e :f :g :h]
+                                :e [:f :g]
+                                :f [:g]}))
+
+(deftest maximal-cliques-test
+  (is (= #{#{:a :b :c} #{:c :d} #{:d :e :f :g} #{:d :h}}
+         (set (maximal-cliques maximal-cliques-g1)))))

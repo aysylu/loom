@@ -10,7 +10,8 @@ can use these functions."
                      out-degree in-degree weighted? directed? graph transpose]
              :as graph]
             [loom.alg-generic :refer [trace-path preds->span]])
-  (:require [clojure.data.priority-map :as pm]))
+  (:require [clojure.data.priority-map :as pm]
+            [clojure.set :as clj.set]))
 
 ;;;
 ;;; Convenience wrappers for loom.alg-generic functions
@@ -557,6 +558,100 @@ can use these functions."
                        ) 0 path)]
     dist))
 
+(defn degeneracy-ordering [g]
+  "Return sequence of vertices in degeneracy order."
+  (loop [ordered-nodes []
+         node-degs (->> (zipmap (nodes g)
+                                (map (partial out-degree g) (nodes g)))
+                        (into (pm/priority-map)))
+         k 0]
+    (if (empty? node-degs)
+      ordered-nodes
+      (let [[n deg] (first node-degs)
+            ;; This will be the adjacent nodes still in node-degs (not in ordered-nodes) decr'd by 1
+            updated-degs (->> (map (juxt identity node-degs) (successors g n))
+                              (filter second)
+                              (map (juxt first (comp dec second)))
+                              (into {}))]
+        (recur (conj ordered-nodes n)
+               (reduce (fn [n-ds [n d]] ;; Update this assoc'ing the updated-degs found above
+                         (assoc n-ds n d))
+                       (dissoc node-degs n)
+                       updated-degs)
+               (max k deg))))))
+
+(defn- bk-gen [g [r p x] stack]
+  (let [v-pivot (reduce (partial max-key (partial out-degree g)) p)]
+    (loop [v v-pivot
+           p (set p)
+           x (set x)
+           stack stack]
+      (if (nil? v)
+        stack
+        (let [succ-v (successors g v)]
+          (recur (-> (clj.set/difference (disj p v)
+                                         (set (successors g v-pivot)))
+                     first)
+                 (disj p v)
+                 (conj x v)
+                 (conj stack [(conj r v)
+                              (clj.set/intersection p succ-v)
+                              (clj.set/intersection x succ-v)])))))))
+
+(defn- bk [g]
+  "An iterative implementation of Bron-Kerbosch using degeneracy ordering
+  at the outer loop and max-degree vertex pivoting in the inner loop."
+  (loop [vs (degeneracy-ordering g)
+         max-clqs (seq [])
+         p (set (nodes g))
+         x #{}
+         stack []]
+    (cond
+     ;; Done
+     (and (empty? stack) (empty? vs))
+     max-clqs
+
+     ;; Empty stack, create a seed to generate stack items
+     (empty? stack)
+     (let [v (first vs)
+           succ-v (successors g v)]
+       (recur (rest vs)
+              max-clqs
+              (disj p v)
+              (conj x v)
+              [[#{v}
+                (clj.set/intersection p succ-v)
+                (clj.set/intersection x succ-v)]]))
+
+     ;; Pull the next request off the stack
+     :else
+     (let [[r s-p s-x] (peek stack)]
+       (cond
+        ;; Maximal clique found
+        (and (empty? s-p) (empty? s-x))
+        (recur vs
+               (cons r max-clqs)
+               p
+               x
+               (pop stack))
+        ;; No maximal clique that excludes x exists
+        (empty? s-p)
+        (recur vs
+               max-clqs
+               p
+               x
+               (pop stack))
+        ;; Use this state to generate more states
+        :else
+        (recur vs
+               max-clqs
+               p
+               x
+               (bk-gen g [r s-p s-x] (pop stack))))))))
+
+(defn maximal-cliques [g]
+  "Enumerate the maximal cliques using Bron-Kerbosch."
+  (bk g))
 
 
 ;; ;; Todo: MST, coloring, matching, etc etc
