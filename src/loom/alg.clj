@@ -546,9 +546,10 @@ can use these functions."
                            nbrs)]
               (recur g src target heur q explored)))))
 
-(defn astar-dist [g src target heur]
+(defn astar-dist
   "Return the length of the shortest path between src and target using
     the A* algorithm"
+  [g src target heur]
   (let [path (astar-path g src target heur)
         dist (reduce (fn [c [u v]]
                        (if (nil? v)
