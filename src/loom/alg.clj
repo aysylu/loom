@@ -279,6 +279,60 @@ can use these functions."
       [start]
       (bf-traverse g start :f vector)))))
 
+(defn- bellman-ford-transform
+  "Helper method for Johnson's algorithm. Uses Bellman-Ford to remove negative weights."
+  [wg]
+  (let [q (first (drop-while (partial graph/has-node? wg) (repeatedly gensym)))
+        es (for [v (graph/nodes wg)] [q v 0])
+        bf-results (bellman-ford (graph/add-edges* wg es) q)]
+    (if bf-results
+      (let [[dist-q _] bf-results
+            new-es (map (juxt first second (fn [[u v]]
+                                             (+ (weight wg u v) (- (dist-q u)
+                                                                   (dist-q v)))))
+                        (graph/edges wg))]
+        (graph/add-edges* wg new-es))
+      false)))
+
+(defn johnson
+  "Finds all-pairs shortest paths using Bellman-Ford to remove any negative edges before
+  using Dijkstra's algorithm to find the shortest paths from each vertex to every other. 
+  This algorithm is efficient for sparse graphs.
+
+  If the graph is unweighted, a default weight of 1 will be used. Note that it is more efficient
+  to use breadth-first spans for a graph with a uniform edge weight rather than Dijkstra's algorithm. 
+  Most callers should use shortest-paths and allow the most efficient implementation be selected 
+  for the graph."
+  [g]
+  (let [g (if (and (weighted? g) (some (partial > 0) (map (graph/weight g) (graph/edges g))))
+            (bellman-ford-transform g)
+            g)]
+    (if (false? g)
+      false
+      (let [dist (if (weighted? g)
+                   (weight g)
+                   (fn [u v] (if (graph/has-edge? g u v) 1 nil)))]
+        (reduce (fn [acc node]
+                  (assoc acc node (gen/dijkstra-span (successors g) dist node)))
+                {}
+                (nodes g))))))
+
+(defn bf-all-pairs-shortest-paths
+  "Uses bf-span on each node in the graph."
+  [g]
+  (reduce (fn [spans node]
+            (assoc spans node (bf-span g node)))
+          {}
+          (nodes g)))
+
+(defn shortest-paths
+  "Find all-pairs shortest paths in a graph. Uses Johnson's algorithm for weighted graphs
+  which is efficient for sparse graphs. Breadth-first spans are used for unweighted graphs."
+  [g]
+  (if (weighted? g)
+    (johnson g)
+    (bf-all-pairs-shortest-paths g)))
+
 (defn connected-components
   "Return the connected components of graph g as a vector of vectors. If g
   is directed, returns the weakly-connected components."
