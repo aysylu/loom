@@ -267,19 +267,19 @@
 (deftest shortest-paths-test
   (are [expected got] (= expected got)
         {:p {:p {:o 2, :b 7}
-            :o {:r 10}
-            :b {:g 10}}
-        :o {:o {:p 2, :r 8}
-            :p {:b 9}
-            :b {:g 12}}
-        :g {:g {:b 3}
-            :b {:r 8, :p 10}
-            :p {:o 12}}
-        :b {:b {:p 7, :g 3, :r 5}
-            :p {:o 9}}
-        :r {:r {:o 8, :b 5}
-            :b {:g 8}
-            :o {:p 10}}} (shortest-paths g2)
+             :o {:r 10}
+             :b {:g 10}}
+         :o {:o {:p 2, :r 8}
+             :p {:b 9}
+             :b {:g 12}}
+         :g {:g {:b 3}
+             :b {:r 8, :p 10}
+             :p {:o 12}}
+         :b {:b {:p 7, :g 3, :r 5}
+             :p {:o 9}}
+         :r {:r {:o 8, :b 5}
+             :b {:g 8}
+             :o {:p 10}}} (shortest-paths g2)     
 
         {1 {1 [5], 5 [3], 3 [6 2], 2 [4], 6 [10]}
          2 {2 [4], 4 [10]}
@@ -487,6 +487,18 @@
                                 :e [:f :g]
                                 :f [:g]}))
 
+;; Graph with 3 maximal cliques: #{:a :b :c} #{:b :d :e} #{:e :f}
+(def maximal-cliques-g2 (weighted-graph [:a :b 1]
+                                        [:a :c 1]
+                                        [:b :c 1]
+                                        [:b :d 1]
+                                        [:d :e 1]
+                                        [:b :e 1]
+                                        [:e :f 1]))
+
 (deftest maximal-cliques-test
-  (is (= #{#{:a :b :c} #{:c :d} #{:d :e :f :g} #{:d :h}}
-         (set (maximal-cliques maximal-cliques-g1)))))
+  (are [expected got](= expected got)
+       #{#{:a :b :c} #{:c :d} #{:d :e :f :g} #{:d :h}}
+       (set (maximal-cliques maximal-cliques-g1))
+       #{#{:a :b :c} #{:b :d :e} #{:e :f}}
+       (set (maximal-cliques maximal-cliques-g2))))

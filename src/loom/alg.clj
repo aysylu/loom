@@ -643,7 +643,7 @@ can use these functions."
            stack stack]
       (if (nil? v)
         stack
-        (let [succ-v (successors g v)]
+        (let [succ-v (set (successors g v))]
           (recur (-> (clj.set/difference (disj p v)
                                          (set (successors g v-pivot)))
                      first)
@@ -669,7 +669,7 @@ can use these functions."
      ;; Empty stack, create a seed to generate stack items
      (empty? stack)
      (let [v (first vs)
-           succ-v (successors g v)]
+           succ-v (set (successors g v))]
        (recur (rest vs)
               max-clqs
               (disj p v)
