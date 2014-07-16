@@ -119,19 +119,6 @@
            [2 4]))
 
 ;; graphs for mst
-;; http://en.wikipedia.org/wiki/Kruskal%27s_algorithm
-(def mst_wt_g1 (weighted-graph '(:a,:d, 5)
-                        '(:a,:b,7)
-                        '(:b,:d,9),
-                        '(:b,:c,8),
-                        '(:b,:e,7)
-                        '(:d,:e,15)
-                        '(:d,:f,6)
-                        '(:c,:e,5)
-                        '(:e,:f,8)
-                        '(:e,:g,9)
-                        '(:f,:g,11)))
-
 ;; http://en.wikipedia.org/wiki/Kruskal's_algorithm
 (def mst_wt_g1 (weighted-graph '(:a, :e , 1)
                         '(:c, :d ,2)
