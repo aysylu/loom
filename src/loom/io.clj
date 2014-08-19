@@ -35,12 +35,18 @@
   "Render graph g as a DOT-format string. Calls (node-label node) and
   (edge-label n1 n2) to determine what labels to use for nodes and edges,
   if any. Weights become edge labels unless a label is specified.
-  Labels also include attributes when the graph satisfies AttrGraph."
-  [g & {:keys [graph-name node-label edge-label]
+  Labels also include attributes when the graph satisfies AttrGraph.
+  Calls node-attrs on node attributes (if given) to determine the actual
+  attributes to be used. Similarly calls edge-attrs on edge attributes.
+  You can also pass in graph/node/edge which are global properties for
+  the corresponding key for the dot graph."
+  [g & {:keys [graph-name node-label edge-label node-attrs edge-attrs]
         :or {graph-name "graph"} :as opts }]
   (let [d? (directed? g)
         w? (weighted? g)
         a? (attr? g)
+        node-attrs-fn (if node-attrs node-attrs identity)
+        edge-attrs-fn (if edge-attrs edge-attrs identity)
         node-label (if node-label node-label
                        (if a?
                          #(attr g % :label)
@@ -59,13 +65,24 @@
     (when (:graph opts)
       (doto sb
         (.append "  graph ")
-        (.append (dot-attrs (:graph opts)))))
+        (.append (dot-attrs (:graph opts)))
+        (.append "\n")))
+    (when (:node opts)
+      (doto sb
+        (.append "  node ")
+        (.append (dot-attrs (:node opts)))
+        (.append "\n")))
+    (when (:edge opts)
+      (doto sb
+        (.append "  edge ")
+        (.append (dot-attrs (:edge opts)))
+        (.append "\n")))
     (doseq [[n1 n2] (distinct-edges g)]
       (let [n1l (str (or (node-label n1) n1))
             n2l (str (or (node-label n2) n2))
             el (edge-label n1 n2)
             eattrs (assoc (if a?
-                            (attrs g n1 n2) {})
+                            (edge-attrs-fn (attrs g n1 n2)) {})
                      :label el)]
         (doto sb
           (.append "  \"")
@@ -83,7 +100,7 @@
         (.append (dot-esc (str (or (node-label n) n))))
         (.append \"))
       (when-let [nattrs (when a?
-                          (dot-attrs (attrs g n)))]
+                          (dot-attrs (node-attrs-fn (attrs g n))))]
         (.append sb \space)
         (.append sb nattrs))
       (.append sb "\n"))
