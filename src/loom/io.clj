@@ -81,9 +81,11 @@
       (let [n1l (str (or (node-label n1) n1))
             n2l (str (or (node-label n2) n2))
             el (edge-label n1 n2)
-            eattrs (assoc (if a?
-                            (edge-attrs-fn (attrs g n1 n2)) {})
-                     :label el)]
+            eattrs (edge-attrs-fn
+                    (assoc (if a?
+                             (attrs g n1 n2)
+                             {})
+                      :label el))]
         (doto sb
           (.append "  \"")
           (.append (dot-esc n1l))
