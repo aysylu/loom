@@ -264,7 +264,7 @@
               :b {:d 10, :c 10}
               :d {:e 10}}} (johnson g12)))
 
-(deftest shortest-paths-test
+(deftest all-pairs-shortest-paths-test
   (are [expected got] (= expected got)
         {:p {:p {:o 2, :b 7}
              :o {:r 10}
@@ -279,7 +279,7 @@
              :p {:o 9}}
          :r {:r {:o 8, :b 5}
              :b {:g 8}
-             :o {:p 10}}} (shortest-paths g2)     
+             :o {:p 10}}} (all-pairs-shortest-paths g2)     
 
         {1 {1 [5], 5 [3], 3 [6 2], 2 [4], 6 [10]}
          2 {2 [4], 4 [10]}
@@ -291,7 +291,7 @@
          8 {4 [10], 8 [9 11], 9 [3 5 7], 11 [2 4], 3 [1 6]}
          9 {8 [11], 6 [10], 7 [8], 2 [4], 9 [3 5 7], 3 [1 2 6]}
          10 {10 [2], 2 [4]}
-         11 {11 [4 2], 4 [10]}} (shortest-paths g13)))
+         11 {11 [4 2], 4 [10]}} (all-pairs-shortest-paths g13)))
 
 (deftest connectivity-test
   (are [expected got] (= expected got)
