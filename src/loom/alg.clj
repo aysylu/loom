@@ -325,7 +325,7 @@ can use these functions."
           {}
           (nodes g)))
 
-(defn shortest-paths
+(defn all-pairs-shortest-paths
   "Find all-pairs shortest paths in a graph. Uses Johnson's algorithm for weighted graphs
   which is efficient for sparse graphs. Breadth-first spans are used for unweighted graphs."
   [g]
