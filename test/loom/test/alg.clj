@@ -208,6 +208,78 @@
        #{:r :g :b :o :p} (set (map first (dijkstra-traverse g2)))
        {:r {:o 8 :b 5} :b {:g 8} :o {:p 10}} (dijkstra-span g2 :r)))
 
+(deftest johnson-test
+  (are [expected got] (= expected got)
+       {:p {:p {:o 2, :b 7}
+            :o {:r 10}
+            :b {:g 10}}
+        :o {:o {:p 2, :r 8}
+            :p {:b 9}
+            :b {:g 12}}
+        :g {:g {:b 3}
+            :b {:r 8, :p 10}
+            :p {:o 12}}
+        :b {:b {:p 7, :g 3, :r 5}
+            :p {:o 9}}
+        :r {:r {:o 8, :b 5}
+            :b {:g 8}
+            :o {:p 10}}} (johnson g2)
+
+        {1 {1 {5 1}, 5 {3 2}, 3 {2 3, 6 3}, 2 {4 4}, 6 {10 4}}
+         2 {2 {4 1}, 4 {10 2}}
+         3 {3 {1 1, 2 1, 6 1}, 1 {5 2}, 2 {4 2}, 6 {10 2}}
+         4 {4 {10 1}, 10 {2 2}}
+         5 {5 {3 1}, 3 {1 2, 2 2, 6 2}, 2 {4 3}, 6 {10 3}}
+         6 {6 {1 1, 10 1}, 1 {5 2}, 10 {2 2}, 2 {4 3}, 5 {3 3}}
+         7 {4 {10 4}, 8 {11 2, 9 2}, 7 {8 1}, 9 {5 3, 3 3}, 11 {4 3, 2 3}, 3 {6 4, 1 4}}
+         8 {4 {10 3}, 8 {11 1, 9 1}, 9 {7 2, 5 2, 3 2}, 11 {4 2, 2 2}, 3 {6 3, 1 3}}
+         9 {8 {11 3}, 6 {10 3}, 7 {8 2}, 2 {4 3}, 9 {7 1, 5 1, 3 1}, 3 {6 2, 2 2, 1 2}}
+         10 {10 {2 1}, 2 {4 2}}
+         11 {11 {2 1, 4 1}, 4 {10 2}}} (johnson g13)
+
+         false (johnson g11)
+
+         {:e {:e {:b 0}
+              :b {:d 0, :c 0}}
+          :d {:d {:e 0}
+              :e {:b 0}
+              :b {:c 0}}
+          :b {:b {:d 0, :c 0}
+              :d {:e 0}}
+          :c {}
+          :a {:a {:b 10}
+              :b {:d 10, :c 10}
+              :d {:e 10}}} (johnson g12)))
+
+(deftest all-pairs-shortest-paths-test
+  (are [expected got] (= expected got)
+        {:p {:p {:o 2, :b 7}
+             :o {:r 10}
+             :b {:g 10}}
+         :o {:o {:p 2, :r 8}
+             :p {:b 9}
+             :b {:g 12}}
+         :g {:g {:b 3}
+             :b {:r 8, :p 10}
+             :p {:o 12}}
+         :b {:b {:p 7, :g 3, :r 5}
+             :p {:o 9}}
+         :r {:r {:o 8, :b 5}
+             :b {:g 8}
+             :o {:p 10}}} (all-pairs-shortest-paths g2)     
+
+        {1 {1 [5], 5 [3], 3 [6 2], 2 [4], 6 [10]}
+         2 {2 [4], 4 [10]}
+         3 {3 [6 2 1], 1 [5], 2 [4], 6 [10]}
+         4 {4 [10], 10 [2]}
+         5 {5 [3], 3 [6 2 1], 2 [4], 6 [10]}
+         6 {6 [10 1], 1 [5], 10 [2], 5 [3], 2 [4]}
+         7 {4 [10], 8 [9 11], 7 [8], 9 [3 5], 11 [2 4], 3 [1 6]}
+         8 {4 [10], 8 [9 11], 9 [3 5 7], 11 [2 4], 3 [1 6]}
+         9 {8 [11], 6 [10], 7 [8], 2 [4], 9 [3 5 7], 3 [1 2 6]}
+         10 {10 [2], 2 [4]}
+         11 {11 [4 2], 4 [10]}} (all-pairs-shortest-paths g13)))
+
 (deftest connectivity-test
   (are [expected got] (= expected got)
        [#{1 2 3 4} #{5 6 7 8} #{9}] (map set (connected-components
@@ -375,3 +447,45 @@
        (astar-dist astar-weighted-graph-g4 :a :d (fn [x y] 0))
        )
   )
+
+(def degeneracy-g1 (graph {:a [:b]
+                           :b [:c :d]}))
+
+(def degeneracy-g2 (graph {:a [:b]
+                           :b [:c :d :e :f]
+                           :d [:e :f]
+                           :e [:f]}))
+
+(deftest degeneracy-ordering-test
+  (let [ns (degeneracy-ordering degeneracy-g1)]
+    (is (= #{:a :c :b :d} (set ns)))
+    (is (contains? (set (drop 2 ns)) :b)))
+
+  (let [ns (degeneracy-ordering degeneracy-g2)]
+    (is (= #{:a :c :b :d :e :f} (set ns)))
+    (is (= #{:a :c} (set (take 2 ns))))
+    (is (contains? (set (drop 2 ns)) :b))))
+
+;; Graph with 4 maximal cliques: [:a :b :c], [:c :d], [:d :e :f :g], [:d :h].
+(def maximal-cliques-g1 (graph {:a [:b :c]
+                                :b [:c]
+                                :c [:d]
+                                :d [:e :f :g :h]
+                                :e [:f :g]
+                                :f [:g]}))
+
+;; Graph with 3 maximal cliques: #{:a :b :c} #{:b :d :e} #{:e :f}
+(def maximal-cliques-g2 (weighted-graph [:a :b 1]
+                                        [:a :c 1]
+                                        [:b :c 1]
+                                        [:b :d 1]
+                                        [:d :e 1]
+                                        [:b :e 1]
+                                        [:e :f 1]))
+
+(deftest maximal-cliques-test
+  (are [expected got](= expected got)
+       #{#{:a :b :c} #{:c :d} #{:d :e :f :g} #{:d :h}}
+       (set (maximal-cliques maximal-cliques-g1))
+       #{#{:a :b :c} #{:b :d :e} #{:e :f}}
+       (set (maximal-cliques maximal-cliques-g2))))
