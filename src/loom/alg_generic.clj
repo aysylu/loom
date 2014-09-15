@@ -53,14 +53,15 @@
   [successors start & {:keys [seen] :or {seen #{}}}]
   (letfn [(step [stack seen]
             (when-let [node (peek stack)]
-              (cons
-               node
-               (lazy-seq
-                (let [nbrs (remove seen (successors node))]
-                  (step (into (pop stack) nbrs)
-                        (into seen nbrs)))))))]
-    (step [start]
-          (conj seen start))))
+              (if (contains? seen node)
+                (step (pop stack) seen)
+                (let [seen (conj seen node)
+                      nbrs (remove seen (successors node))]
+                  (lazy-seq
+                    (cons node
+                          (step (into (pop stack) nbrs)
+                                seen)))))))]
+    (step [start] seen)))
 
 (defn pre-edge-traverse
   "Traverses a graph depth-first preorder from start, successors being

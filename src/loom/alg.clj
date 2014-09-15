@@ -23,7 +23,7 @@ can use these functions."
     (fn [[seen trav] n]
       (if (seen n)
         [seen trav]
-        (let [ctrav (traverse n :seen (conj seen n))]
+        (let [ctrav (traverse n :seen seen)]
           [(into seen ctrav) (reduce conj! trav ctrav)])))
     [#{} (transient [])]
     nodes))))
