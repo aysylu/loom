@@ -512,14 +512,12 @@ can use these functions."
       :else (let [mst (prim-mst-edges wg (nodes wg) nil #{} [])]
               (if (weighted? wg)
                 mst
-                (map #(vec [(first %1) (second %1)]) mst))))
-     )
+                (map #(vec [(first %1) (second %1)]) mst)))))
   ([wg n h visited acc]
      (cond
       (empty? n) acc
       (empty? h) (let [v (first n)
-                       h  (into (partial (pm/priority-map-keyfn second)) (edge-weights wg v))
-                       ]
+                       h  (into (pm/priority-map-keyfn second) (edge-weights wg v))]
                    (recur wg (disj n v) h (conj visited v) acc))
       :else (let [next_edge (peek h)
                   u (first (second next_edge))
@@ -528,8 +526,7 @@ can use these functions."
                                 (cond
                                  (nil? (get h v)) (assoc h v [u wt])
                                  (> (second (get h v)) wt) (assoc h v [u wt])
-                                 :else h)
-                                )]
+                                 :else h))]
               (let [wt (second (second next_edge))
                     visited (conj visited v)
                     h (reduce update-dist (pop h)
