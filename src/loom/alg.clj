@@ -610,8 +610,9 @@ can use these functions."
                        ) 0 path)]
     dist))
 
-(defn degeneracy-ordering [g]
+(defn degeneracy-ordering
   "Return sequence of vertices in degeneracy order."
+  [g]
   (loop [ordered-nodes []
          node-degs (->> (zipmap (nodes g)
                                 (map (partial out-degree g) (nodes g)))
@@ -650,9 +651,10 @@ can use these functions."
                               (clj.set/intersection p succ-v)
                               (clj.set/intersection x succ-v)])))))))
 
-(defn- bk [g]
+(defn- bk
   "An iterative implementation of Bron-Kerbosch using degeneracy ordering
   at the outer loop and max-degree vertex pivoting in the inner loop."
+  [g]
   (loop [vs (degeneracy-ordering g)
          max-clqs (seq [])
          p (set (nodes g))
@@ -701,8 +703,9 @@ can use these functions."
                x
                (bk-gen g [r s-p s-x] (pop stack))))))))
 
-(defn maximal-cliques [g]
+(defn maximal-cliques
   "Enumerate the maximal cliques using Bron-Kerbosch."
+  [g] 
   (bk g))
 
 
