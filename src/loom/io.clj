@@ -56,10 +56,11 @@
                   (if d? "digraph \"" "graph \""))
              (.append (dot-esc graph-name))
              (.append "\" {\n"))]
-    (when (:graph opts)
-      (doto sb
-        (.append "  graph ")
-        (.append (dot-attrs (:graph opts)))))
+    (doseq [k [:graph :node :edge]]
+      (when (k opts)
+        (doto sb
+          (.append (str "  " (name k) " "))
+          (.append (dot-attrs (k opts))))))
     (doseq [[n1 n2] (distinct-edges g)]
       (let [n1l (str (or (node-label n1) n1))
             n2l (str (or (node-label n2) n2))
