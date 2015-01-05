@@ -1,5 +1,6 @@
 (ns loom.test.alg-generic
   (:require [loom.alg-generic :as lag]
+            [loom.graph :as g]
             [clojure.set :as set]
             [clojure.test :refer [deftest are]]
             [clojure.test.check :as tc]
@@ -114,6 +115,28 @@
    :e [:c :d :f]
    :f []})
 
+(def g4 ; like g3 with some loops
+  {:a [:b]
+   :b [:a :c :d]
+   :c [:b :c :e]
+   :d [:b :c :e]
+   :e [:c :d :f]
+   :f [:f]})
+
+(def g5 ; like g1 but as an undirected graph
+  {:a [:b :c]
+   :b [:d :a]
+   :c [:a :d]
+   :d [:c :b]})
+
+(def g6 ; unconnected with some loops
+  {:a [:a]
+   :b [:a :c]
+   :c [:b :c]
+   :d [:e]
+   :e [:d :f]
+   :f [:f]})
+
 (deftest tracing-paths
   (are [g n p] (= (sort (lag/trace-paths g n)) p)
        {:a nil} :a
@@ -135,3 +158,56 @@
 
        g3 :a :e
        [[:a :b :c :e] [:a :b :d :e]]))
+
+(deftest edge-traverse
+  ; works with nodes without outgoing edges or just a loop to iself
+  (are [g start expected] (let [pre (lag/pre-edge-traverse g start)
+                                post (lag/post-edge-traverse g start)]
+                            (= expected pre (seq (reverse post))))
+       g1 :d nil
+       
+       g4 :f '([:f :f]))
+  ; covers the whole graph when it's totally connected from start
+  (are [g start expected] (let [pre (lag/pre-edge-traverse g start)
+                                post (lag/post-edge-traverse g start)
+                                dg (g/digraph g)
+                                edges (g/edges dg)]
+                            (and
+                              (= expected pre (seq (reverse post)))
+                              (= (count edges) (count post))
+                              (= (set edges) (set post))))
+       g1 :a '([:a :b] [:b :d] [:a :c] [:c :d])
+       
+       g4 :a '([:a :b] [:b :a] [:b :c] [:c :b] [:c :c] [:c :e] [:e :c]
+               [:e :d] [:d :b] [:d :c] [:d :e] [:e :f] [:f :f] [:b :d])
+       
+       g4 :c '([:c :b] [:b :a] [:a :b] [:b :c] [:b :d] [:d :b] [:d :c]
+               [:d :e] [:e :c] [:e :d] [:e :f] [:f :f] [:c :c] [:c :e])
+       
+       g5 :a '([:a :b] [:b :d] [:d :c] [:c :a]
+               [:c :d] [:d :b] [:b :a] [:a :c]))
+  ; post traversal returning seen nodes allows complete graph coverage
+  ; without duplicates when iterating on all nodes of the graph
+  (are [g] (let [dg (g/digraph g)
+                 edges (g/edges dg)
+                 loop-post-traverse
+                     (loop [nodes (reverse (g/nodes dg))
+                            ; reverse makes this more interesting as graphs
+                            ; are often specified in the forward direction
+                            seen #{}
+                            acc ()]
+                       (if-let [node (first nodes)]
+                         (let [[edges seen]
+                                   (lag/post-edge-traverse
+                                     g
+                                     node
+                                     :seen seen
+                                     :return-seen true)]
+                           (recur (next nodes)
+                                  seen
+                                  (concat acc edges)))
+                         acc))]
+             (and
+               (= (count edges) (count loop-post-traverse))
+               (= (set edges) (set loop-post-traverse))))
+       g1 g2 g3 g4 g5 g6))

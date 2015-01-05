@@ -118,20 +118,14 @@
            [3 2]
            [2 4]))
 
-;; graphs for mst
-;; http://en.wikipedia.org/wiki/Kruskal%27s_algorithm
-(def mst_wt_g1 (weighted-graph '(:a,:d, 5)
-                        '(:a,:b,7)
-                        '(:b,:d,9),
-                        '(:b,:c,8),
-                        '(:b,:e,7)
-                        '(:d,:e,15)
-                        '(:d,:f,6)
-                        '(:c,:e,5)
-                        '(:e,:f,8)
-                        '(:e,:g,9)
-                        '(:f,:g,11)))
+(def g16
+  (digraph [:a :e]
+           [:a :b]
+           [:a :c]
+           [:e :d]
+           [:d :c]))
 
+;; graphs for mst
 ;; http://en.wikipedia.org/wiki/Kruskal's_algorithm
 (def mst_wt_g1 (weighted-graph '(:a, :e , 1)
                         '(:c, :d ,2)
@@ -181,6 +175,11 @@
        #{1 2 3 4 5 6 7 8} (set (pre-traverse g8))
        #{1 2 3 4 5 6 7 8} (set (post-traverse g8))
        [:d :e :f :c :b :a :g] (post-traverse g5 :g)
+       false (not (some #{(pre-traverse g16 :a)} [[:a :e :d :c :b]
+                                                  [:a :b :c :e :d]
+                                                  [:a :b :e :d :c]
+                                                  [:a :c :b :e :d]
+                                                  [:a :c :e :d :b]]))
        false (not (some #{(post-traverse g7 1)} [[3 2 1] [2 3 1]]))
        #{1 2 3 4 5 6 7 8} (set (nodes (digraph (pre-span g8))))
        #{2 3 4} (set (successors (digraph (pre-span g8)) 1))
