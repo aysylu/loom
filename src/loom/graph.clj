@@ -4,7 +4,8 @@ weighted, unweighted, directed, and undirected. The implementations are based
 on adjacency lists."
       :author "Justin Kramer"}
   loom.graph
-  (:require [loom.alg-generic :refer [bf-traverse]]))
+  (:require [loom.alg-generic :refer [bf-traverse]]
+            [clojure.set]))
 
 ;;;
 ;;; Protocols
@@ -177,14 +178,24 @@ on adjacency lists."
 
    :add-edges*
    (fn [g edges]
-     (reduce
-      (fn [g [n1 n2]]
-        (-> g
-            (update-in [:nodeset] conj n1 n2)
-            (update-in [:adj n1] (fnil conj #{}) n2)
-            (update-in [:adj n2] (fnil conj #{}) n1)))
-      g edges))
-
+     (loop [es edges
+            nodeset (transient (:nodeset g))
+            add-adj (transient {})]
+       (if (empty? es)
+         (assoc g
+           :nodeset (persistent! nodeset)
+           :adj (merge-with clojure.set/union (:adj g) (let [persist-add-adj (persistent! add-adj)]
+                                                         (zipmap (keys persist-add-adj)
+                                                                 (map persistent! (vals persist-add-adj))))))
+         (let [[n1 n2] (first es)]
+           (assoc! add-adj n1 (conj! (get add-adj n1 (transient #{})) n2))
+           (assoc! add-adj n2 (conj! (get add-adj n2 (transient #{})) n1))
+           (recur (rest es)
+                  (doto nodeset
+                    (conj! n1)
+                    (conj! n2))
+                  add-adj)))))
+   
    :remove-nodes*
    (fn [g nodes]
      (let [nbrs (mapcat #(successors g %) nodes)]
