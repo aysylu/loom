@@ -296,12 +296,12 @@ can use these functions."
 
 (defn johnson
   "Finds all-pairs shortest paths using Bellman-Ford to remove any negative edges before
-  using Dijkstra's algorithm to find the shortest paths from each vertex to every other. 
+  using Dijkstra's algorithm to find the shortest paths from each vertex to every other.
   This algorithm is efficient for sparse graphs.
 
   If the graph is unweighted, a default weight of 1 will be used. Note that it is more efficient
-  to use breadth-first spans for a graph with a uniform edge weight rather than Dijkstra's algorithm. 
-  Most callers should use shortest-paths and allow the most efficient implementation be selected 
+  to use breadth-first spans for a graph with a uniform edge weight rather than Dijkstra's algorithm.
+  Most callers should use shortest-paths and allow the most efficient implementation be selected
   for the graph."
   [g]
   (let [g (if (and (weighted? g) (some (partial > 0) (map (graph/weight g) (graph/edges g))))
@@ -464,6 +464,50 @@ can use these functions."
          [s1 (conj s2 node)]))
      [#{} #{}]
      coloring)))
+
+(defn- neighbor-colors
+  "Given a putative coloring of a graph, return the colors of all the
+  neighbors of a given node."
+  [g node coloring]
+  (let [successors (graph/successors g node)
+        neighbors (if-not (directed? g)
+                    successors
+                    (concat successors
+                            (graph/predecessors g node)))]
+    (set (filter (complement nil?)
+                 (map #(get coloring %)
+                      neighbors)))))
+
+(defn coloring?
+  "Returns true if a map of nodes to colors is a proper coloring of a graph."
+  [g coloring]
+  (letfn [(different-colors? [node]
+            (not (contains? (neighbor-colors g node coloring)
+                            (coloring node))))]
+    (and (every? different-colors? (nodes g))
+         (every? (complement nil?) (map #(get coloring %)
+                                        (nodes g))))))
+
+(defn greedy-coloring
+  "Greedily color the vertices of a graph using the first-fit heuristic.
+  Returns a map of nodes to colors (0, 1, ...)."
+  [g]
+  (loop [node-seq (bf-traverse g)
+         coloring {}
+         colors #{}]
+    (if (empty? node-seq)
+      coloring
+      (let [node (first node-seq)
+            possible-colors (clj.set/difference colors
+                                                (neighbor-colors g
+                                                                 node
+                                                                 coloring))
+            node-color (if (empty? possible-colors)
+                         (count colors)
+                         (apply min possible-colors))]
+        (recur (rest node-seq)
+               (conj coloring [node node-color])
+               (conj colors node-color))))))
 
 (defn max-flow
   "Returns [flow-map flow-value], where flow-map is a weighted adjacency map
@@ -705,7 +749,7 @@ can use these functions."
 
 (defn maximal-cliques
   "Enumerate the maximal cliques using Bron-Kerbosch."
-  [g] 
+  [g]
   (bk g))
 
 
