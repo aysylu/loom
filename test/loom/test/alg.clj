@@ -125,6 +125,11 @@
            [:e :d]
            [:d :c]))
 
+;; simple directed "triangle" graph
+(def triangle (digraph [:a :b]
+                       [:b :c]
+                       [:c :a]))
+
 ;; graphs for mst
 ;; http://en.wikipedia.org/wiki/Kruskal's_algorithm
 (def mst_wt_g1 (weighted-graph '(:a, :e , 1)
@@ -401,7 +406,9 @@
        true (coloring? g4 (greedy-coloring g4))
        true (coloring? g5 (greedy-coloring g5))
        true (coloring? g6 (greedy-coloring g6))
-       true (coloring? g13 (greedy-coloring g13))))
+       true (coloring? g13 (greedy-coloring g13))
+       ; expected colors are 0, 1, and 2
+       2 (apply max (vals (greedy-coloring triangle)))))
 
 (deftest scc-test
   (are [expected got] (= expected got)
