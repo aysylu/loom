@@ -278,7 +278,7 @@
              :p {:o 9}}
          :r {:r {:o 8, :b 5}
              :b {:g 8}
-             :o {:p 10}}} (all-pairs-shortest-paths g2)     
+             :o {:p 10}}} (all-pairs-shortest-paths g2)
 
         {1 {1 [5], 5 [3], 3 [6 2], 2 [4], 6 [10]}
          2 {2 [4], 4 [10]}
@@ -385,6 +385,23 @@
        true (bipartite? g8)
        false (bipartite? g1)
        #{#{2 3 4 6 7 8} #{1 5}} (set (bipartite-sets g8))))
+
+(deftest coloring?-test
+  (are [expected got] (= expected got)
+       true (coloring? g1 {1 0, 2 1, 3 2, 4 0, 5 2, 6 1})
+       false (coloring? g1 {1 0, 2 1, 3 2, 4 0, 5 1, 6 1})
+       true (coloring? g2 {:r 0, :g 1, :b 2, :p 0, :o 1})
+       true (coloring? g5 {:a 0, :b 1, :c 2, :d 0, :e 1, :f 0, :g 1})
+       false (coloring? g5 {:a 0 :b 1 :c 2 :d 0 :e 1 :f 0 :g nil})))
+
+(deftest greedy-coloring-test
+  (are [expected got] (= expected got)
+       true (coloring? g1 (greedy-coloring g1))
+       true (coloring? g2 (greedy-coloring g2))
+       true (coloring? g4 (greedy-coloring g4))
+       true (coloring? g5 (greedy-coloring g5))
+       true (coloring? g6 (greedy-coloring g6))
+       true (coloring? g13 (greedy-coloring g13))))
 
 (deftest scc-test
   (are [expected got] (= expected got)
