@@ -1,6 +1,12 @@
 (ns loom.test.graph
   (:require [loom.graph :refer :all]
-            [clojure.test :refer :all]))
+            [loom.gen :as gg]
+            [clojure.test :refer :all]
+            ;;
+            [clojure.test.check :as tc]
+            [clojure.test.check.clojure-test :refer [defspec]]
+            [clojure.test.check.properties :as prop]
+            [clojure.test.check.generators :as gen]))
 
 (deftest simple-graph-test
   (let [g1 (graph [1 2] [1 3] [2 3] 4)
@@ -253,3 +259,94 @@
            true (weighted? sg)
            #{[1 2] [2 3] [3 4] [4 5]} (set (edges pg))
            #{[1 2] [2 3] [3 1]} (set (edges cg))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; NamedGraph
+;;
+(deftest simple-rename-test
+  (let [g (graph [1 2] [2 3] [3 4] [3 5])
+        dg (digraph [1 2] [2 3] [3 4] [3 5])]
+    (testing "Simple node renaming on graphs and digraphs"
+      (are [expected got] (= expected got)
+           (graph [1 2] [2 3] [3 4] [3 5]) (rename-nodes g {5 4 4 5})
+           (digraph [1 2] [2 3] [3 4]) (rename-nodes dg {5 4})
+           (graph [2 5] [5 1] [1 3] [1 4]) (rename-nodes g {1 2 2 5 5 4 4 3 3 1})
+           (digraph [2 5] [5 1] [1 3] [1 4]) (rename-nodes dg {1 2 2 5 5 4 4 3 3 1})))
+    (testing "Node-merge inducing renamings on graphs and digraphs"
+      (are [expected got] (= expected got)
+           (graph [1 2] [2 3] [3 4]) (rename-nodes g {5 4})
+           (digraph [1 2] [2 3] [3 4]) (rename-nodes dg {5 4})
+           (graph [1 2] [2 3] [3 1]) (rename-nodes g {4 1 5 1})
+           (digraph [1 2] [2 3] [3 1]) (rename-nodes dg {4 1 5 1})))))
+
+(def ^:dynamic *effort* 1000)
+
+;; gen(erator) of strictly positive integers
+(def pos-gen (gen/fmap inc gen/nat))
+
+;; gen-maker for ints [0, n-1]
+(defn lt-gen-maker [n] (gen/choose 0 (dec n)))
+
+(def pos-pair-gen (gen/tuple pos-gen pos-gen))
+
+;; gen-maker of random graphs
+(defn graph-gen-maker [gc t]
+  "Expects t to be a stream."
+  (gen/fmap #(gg/gen-rand (gc) (get % 0) (get % 1)) t))
+
+;; gen-maker of fixed-length tuples with elements from elem-gen stream
+(defn len-tup-gen-maker [elem-gen l]
+  (gen/return (gen/sample elem-gen l)))
+
+;; gen-maker of a random map [0, t@0-1] -> [0, t@0-1]
+(defn rename-map-maker [t]
+  "Expects a tuple/vector, not a stream."
+  (gen/fmap #(apply hash-map %)
+            (len-tup-gen-maker (lt-gen-maker (get t 0)) (* 2 (get t 0)))))
+
+;; sync for graph and renamer generators
+(defn graph-rename-scenario [grc]
+  (gen/bind pos-pair-gen
+            (fn [p] (gen/tuple (graph-gen-maker grc (gen/return p))
+                               (rename-map-maker p)))))
+
+(def rename-nodes-impls-graph
+  ;; rename-nodes-alt is much simpler
+  ;; and we test two implementations against each other
+  (prop/for-all [[g rnm] (graph-rename-scenario graph)]
+                (=
+                 (rename-nodes-alt g rnm)
+                 (rename-nodes g rnm))))
+
+(def rename-nodes-impls-digraph
+  ;; rename-nodes-alt is much simpler
+  ;; and we test two implementations against each other
+  (prop/for-all [[g rnm] (graph-rename-scenario digraph)]
+                (=
+                 (rename-nodes-alt g rnm)
+                 (rename-nodes g rnm))))
+
+(tc/quick-check *effort* rename-nodes-impls-digraph)
+
+(deftest generative-test-rename-nodes-x
+  (is (:result (tc/quick-check *effort* rename-nodes-impls-graph)))
+  (is (:result (tc/quick-check *effort* rename-nodes-impls-digraph))))
+
+;;;;;;
+;;
+;; generator patterns
+;;
+;; *NOTE*: it's really about streams of vaues vs values
+;;
+
+(defn gen-maker [op s]
+  (gen/fmap #(op %) s))
+
+(def quad-gen (gen-maker #(* % %) gen/nat))
+(def cube-gen (gen-maker #(* % % %) gen/nat))
+
+(def synced-quad-cube-gen
+  (gen/bind gen/nat
+            (fn [t] (gen/tuple (gen-maker #(* % %) (gen/return t))
+                               (gen-maker #(* % % %) (gen/return t))))))

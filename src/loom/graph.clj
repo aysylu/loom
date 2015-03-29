@@ -4,7 +4,8 @@ weighted, unweighted, directed, and undirected. The implementations are based
 on adjacency lists."
       :author "Justin Kramer"}
   loom.graph
-  (:require [loom.alg-generic :refer [bf-traverse]]))
+  (:require [loom.alg-generic :refer [bf-traverse]]
+            [clojure.set :as cs]))
 
 ;;;
 ;;; Protocols
@@ -45,13 +46,68 @@ on adjacency lists."
 (extend-type clojure.lang.IPersistentVector
   Edge
   (src [edge] (get edge 0))
-  (dest [edge] (get edge 1)))  
+  (dest [edge] (get edge 1)))
 
 ; Default implementation for maps
 (extend-type clojure.lang.IPersistentMap
   Edge
   (src [edge] (:src edge))
   (dest [edge] (:dest edge)))
+
+;(defprotocol ObservableGraph
+;  (induced-subgraph [g nodes] "Returns the subgraph containing given nodes and induced by g."))
+
+(defprotocol NamedGraph
+  (rename-node* [g name-old name-new] "Rename node from -old to -new."))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;
+;;; aux functions from tools.core
+;;;
+(defn- corr-map [x y]
+  "Returns the map of corresponding elements of x and y."
+  (cond (and (sequential? x)
+             (sequential? y)
+             (= (count x) (count y))) (apply hash-map (interleave x y))
+        (and (not (sequential? x))
+             (not (sequential? y))) {x y}
+        :else (throw (Exception. "corr-map cannot align inputs"))))
+
+(defn- subj
+  "Conj, disj and subj. Substitution in sets.
+  Does not test for existence of keys that it adds
+  and will happily (subj #{:a :b} [:b :c] [:a :d]) ;=> #{:a}."
+  ([s oldk newk] (subj s (corr-map oldk newk)))
+  ([s km] (letfn [(subst [s [ok nk]]
+                    (if (contains? s ok)
+                      (-> s
+                          (disj ok)
+                          (conj nk))
+                      s))]
+            (reduce subst s km))))
+
+(def cnt (atom 0))
+
+(defn- rename-keys
+  "Renames keys in a map."
+  ([m oldk newk] (rename-keys m (corr-map oldk newk)))
+  ([m km] (letfn [(subst [m [ok nk]]
+                    (if (contains? m ok)
+                      (-> m
+                          (dissoc ok)
+                          (assoc nk (cs/union (m ok) (m nk))))
+                      m))]
+            (reduce subst m km))))
+
+(defn- updates-in
+  "Runs multiple update-in on a map.
+  Takes a seq of vectors ksv."
+  [m ksv f & params]
+  (reduce
+    #(apply (partial update-in %1 %2 f) params)
+    m
+    ksv))
 
 ;; Variadic wrappers
 
@@ -76,6 +132,48 @@ on adjacency lists."
   "Remove edges from graph g. Do not include weights"
   [g & edges]
   (remove-edges* g edges))
+
+;; *TODO*: imperative implementation of "chainbreaker" with only
+;; two gensyms for temporary renaming along chains
+;;
+;;
+(defn rename-nodes
+  [g ncm]
+  (let [ctmp (gensym)
+        ntmp (gensym)]
+    (loop [wg g nm ncm]
+      (if (empty? nm)
+        wg
+        (let [[c n] (first nm)]
+          (let [[rwg rnm]
+                (if (contains? nm n)
+                  (loop [cwg (rename-node* wg c ctmp)
+                         cnm nm cc c cn n]
+                    (if-let [ncn (get cnm cn)]
+                      (recur (-> cwg
+                                 (rename-node* cn ntmp)
+                                 (rename-node* ctmp cn)
+                                 (rename-node* ntmp ctmp))
+                             (dissoc cnm cc)
+                             cn
+                             ncn)
+                      [(rename-node* cwg ctmp cn) (dissoc cnm cc)]))
+                  [(rename-node* wg c n) (dissoc nm c)])]
+            (recur rwg rnm)))))))
+
+(defn rename-nodes-unsafe
+  [g ncm]
+  (reduce #(rename-node* %1 (get %2 0) (get %2 1)) g ncm))
+
+(defn rename-nodes-alt
+  [g ncm]
+  (let [temps (take (count ncm) (repeatedly gensym))
+        ktm (corr-map (keys ncm) temps)
+        tvm (corr-map temps (vals ncm))]
+    (-> g
+        (rename-nodes-unsafe ktm)
+        (rename-nodes-unsafe tvm))))
+
 
 ;;;
 ;;; Records for basic graphs -- one edge per vertex pair/direction,
@@ -108,7 +206,7 @@ on adjacency lists."
                  (contains? (get-in g [:adj n1]) n2))
     :out-degree (fn [g node]
                  (count (get-in g [:adj node])))
-    :out-edges (fn 
+    :out-edges (fn
                  ([g] (partial out-edges g))
                  ([g node] (for [n2 (successors g node)] [node n2])))}
 
@@ -144,7 +242,7 @@ on adjacency lists."
                    ([g node] (get-in g [:in node])))
    :in-degree (fn [g node]
                 (count (get-in g [:in node])))
-   :in-edges (fn 
+   :in-edges (fn
                ([g] (partial in-edges g))
                ([g node] (for [n2 (predecessors g node)] [n2 node])))})
 
@@ -203,7 +301,22 @@ on adjacency lists."
 
    :remove-all
    (fn [g]
-     (assoc g :nodeset #{} :adj {}))})
+     (assoc g :nodeset #{} :adj {}))}
+
+  NamedGraph
+  {:rename-node*
+   (fn [g name-old name-new]
+     (let [ins (successors g name-old)   ; Should be called neighbors on Graph
+           outs (successors g name-old)]
+       (-> g
+           ; nodeset
+           (update-in [:nodeset] #(subj % name-old name-new))
+           ; adj
+           (update-in [:adj] #(-> %
+                                  ; rename in node adj maps
+                                  (updates-in (map vector ins) subj name-old name-new)
+                                  ; rename in adj list top
+                                  (rename-keys name-old name-new))))))})
 
 (extend BasicEditableDigraph
   Graph
@@ -252,7 +365,28 @@ on adjacency lists."
   Digraph
   (assoc default-digraph-impl
     :transpose (fn [g]
-                 (assoc g :adj (:in g) :in (:adj g)))))
+                 (assoc g :adj (:in g) :in (:adj g))))
+
+  NamedGraph
+  {:rename-node*
+   (fn [g name-old name-new]
+     (let [ins (predecessors g name-old)
+           outs (successors g name-old)]
+       (-> g
+           ; nodeset
+           (update-in [:nodeset] #(subj % name-old name-new))
+           ; adj
+           (update-in [:adj] #(-> %
+                                  ; rename in node adj maps
+                                  (updates-in (map vector ins) subj name-old name-new)
+                                  ; rename in adj list top
+                                  (rename-keys name-old name-new)))
+           ; in
+           (update-in [:in] #(-> %
+                                 ; rename in adj sets
+                                 (updates-in (map vector outs) subj name-old name-new)
+                                 ; rename in is list top
+                                 (rename-keys name-old name-new))))))})
 
 (extend BasicEditableWeightedGraph
   Graph
@@ -295,6 +429,21 @@ on adjacency lists."
    :remove-all
    (fn [g]
      (assoc g :nodeset #{} :adj {}))}
+
+  NamedGraph
+  {:rename-node*
+   (fn [g name-old name-new]
+     (let [ins (successors g name-old)   ; Should be called neighbors on Graph
+           outs (successors g name-old)]
+       (-> g
+           ; nodeset
+           (update-in [:nodeset] #(subj % name-old name-new))
+           ; adj
+           (update-in [:adj] #(-> %
+                                  ; rename in node adj sets
+                                  (updates-in (map vector ins) subj name-old name-new)
+                                  ; rename in adj list top
+                                  (rename-keys name-old name-new))))))}
 
   WeightedGraph
   default-weighted-graph-impl)
@@ -350,6 +499,27 @@ on adjacency lists."
                            (add-edges* tg [[n2 n1 (weight g n1 n2)]]))
                          (assoc g :adj {} :in {})
                          (edges g))))
+
+  NamedGraph
+  {:rename-node*
+   (fn [g name-old name-new]
+     (let [ins (predecessors g name-old)
+           outs (successors g name-old)]
+       (-> g
+           ; nodeset
+           (update-in [:nodeset] #(subj % name-old name-new))
+           ; adj
+           (update-in [:adj] #(-> %
+                                  ; rename in node adj maps
+                                  (updates-in (map vector ins) subj name-old name-new)
+                                  ; rename in adj list top
+                                  (rename-keys name-old name-new)))
+           ; in
+           (update-in [:in] #(-> %
+                                 ; rename in adj sets
+                                 (updates-in (map vector outs) subj name-old name-new)
+                                 ; rename in is list top
+                                 (rename-keys name-old name-new))))))}
 
   WeightedGraph
   default-weighted-graph-impl)
