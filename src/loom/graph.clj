@@ -45,7 +45,7 @@ on adjacency lists."
 (extend-type clojure.lang.IPersistentVector
   Edge
   (src [edge] (get edge 0))
-  (dest [edge] (get edge 1)))  
+  (dest [edge] (get edge 1)))
 
 ; Default implementation for maps
 (extend-type clojure.lang.IPersistentMap
@@ -108,7 +108,7 @@ on adjacency lists."
                  (contains? (get-in g [:adj n1]) n2))
     :out-degree (fn [g node]
                  (count (get-in g [:adj node])))
-    :out-edges (fn 
+    :out-edges (fn
                  ([g] (partial out-edges g))
                  ([g node] (for [n2 (successors g node)] [node n2])))}
 
@@ -144,7 +144,7 @@ on adjacency lists."
                    ([g node] (get-in g [:in node])))
    :in-degree (fn [g node]
                 (count (get-in g [:in node])))
-   :in-edges (fn 
+   :in-edges (fn
                ([g] (partial in-edges g))
                ([g node] (for [n2 (predecessors g node)] [n2 node])))})
 
@@ -383,7 +383,11 @@ on adjacency lists."
                  ([g node] (call-or-return (:fsuccessors g) node)))
    :out-degree (fn [g node]
                  (count (successors g node)))
-   :out-edges (get-in default-graph-impls [:all :out-edges])})
+   :out-edges (get-in default-graph-impls [:all :out-edges])
+   :has-node? (fn [g node]
+                ;; cannot use contains? here because (nodes g) need not be a set.
+                (some #{node} (nodes g)))
+   })
 
 (def ^{:private true} default-flygraph-digraph-impl
   {:predecessors (fn [g node] (call-or-return (:fpredecessors g) node))
