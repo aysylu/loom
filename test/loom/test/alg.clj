@@ -525,3 +525,18 @@
        (set (maximal-cliques maximal-cliques-g1))
        #{#{:a :b :c} #{:b :d :e} #{:e :f}}
        (set (maximal-cliques maximal-cliques-g2))))
+
+
+(def subgraph-g6 (graph [0 1] [1 2] [1 3]))
+(def subgraph-g7 (digraph [1 2] [2 3] [3 1]))
+
+(deftest subgraph-test
+  (are [expected got] (= expected got)
+       true (subgraph? subgraph-g6 g6)
+       false (subgraph? (add-edges subgraph-g6 [0 3])
+                        g6)
+       true (subgraph? subgraph-g7 g7)
+       false (subgraph? (add-nodes subgraph-g7 0)
+                        g7)
+       false (subgraph? (digraph [2 1] [2 3] [3 1])
+                        g7)))
