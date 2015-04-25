@@ -216,7 +216,7 @@ can use these functions."
   "Given a weighted, directed graph G = (V, E) with source start,
    the Bellman-Ford algorithm produces map of single source shortest
    paths and their costs if no negative-weight cycle that is reachable
-   from the source exits, and false otherwise, indicating that no
+   from the source exists, and false otherwise, indicating that no
    solution exists."
   [g start]
   (let [initial-estimates (init-estimates g start)
