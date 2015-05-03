@@ -471,13 +471,16 @@ on adjacency lists."
              ;; graph
              (graph? init)
              (if (and (weighted? g) (weighted? init))
-               (reduce add-edges
-                       (add-nodes* g (nodes init))
-                       (for [[n1 n2] (edges init)]
-                         [n1 n2 (weight init n1 n2)]))
+               (assoc
+                   (reduce add-edges
+                           (add-nodes* g (nodes init))
+                           (for [[n1 n2] (edges init)]
+                             [n1 n2 (weight init n1 n2)]))
+                 :attrs (merge (:attrs g) (:attrs init)))
                (-> g
                    (add-nodes* (nodes init))
-                   (add-edges* (edges init))))
+                   (add-edges* (edges init))
+                   (assoc :attrs (merge (:attrs g) (:attrs init)))))
              ;; adacency map
              (map? init)
              (let [es (if (map? (val (first init)))

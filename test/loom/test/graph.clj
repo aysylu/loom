@@ -1,5 +1,6 @@
 (ns loom.test.graph
   (:require [loom.graph :refer :all]
+            [loom.attr :as attr]
             [clojure.test :refer :all]))
 
 (deftest simple-graph-test
@@ -96,6 +97,20 @@
            #{[1 2]} (set (edges (remove-nodes g1 3 4)))
            #{1 2 3 4} (set (nodes (remove-edges g1 [1 2] [1 3])))
            #{[2 3]} (set (edges (remove-edges g1 [1 2] [1 3])))))))
+
+(deftest merge-graph-test
+  (testing "two graphs with attributes"
+    (let [g1 (attr/add-attr (digraph [1 2] 3 [1 4]) 1 :label "One")
+          g2 (attr/add-attr (digraph [1 3] [3 5]) 5 :label "Five")
+          merged (digraph g1 g2)]
+      (is (= "One"  (attr/attr merged 1 :label)))
+      (is (= "Five" (attr/attr merged 5 :label)))))
+  (testing "with two weighted graphs"
+    (let [g1 (attr/add-attr (weighted-graph [1 2] 3 [1 4]) 1 :label "One")
+          g2 (attr/add-attr (weighted-graph [1 3] [3 5]) 5 :label "Five")
+          merged (weighted-graph g1 g2)]
+      (is (= "One"  (attr/attr merged 1 :label)))
+      (is (= "Five" (attr/attr merged 5 :label))))))
 
 (deftest simple-weighted-graph-test
   (let [g1 (weighted-graph [1 2 77] [1 3 88] [2 3 99] 4)
