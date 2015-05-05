@@ -1,7 +1,7 @@
 (ns ^{:doc "Algorithms for solving network flow"
       :author "Robert Lachlan"}
   loom.flow
-  (:require [loom.alg-generic :as gen :only [bf-path]]))
+  (:require [loom.alg-generic :as gen :refer [bf-path]]))
 
 
 (defn residual-capacity
@@ -74,7 +74,7 @@
   [successors predecessors capacity flow s t]
   (gen/bf-path
    (fn [vertex]
-     (distinct (filter #(> (residual-capacity capacity flow vertex %) 0)
+     (distinct (filter #(pos? (residual-capacity capacity flow vertex %))
                        (concat (successors vertex) (predecessors vertex)))))
    s t))
 

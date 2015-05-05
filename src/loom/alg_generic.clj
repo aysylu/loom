@@ -83,7 +83,7 @@
                     seen)))))
       (when-let [parent (peek stack)]
         (recur successors parent (peek nbrstack)
-               (pop stack) (pop nbrstack) (conj seen start)))))] 
+               (pop stack) (pop nbrstack) (conj seen start)))))]
     (when-not (seen start)
       (step successors start (successors start) [] [] (conj seen start)))))
 
@@ -133,9 +133,8 @@
   once for each direction."
   [successors start & {:keys [seen return-seen] :or {seen #{}}}]
   (if (seen start)
-    (if return-seen
-      [nil seen]
-      nil)
+    (when return-seen
+      [nil seen])
     (loop [start start
           nbrs (successors start)
           stack []
