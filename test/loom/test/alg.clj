@@ -197,7 +197,7 @@
        [:g :a :b :c :f :e :d] (topsort g5)
        nil (topsort g7)
        [5 6 7] (topsort g7 5)
-       [1 2 4 3] (topsort g14 1)
+       [1 2 3 4] (topsort g14 1)
        [1 2 4] (topsort g15 1)))
 
 (deftest breadth-first-test
@@ -287,19 +287,19 @@
 
         {1 {1 [5], 5 [3], 3 [6 2], 2 [4], 6 [10]}
          2 {2 [4], 4 [10]}
-         3 {3 [6 2 1], 1 [5], 2 [4], 6 [10]}
+         3 {3 [1 6 2], 1 [5], 2 [4], 6 [10]}
          4 {4 [10], 10 [2]}
-         5 {5 [3], 3 [6 2 1], 2 [4], 6 [10]}
-         6 {6 [10 1], 1 [5], 10 [2], 5 [3], 2 [4]}
-         7 {4 [10], 8 [9 11], 7 [8], 9 [3 5], 11 [2 4], 3 [1 6]}
-         8 {4 [10], 8 [9 11], 9 [3 5 7], 11 [2 4], 3 [1 6]}
-         9 {8 [11], 6 [10], 7 [8], 2 [4], 9 [3 5 7], 3 [1 2 6]}
+         5 {5 [3], 3 [1 6 2], 2 [4], 6 [10]}
+         6 {6 [1 10], 1 [5], 10 [2], 5 [3], 2 [4]}
+         7 {4 [10], 8 [11 9], 7 [8], 9 [3 5], 11 [4 2], 3 [1 6]}
+         8 {4 [10], 8 [11 9], 9 [7 3 5], 11 [4 2], 3 [1 6]}
+         9 {8 [11], 6 [10], 7 [8], 2 [4], 9 [7 3 5], 3 [1 6 2]}
          10 {10 [2], 2 [4]}
          11 {11 [4 2], 4 [10]}} (all-pairs-shortest-paths g13)))
 
 (deftest connectivity-test
   (are [expected got] (= expected got)
-       [#{1 2 3 4} #{5 6 7 8} #{9}] (map set (connected-components
+       [#{5 6 7 8} #{1 2 3 4} #{9}] (map set (connected-components
                                               (add-nodes g8 9)))
        [#{:r :g :b :o :p}] (map set (connected-components g2))
        [#{1 2 3 4 5 6 8 7}] (map set (connected-components g9))
@@ -384,12 +384,12 @@
 (deftest bipartite-test
   (are [expected got] (= expected got)
        {0 1, 1 0, 5 0, 2 1, 3 1, 4 0} (bipartite-color g6)
-       {5 1, 1 1, 2 0, 3 0, 4 0, 6 0, 7 0, 8 0} (bipartite-color g8)
+       {1 1, 2 0, 3 0, 4 0, 5 0, 6 1, 7 1, 8 1} (bipartite-color g8)
        nil (bipartite-color g1)
        true (bipartite? g6)
        true (bipartite? g8)
        false (bipartite? g1)
-       #{#{2 3 4 6 7 8} #{1 5}} (set (bipartite-sets g8))))
+       #{#{2 3 4 5} #{1 6 7 8}} (set (bipartite-sets g8))))
 
 (deftest coloring?-test
   (are [expected got] (= expected got)
@@ -414,23 +414,25 @@
   (are [expected got] (= expected got)
        #{#{2 4 10} #{1 3 5 6} #{11} #{7 8 9}} (set (map set (scc g13)))))
 
-(deftest prim-mst-edges-test
-  (are [expected got] (= expected got)
-       [[:a :e 1] [:a :b 3] [:b :c 5] [:c :d 2]] (prim-mst-edges mst_wt_g1)
-       [[:a :d 1] [:a :b 2] [:b :c 1] [:f :e 1]] (prim-mst-edges mst_wt_g2)
-       [[:a :c] [:a :b] [:a :d]] (prim-mst-edges mst_unweighted_g3)
-       [[:a :b 1]] (prim-mst-edges mst_wt_g4)
-       [[:a :c 2] [:c :b 2]] (prim-mst-edges mst_wt_g5)
-       [[:a :b 4] [:b :c 8] [:c :i 2] [:c :f 4] [:f :g 2]
-        [:g :h 1] [:c :d 7] [:d :e 9]]  (prim-mst-edges mst_wt_g6)))
+(deftest prim-mst-edges-weighted-test
+  (are [expected got] (= (set expected) (set got))
+       [[:e :a 1] [:a :b 3] [:b :c 5] [:c :d 2]] (prim-mst-edges mst_wt_g1)
+       [[:d :a 1] [:b :d 2] [:c :b 1] [:e :f 1]] (prim-mst-edges mst_wt_g2)
+       [[:c :a] [:d :b] [:c :d]] (prim-mst-edges mst_unweighted_g3)
+       [[:b :a 1]] (prim-mst-edges mst_wt_g4)
+       [[:c :a 2] [:c :b 2]] (prim-mst-edges mst_wt_g5)
+       [[:b :a 4] [:c :b 8] [:c :i 2] [:c :f 4] [:f :g 2]
+        [:g :h 1] [:d :c 7] [:e :d 9]]  (prim-mst-edges mst_wt_g6)))
 
 (deftest prim-mst-test
   (are [expected got] (= expected got)
-       [#{:a :b :d :e :f :g :h} [[:a :b][:b :d][:b :a][:f :e][:d :b][:e :f]]]
+       [#{:a :b :d :e :f :g :h} (set [[:a :b] [:b :d] [:b :a] [:f :e] [:d :b] [:e :f]])]
        (let [mst (prim-mst mst_wt_g7)]
-         [(nodes mst) (edges mst)])
-       [#{:a :b :c} [[:a :c] [:c :b] [:c :a] [:b :c]]] (let [mst (prim-mst mst_wt_g5)]
-              [(nodes mst) (edges mst)])))
+         [(nodes mst) (set (edges mst))])
+
+       [#{:a :b :c} (set [[:a :c] [:c :b] [:c :a] [:b :c]])]
+       (let [mst (prim-mst mst_wt_g5)]
+         [(nodes mst) (set (edges mst))])))
 
 
 ;;;;graphs for A* path
