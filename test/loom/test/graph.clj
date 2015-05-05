@@ -43,7 +43,11 @@
            #{[1 2] [2 1]} (set (edges (remove-nodes g1 3 4)))
            #{1 2 3 4} (set (nodes (remove-edges g1 [1 2] [2 1] [1 3] [3 1])))
            #{[2 3] [3 2]} (set (edges (remove-edges
-                                       g1 [1 2] [2 1] [1 3] [3 1])))))))
+                                       g1 [1 2] [2 1] [1 3] [3 1])))))
+    (testing "Adding multiple edges"
+      (are [expected got] (= expected got)
+           #{1 2 3 4 5} (set (nodes (add-edges* g5 [[1 2] [2 3] [3 4] [4 5]])))
+           #{[1 2] [2 1] [2 3] [3 2] [3 4] [4 3] [4 5] [5 4]} (set (edges (add-edges* g5 [[1 2] [2 3] [3 4] [4 5]])))))))
 
 (deftest simple-digraph-test
   (let [g1 (digraph [1 2] [1 3] [2 3] 4)
