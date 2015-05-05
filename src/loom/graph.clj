@@ -11,24 +11,24 @@ on adjacency lists."
 ;;;
 
 (defprotocol Graph
-  (nodes [g] "Return a collection of the nodes in graph g")
+  (nodes [g] "Returns a collection of the nodes in graph g")
   (edges [g] "Edges in g. May return each edge twice in an undirected graph")
-  (has-node? [g node] "Return true when node is in g")
-  (has-edge? [g n1 n2] "Return true when edge [n1 n2] is in g")
+  (has-node? [g node] "Returns true when node is in g")
+  (has-edge? [g n1 n2] "Returns true when edge [n1 n2] is in g")
   (successors [g] [g node]
-    "Return direct successors of node, or (partial successors g)")
-  (out-degree [g node] "Return the number of outgoing edges of node")
-  (out-edges [g node] "Return all the outgoing edges of node"))
+    "Returns direct successors of node, or (partial successors g)")
+  (out-degree [g node] "Returns the number of outgoing edges of node")
+  (out-edges [g node] "Returns all the outgoing edges of node"))
 
 (defprotocol Digraph
   (predecessors [g] [g node]
-    "Return direct predecessors of node, or (partial predecessors g)")
-  (in-degree [g node] "Return the number direct predecessors to node")
-  (in-edges [g node] "Return all the incoming edges of node")
-  (transpose [g] "Return a graph with all edges reversed"))
+    "Returns direct predecessors of node, or (partial predecessors g)")
+  (in-degree [g node] "Returns the number of direct predecessors to node")
+  (in-edges [g node] "Returns all the incoming edges of node")
+  (transpose [g] "Returns a graph with all edges reversed"))
 
 (defprotocol WeightedGraph
-  (weight [g] [g e] [g n1 n2] "Return weight of edge e or edge [n1 n2] or (partial weight g)"))
+  (weight [g] [g e] [g n1 n2] "Returns the weight of edge e or edge [n1 n2] or (partial weight g)"))
 
 (defprotocol EditableGraph
   (add-nodes* [g nodes] "Add nodes to graph g. See add-nodes")
@@ -45,7 +45,7 @@ on adjacency lists."
 (extend-type clojure.lang.IPersistentVector
   Edge
   (src [edge] (get edge 0))
-  (dest [edge] (get edge 1)))  
+  (dest [edge] (get edge 1)))
 
 ; Default implementation for maps
 (extend-type clojure.lang.IPersistentMap
@@ -56,24 +56,24 @@ on adjacency lists."
 ;; Variadic wrappers
 
 (defn add-nodes
-  "Add nodes to graph g. Nodes can be any type of object"
+  "Adds nodes to graph g. Nodes can be any type of object"
   [g & nodes]
   (add-nodes* g nodes))
 
 (defn add-edges
-  "Add edges to graph g. For unweighted graphs, edges take the form [n1 n2].
+  "Adds edges to graph g. For unweighted graphs, edges take the form [n1 n2].
   For weighted graphs, edges take the form [n1 n2 weight] or [n1 n2], the
   latter defaulting to a weight of 1"
   [g & edges]
   (add-edges* g edges))
 
 (defn remove-nodes
-  "Remove nodes from graph g"
+  "Removes nodes from graph g"
   [g & nodes]
   (remove-nodes* g nodes))
 
 (defn remove-edges
-  "Remove edges from graph g. Do not include weights"
+  "Removes edges from graph g. Do not include weights"
   [g & edges]
   (remove-edges* g edges))
 
@@ -108,7 +108,7 @@ on adjacency lists."
                  (contains? (get-in g [:adj n1]) n2))
     :out-degree (fn [g node]
                  (count (get-in g [:adj node])))
-    :out-edges (fn 
+    :out-edges (fn
                  ([g] (partial out-edges g))
                  ([g node] (for [n2 (successors g node)] [node n2])))}
 
@@ -144,7 +144,7 @@ on adjacency lists."
                    ([g node] (get-in g [:in node])))
    :in-degree (fn [g node]
                 (count (get-in g [:in node])))
-   :in-edges (fn 
+   :in-edges (fn
                ([g] (partial in-edges g))
                ([g node] (for [n2 (predecessors g node)] [n2 node])))})
 
@@ -428,37 +428,37 @@ on adjacency lists."
 ;; TODO: make this work with read-only graphs?
 ;; Could also gain speed being impl-specific
 (defn subgraph
-  "Return a graph without all but the given nodes"
+  "Returns a graph with only the given nodes"
   [g ns]
   (remove-nodes* g (filter (complement (set ns)) (nodes g))))
 
 (defn add-path
-  "Add a path of edges connecting the given nodes in order"
+  "Adds a path of edges connecting the given nodes in order"
   [g & nodes]
   (add-edges* g (partition 2 1 nodes)))
 
 (defn add-cycle
-  "Add a cycle of edges connecting the given nodes in order"
+  "Adds a cycle of edges connecting the given nodes in order"
   [g & nodes]
   (add-edges* g (partition 2 1 (concat nodes [(first nodes)]))))
 
 (defn graph?
-  "Return true if g satisfies the Graph protocol"
+  "Returns true if g satisfies the Graph protocol"
   [g]
   (satisfies? Graph g))
 
 (defn directed?
-  "Return true if g satisfies the Digraph protocol"
+  "Returns true if g satisfies the Digraph protocol"
   [g]
   (satisfies? Digraph g))
 
 (defn weighted?
-  "Return true if g satisfies the WeightedGraph protocol"
+  "Returns true if g satisfies the WeightedGraph protocol"
   [g]
   (satisfies? WeightedGraph g))
 
 (defn editable?
-  "Return true if g satisfies the EditableGraph protocol"
+  "Returns true if g satisfies the EditableGraph protocol"
   [g]
   (satisfies? EditableGraph g))
 
@@ -497,31 +497,31 @@ on adjacency lists."
     (reduce build g inits)))
 
 (defn graph
-  "Create an unweighted, undirected graph. inits can be edges, adjacency maps,
+  "Creates an unweighted, undirected graph. inits can be edges, adjacency maps,
   or graphs"
   [& inits]
   (apply build-graph (BasicEditableGraph. #{} {}) inits))
 
 (defn digraph
-  "Create an unweighted, directed graph. inits can be edges, adjacency maps,
+  "Creates an unweighted, directed graph. inits can be edges, adjacency maps,
   or graphs"
   [& inits]
   (apply build-graph (BasicEditableDigraph. #{} {} {}) inits))
 
 (defn weighted-graph
-  "Create an weighted, undirected graph. inits can be edges, adjacency maps,
+  "Creates an weighted, undirected graph. inits can be edges, adjacency maps,
   or graphs"
   [& inits]
   (apply build-graph (BasicEditableWeightedGraph. #{} {}) inits))
 
 (defn weighted-digraph
-  "Create an weighted, directed graph. inits can be edges, adjacency maps,
+  "Creates an weighted, directed graph. inits can be edges, adjacency maps,
   or graphs"
   [& inits]
   (apply build-graph (BasicEditableWeightedDigraph. #{} {} {}) inits))
 
 (defn fly-graph
-  "Create a read-only, ad-hoc graph which uses the provided functions
+  "Creates a read-only, ad-hoc graph which uses the provided functions
   to return values for nodes, edges, etc. If any members are not functions,
   they will be returned as-is. Edges can be inferred if nodes and
   successors are provided. Nodes and edges can be inferred if successors and

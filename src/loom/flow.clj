@@ -5,9 +5,9 @@
 
 
 (defn residual-capacity
-  "Computes the residual capacity between nodes v1 and v2.  Capacity
+  "Computes the residual capacity between nodes v1 and v2. Capacity
    is a function that takes two nodes, and returns the capacity on the
-   edge between them, if any.  Flow is the adjacency map which
+   edge between them, if any. Flow is the adjacency map which
    represents the current flow in the network."
   [capacity flow v1 v2]
   (+
@@ -50,7 +50,7 @@
 
 (defn is-admissible-flow?
   "Verifies that a flow satisfies capacity and mass balance
-   constraints.  Does verify that a flow is maximum."
+   constraints. Does verify that a flow is maximum."
   [flow capacity source sink]
   (and (satisfies-mass-balance? flow source sink)
        (satisfies-capacity-constraints? flow capacity)))
@@ -58,18 +58,18 @@
 (defn min-weight-along-path
   "Given a path, represented by a sequence of nodes, and
    weight-function, computes the minimum of the edge weights along the
-   path.  If an edge on the path is missing, returns 0."
+   path. If an edge on the path is missing, returns 0."
   [path weight-fn]
   (reduce min (map #(or (apply weight-fn %) 0)  (partition 2 1 path))))
 
 (defn bf-find-augmenting-path
   "Finds a shortest path in the flow network along which there remains
-   residual capacity.  Successors is a function which, given a vertex,
-   returns the vertices connected by outgoing edges.  Predecessors,
+   residual capacity. Successors is a function which, given a vertex,
+   returns the vertices connected by outgoing edges. Predecessors,
    similarly is a function to get vertices connected by incoming
-   edges.  Capacity is a function which takes two vertices and returns
-   the capacity between them.  Flow is an adjacency map which contains
-   the current value of network flow.  s is the source node, t the
+   edges. Capacity is a function which takes two vertices and returns
+   the capacity between them. Flow is an adjacency map which contains
+   the current value of network flow. s is the source node, t the
    sink."
   [successors predecessors capacity flow s t]
   (gen/bf-path
@@ -83,7 +83,7 @@
    Capacity is a function of two vertices, path is a sequence of
    nodes, and increase is the amount by which the flow should be
    augmented on this path. If at any point the increase exceeds forward
-   capacity, the excess is pushed in the reverse direction.  An exception
+   capacity, the excess is pushed in the reverse direction. An exception
    is thrown if the augmentation is impossible given capacity constraints."
   [flow capacity path increase]
   (let [vn0 (first path)
@@ -109,8 +109,8 @@
 (defn edmonds-karp
   "Computes the maximum flow on a network, using the edmonds-karp algorithm.
    Successors is a function that returns the outgoing neighbor
-   vertices of a vertex.  Predecessors is a function that returns the
-   incoming neighbor vertices for a vertex.  Capacity is a function of
+   vertices of a vertex. Predecessors is a function that returns the
+   incoming neighbor vertices for a vertex. Capacity is a function of
    two vertices that returns the capacity on the edge between them.
    Source and sink are the unique vertices which supply and consume
    flow respectively.

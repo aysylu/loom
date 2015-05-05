@@ -32,7 +32,7 @@
       (str sb))))
 
 (defn dot-str
-  "Render graph g as a DOT-format string. Calls (node-label node) and
+  "Renders graph g as a DOT-format string. Calls (node-label node) and
   (edge-label n1 n2) to determine what labels to use for nodes and edges,
   if any. Weights become edge labels unless a label is specified.
   Labels also include attributes when the graph satisfies AttrGraph."
@@ -108,7 +108,7 @@
     nil))
 
 (defn- open
-  "Open the given file (a string, File, or file URI) in the default
+  "Opens the given file (a string, File, or file URI) in the default
   application for the current desktop environment. Returns nil"
   [f]
   (let [f (file f)]
@@ -123,7 +123,7 @@
       nil)))
 
 (defn- open-data
-  "Write the given data (string or bytes) to a temporary file with the
+  "Writes the given data (string or bytes) to a temporary file with the
   given extension (string or keyword, with or without the dot) and then open
   it in the default application for that extension in the current desktop
   environment. Returns nil"
