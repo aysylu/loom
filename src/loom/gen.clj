@@ -11,6 +11,7 @@
                                  max-weight 1
                                  loops false
                                  seed (System/nanoTime)}}]
+  {:pre [(or (not (weighted? g)) (< min-weight max-weight))]}
   (let [rnd (java.util.Random. seed)
         rand-w #(+ (.nextInt rnd (- max-weight min-weight)) min-weight)
         rand-n #(.nextInt rnd num-nodes)
@@ -34,6 +35,7 @@
                          max-weight 1
                          loops false
                          seed (System/nanoTime)}}]
+  {:pre [(or (not (weighted? g)) (< min-weight max-weight))]}
   (let [rnd (java.util.Random. seed)
         rand-w #(+ (.nextInt rnd (- max-weight min-weight)) min-weight)
         directed? (directed? g)

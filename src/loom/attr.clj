@@ -28,7 +28,7 @@ thickness, etc)."
                     g)))
    :remove-attr (fn
                   ([g node-or-edge k]
-                    (if (has-node? g node-or-edge)                      
+                    (if (has-node? g node-or-edge)
                       (update-in g [:attrs node-or-edge] dissoc k)
                       (remove-attr g (src node-or-edge) (dest node-or-edge) k)))
                   ([g n1 n2 k]
@@ -95,7 +95,7 @@ thickness, etc)."
    g nodes))
 
 (defn add-attr-to-edges
-  "Adds an attribute to the given nodes"
+  "Adds an attribute to the given edges"
   [g k v edges]
   (reduce
    (fn [g [n1 n2]]
