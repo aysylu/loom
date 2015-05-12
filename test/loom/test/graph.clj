@@ -237,11 +237,10 @@
            88 (weight fg1 1 2)))
     (testing "Predicates"
       (are [expected got] (= expected got)
-           1(has-node? fg1 1)
+           1 (has-node? fg1 1)
            nil (has-node? fg1 11)
            2 (has-node? fg2 2)
-           nil (has-node? fg2 11)
-           ))
+           nil (has-node? fg2 11)))
     ;; TODO: finish
     ))
 
