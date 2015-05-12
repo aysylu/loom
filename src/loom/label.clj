@@ -63,7 +63,7 @@
   default-labeled-graph-impl)
 
 (defn labeled?
-  "Return true if g satisfies LabeledGraph"
+  "Returns true if g satisfies LabeledGraph"
   [g]
   (satisfies? LabeledGraph g))
 

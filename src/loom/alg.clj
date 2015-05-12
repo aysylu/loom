@@ -38,7 +38,7 @@ can use these functions."
      (gen/pre-traverse (graph/successors g) start)))
 
 (defn pre-span
-  "Return a depth-first spanning tree of the form {node [successors]}"
+  "Returns a depth-first spanning tree of the form {node [successors]}"
   ([g]
      (second
       (reduce
@@ -103,7 +103,7 @@ can use these functions."
      (apply gen/bf-traverse (graph/successors g) start opts)))
 
 (defn bf-span
-  "Return a breadth-first spanning tree of the form {node [successors]}"
+  "Returns a breadth-first spanning tree of the form {node [successors]}"
   ([g]
      (preds->span
       (reduce
@@ -119,7 +119,7 @@ can use these functions."
      (gen/bf-span (graph/successors g) start)))
 
 (defn bf-path
-  "Return a path from start to end with the fewest hops (i.e. irrespective
+  "Returns a path from start to end with the fewest hops (i.e. irrespective
   of edge weights)"
   [g start end & opts]
   (apply gen/bf-path (graph/successors g) start end opts))
@@ -166,7 +166,7 @@ can use these functions."
   (first (dijkstra-path-dist g start end)))
 
 (defn- can-relax-edge?
-  "Test for whether we can improve the shortest path to v found so far
+  "Tests for whether we can improve the shortest path to v found so far
    by going through u."
   [[u v :as edge] weight costs]
   (let [vd (get costs v)
@@ -248,7 +248,7 @@ can use these functions."
              {}))])))
 
 (defn dag?
-  "Return true if g is a directed acyclic graph"
+  "Returns true if g is a directed acyclic graph"
   [g]
   (boolean (topsort g)))
 
@@ -280,7 +280,7 @@ can use these functions."
       (bf-traverse g start :f vector)))))
 
 (defn- bellman-ford-transform
-  "Helper method for Johnson's algorithm. Uses Bellman-Ford to remove negative weights."
+  "Helper function for Johnson's algorithm. Uses Bellman-Ford to remove negative weights."
   [wg]
   (let [q (first (drop-while (partial graph/has-node? wg) (repeatedly gensym)))
         es (for [v (graph/nodes wg)] [q v 0])
@@ -326,7 +326,7 @@ can use these functions."
           (nodes g)))
 
 (defn all-pairs-shortest-paths
-  "Find all-pairs shortest paths in a graph. Uses Johnson's algorithm for weighted graphs
+  "Finds all-pairs shortest paths in a graph. Uses Johnson's algorithm for weighted graphs
   which is efficient for sparse graphs. Breadth-first spans are used for unweighted graphs."
   [g]
   (if (weighted? g)
@@ -334,7 +334,7 @@ can use these functions."
     (bf-all-pairs-shortest-paths g)))
 
 (defn connected-components
-  "Return the connected components of graph g as a vector of vectors. If g
+  "Returns the connected components of graph g as a vector of vectors. If g
   is directed, returns the weakly-connected components."
   [g]
   (let [nb (if-not (directed? g) (graph/successors g)
@@ -359,7 +359,7 @@ can use these functions."
   (== (count (first (connected-components g))) (count (nodes g))))
 
 (defn scc
-  "Return the strongly-connected components of directed graph g as a vector of
+  "Returns the strongly-connected components of directed graph g as a vector of
   vectors. Uses Kosaraju's algorithm."
   [g]
   (let [gt (transpose g)]
@@ -382,7 +382,7 @@ can use these functions."
   (== (count (first (scc g))) (count (nodes g))))
 
 (defn connect
-  "Return graph g with all connected components connected to each other"
+  "Returns graph g with all connected components connected to each other"
   [g]
   (reduce add-edges g (partition 2 1 (map first (connected-components g)))))
 
@@ -396,7 +396,7 @@ can use these functions."
                   (dec order))))))
 
 (defn loners
-  "Return nodes with no connections to other nodes (i.e., isolated nodes)"
+  "Returns nodes with no connections to other nodes (i.e., isolated nodes)"
   [g]
   (let [degree-total (if (directed? g)
                        #(+ (in-degree g %) (out-degree g %))
@@ -404,7 +404,7 @@ can use these functions."
     (filter (comp zero? degree-total) (nodes g))))
 
 (defn distinct-edges
-  "Distinct edges of g. Only useful for undirected graphs"
+  "Returns the distinct edges of g. Only useful for undirected graphs"
   [g]
   (if (directed? g)
     (edges g)
@@ -420,7 +420,7 @@ can use these functions."
       (edges g)))))
 
 (defn bipartite-color
-  "Attempt a two-coloring of graph g. When successful, returns a map of
+  "Attempts a two-coloring of graph g. When successful, returns a map of
   nodes to colors (1 or 0). Otherwise, returns nil."
   [g]
   (letfn [(color-component [coloring start]
@@ -448,12 +448,12 @@ can use these functions."
             (recur nodes (color-component coloring node))))))))
 
 (defn bipartite?
-  "Return true if g is bipartite"
+  "Returns true if g is bipartite"
   [g]
   (boolean (bipartite-color g)))
 
 (defn bipartite-sets
-  "Return two sets of nodes, one for each color of the bipartite coloring,
+  "Returns two sets of nodes, one for each color of the bipartite coloring,
   or nil if g is not bipartite"
   [g]
   (when-let [coloring (bipartite-color g)]
@@ -466,7 +466,7 @@ can use these functions."
      coloring)))
 
 (defn- neighbor-colors
-  "Given a putative coloring of a graph, return the colors of all the
+  "Given a putative coloring of a graph, returns the colors of all the
   neighbors of a given node."
   [g node coloring]
   (let [successors (graph/successors g node)
@@ -547,7 +547,7 @@ can use these functions."
 
 (defn prim-mst-edges
   "An edge-list of an minimum spanning tree along with weights that
-  represents an MST of the given  graph. Returns the MST edge-list
+  represents an MST of the given graph. Returns the MST edge-list
   for un-weighted graphs."
   ([wg]
      (cond
@@ -590,7 +590,7 @@ can use these functions."
      )))
 
 (defn astar-path
-  "Return the shortest path using A* algorithm. Returns a map of predecessors."
+  "Returns the shortest path using A* algorithm. Returns a map of predecessors."
   ([g src target heur]
      (let [heur (if (nil? heur) (fn [x y] 0) heur)
            ;; store in q => {u [heur+dist parent act est]}
@@ -642,7 +642,7 @@ can use these functions."
               (recur g src target heur q explored)))))
 
 (defn astar-dist
-  "Return the length of the shortest path between src and target using
+  "Returns the length of the shortest path between src and target using
     the A* algorithm"
   [g src target heur]
   (let [path (astar-path g src target heur)
@@ -655,7 +655,7 @@ can use these functions."
     dist))
 
 (defn degeneracy-ordering
-  "Return sequence of vertices in degeneracy order."
+  "Returns sequence of vertices in degeneracy order."
   [g]
   (loop [ordered-nodes []
          node-degs (->> (zipmap (nodes g)
