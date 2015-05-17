@@ -1,4 +1,4 @@
-(ns loom.derived-test
+(ns loom.test.derived
   (:require [loom.derived :refer :all]
             [loom.graph :refer :all]
             [loom.alg :refer :all]

@@ -1,4 +1,4 @@
-(ns loom.graph-test
+(ns loom.test.graph
   (:require [loom.graph :refer :all]
             [clojure.test :refer :all]))
 
