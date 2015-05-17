@@ -387,6 +387,8 @@ on adjacency lists."
    :has-node? (fn [g node]
                 ;; cannot use contains? here because (nodes g) need not be a set.
                 (some #{node} (nodes g)))
+   :has-edge? (fn [g n1 n2]
+                (some #{[n1 n2]} (edges g)))
    })
 
 (def ^{:private true} default-flygraph-digraph-impl
