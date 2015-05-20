@@ -30,7 +30,18 @@
                    (nodes-filtered-by #{1 2 4} g))
 
         true (eql? (digraph [1 2] 4)
-                   (nodes-filtered-by #{1 2 4} dg))))))
+                   (nodes-filtered-by #{1 2 4} dg))))
+
+    (testing "Subgraph from start node"
+      (are [expected got] (= expected got)
+        true (eql? (graph [1 2] [1 3] [2 3])
+                   (subgraph-starting-from g 2))
+        true (eql? (graph 4)
+                   (subgraph-starting-from g 4))
+
+        true (eql? (digraph [2 3])
+                   (subgraph-starting-from dg 2))))
+    ))
 
 (comment
   (use 'loom.io)
@@ -43,6 +54,8 @@
 
   (def g1 (graph [1 2] [1 3] [2 3] 4))
   (def g2 (digraph [1 2] [1 3] [2 3] 4))
-  (view g1)
+  (view g2)
   (view (mapped-by inc g1))
-  (view (mapped-by #(mod % 3) g1)))
+  (view (mapped-by #(mod % 3) g1))
+  (view (subgraph-starting-from g2 2))
+  )
