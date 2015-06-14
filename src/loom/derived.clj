@@ -35,3 +35,26 @@
       (add-edges* (filter #(and (pred (first %))
                                 (pred (last %)))
                           (edges g)))))
+
+(defn border-subgraph
+  "Subgraph of g containing nodes which belong to the given subset of nodes and successors
+  which do not belong to subset. Inner edges are also excluded."
+  [g subset]
+  (let [subset (set subset)
+        border (->> subset
+                    (filter (fn [n] (not (every? subset (successors g n)))))
+                    (set))
+        coborder (->> (flatten (map #(seq (successors g %)) border))
+                      (filter #(not (subset %)))
+                      (set))
+        nodes (->> (clojure.set/union border coborder)
+                   (filter #(not (nil? %)))
+                   (set))
+        fsuccessors (fn [n] (->> (successors g n)
+                                 (filter coborder)))]
+    (if (directed? g)
+      (fly-graph :nodes nodes
+                 :successors fsuccessors
+                 :predecessors (fn [n] (filter #(nodes %)) (predecessors g n)))
+      (fly-graph :nodes nodes
+                 :successors fsuccessors))))

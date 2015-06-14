@@ -32,16 +32,26 @@
         true (eql? (digraph [1 2] 4)
                    (nodes-filtered-by #{1 2 4} dg))))
 
-    (testing "Subgraph from start node"
+    (testing "subgraph from start node"
       (are [expected got] (= expected got)
         true (eql? (graph [1 2] [1 3] [2 3])
                    (subgraph-starting-from g 2))
         true (eql? (graph 4)
                    (subgraph-starting-from g 4))
-
         true (eql? (digraph [2 3])
-                   (subgraph-starting-from dg 2))))
-    ))
+                   (subgraph-starting-from dg 2))))))
+
+(deftest border-subgraph-test
+  (let [dg (digraph [1 2] [2 3] [4 5] [5 6] [3 4] [2 4] [1 6])
+        ug (graph dg)]
+   (testing "border subgraph"
+     (are [expected got] (= expected got)
+       '([1 6] [2 4] [3 4]) (sort (edges (border-subgraph dg [1 2 3])))
+       '([1 6] [2 4] [3 4]) (sort (edges (border-subgraph ug [1 2 3])))
+
+       '([5 6]) (sort (edges (border-subgraph dg [4 5])))
+       true (eql? (graph [2 3] [2 4] [3 4] [5 6])
+                  (border-subgraph ug [4 5]))))))
 
 (comment
   (use 'loom.io)
@@ -58,4 +68,7 @@
   (view (mapped-by inc g1))
   (view (mapped-by #(mod % 3) g1))
   (view (subgraph-starting-from g2 2))
+
+  (def g (digraph [1 2] [2 3] [4 5] [5 6] [3 4] [2 4] [1 6]))
+  (view (border-subgraph g [1 2 3]))
   )
