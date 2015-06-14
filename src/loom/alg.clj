@@ -755,9 +755,15 @@ can use these functions."
 (defn subgraph?
   "Returns true iff g1 is a subgraph of g2."
   [g1 g2]
-  (and (every? #(graph/has-node? g2 %) (nodes g1))
-       (every? (fn [[x y]] (graph/has-edge? g2 x y))
-               (edges g1))))
+  (let [edge-test-fn (if (directed? g1)
+                       graph/has-edge?
+                       (fn [g x y]
+                         (or (graph/has-edge? g x y)
+                             (graph/has-edge? g y x)
+                             )))]
+    (and (every? #(graph/has-node? g2 %) (nodes g1))
+         (every? (fn [[x y]] (edge-test-fn g2 x y))
+                 (edges g1)))))
 
 (defn eql?
   "Returns true iff g1 is a subgraph of g2 and g2 is a subgraph of g1"
