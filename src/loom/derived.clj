@@ -16,6 +16,8 @@
       (add-edges* (map #(map f %) (edges g)))))
 
 (defn subgraph-starting-from
+  "Return a subgraph of the given graph which contains all nodes and edges that
+  can be reached from the given start node."
   [g start]
   (if (directed? g)
     (fly-graph :start start
