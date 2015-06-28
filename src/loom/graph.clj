@@ -433,7 +433,7 @@ on adjacency lists."
 (defn subgraph
   "Returns a graph with only the given nodes"
   [g ns]
-  (remove-nodes* g (filter (complement (set ns)) (nodes g))))
+  (remove-nodes* g (remove (set ns) (nodes g))))
 
 (defn add-path
   "Adds a path of edges connecting the given nodes in order"

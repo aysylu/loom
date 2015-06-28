@@ -4,13 +4,13 @@ can use these functions."
       :author "Justin Kramer"}
   loom.alg
   (:require [loom.alg-generic :as gen]
-            [loom.flow :as flow])
-  (:require [loom.graph
+            [loom.flow :as flow]
+            [loom.graph
              :refer [add-nodes add-edges nodes edges successors weight predecessors
                      out-degree in-degree weighted? directed? graph transpose]
              :as graph]
-            [loom.alg-generic :refer [trace-path preds->span]])
-  (:require [clojure.data.priority-map :as pm]
+            [loom.alg-generic :refer [trace-path preds->span]]
+            [clojure.data.priority-map :as pm]
             [clojure.set :as clj.set]))
 
 ;;;
@@ -311,7 +311,7 @@ can use these functions."
       false
       (let [dist (if (weighted? g)
                    (weight g)
-                   (fn [u v] (if (graph/has-edge? g u v) 1 nil)))]
+                   (fn [u v] (when (graph/has-edge? g u v) 1)))]
         (reduce (fn [acc node]
                   (assoc acc node (gen/dijkstra-span (successors g) dist node)))
                 {}
@@ -434,7 +434,7 @@ can use these functions."
                   ;; TODO: could be better
                   (if (some #(and (coloring %) (= (coloring v) (coloring %)))
                             nbrs)
-                    nil ;not bipartite
+                    nil ; graph is not bipartite
                     (let [nbrs (remove coloring nbrs)]
                       (recur (into coloring (for [nbr nbrs] [nbr color]))
                              (into (pop queue) nbrs))))))))]
@@ -474,7 +474,7 @@ can use these functions."
                     successors
                     (concat successors
                             (graph/predecessors g node)))]
-    (set (filter (complement nil?)
+    (set (remove nil?
                  (map #(get coloring %)
                       neighbors)))))
 
@@ -621,7 +621,7 @@ can use these functions."
                  curr-dist ((second (peek q)) 2)
                  ;; update path
                  explored (assoc explored curr-node ((second (peek q)) 1))
-                 nbrs (filter (complement explored) (successors g curr-node))
+                 nbrs (remove explored (successors g curr-node))
                  ;; we do this for following reasons
                  ;; a. avoiding duplicate heuristics computation
                  ;; b. duplicate entries for nodes, which needs to be removed later
