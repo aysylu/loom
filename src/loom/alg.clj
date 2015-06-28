@@ -432,9 +432,9 @@ can use these functions."
                       color (- 1 (coloring v))
                       nbrs (graph/successors g v)]
                   ;; TODO: could be better
-                  (when-not (some #(and (coloring %) (= (coloring v) (coloring %)))
+                  (if (some #(and (coloring %) (= (coloring v) (coloring %)))
                             nbrs)
-                    ;not bipartite
+                    nil ; graph is not bipartite
                     (let [nbrs (remove coloring nbrs)]
                       (recur (into coloring (for [nbr nbrs] [nbr color]))
                              (into (pop queue) nbrs))))))))]
