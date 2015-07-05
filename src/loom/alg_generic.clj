@@ -83,14 +83,14 @@
                     seen)))))
       (when-let [parent (peek stack)]
         (recur successors parent (peek nbrstack)
-               (pop stack) (pop nbrstack) (conj seen start)))))] 
+               (pop stack) (pop nbrstack) (conj seen start)))))]
     (when-not (seen start)
       (step successors start (successors start) [] [] (conj seen start)))))
 
 ;; TODO: graph-seq, analog of tree-seq
 
 (defn pre-span
-  "Return a depth-first spanning tree of the form {node [successors]}"
+  "Returns a depth-first spanning tree of the form {node [successors]}"
   [successors start & {:keys [seen return-seen] :or {seen #{}}}]
   (loop [seen seen
          preds {start nil}
@@ -133,9 +133,8 @@
   once for each direction."
   [successors start & {:keys [seen return-seen] :or {seen #{}}}]
   (if (seen start)
-    (if return-seen
-      [nil seen]
-      nil)
+    (when return-seen
+      [nil seen])
     (loop [start start
           nbrs (successors start)
           stack []
@@ -216,7 +215,7 @@
                  :seen seen))))
 
 (defn bf-path
-  "Return a path from start to end with the fewest hops (i.e. irrespective
+  "Returns a path from start to end with the fewest hops (i.e. irrespective
   of edge weights), successors being a function that returns adjacent nodes"
   [successors start end & {:as opts}]
   (let [opts (merge opts {:f vector})]
@@ -226,7 +225,7 @@
       (reverse (trace-path preds end)))))
 
 (defn- shared-keys
-  "Return a lazy-seq of the keys that exist in both m1 and m2"
+  "Returns a lazy-seq of the keys that exist in both m1 and m2"
   [m1 m2]
   (if (< (count m2) (count m1))
     (recur m2 m1)
@@ -461,7 +460,7 @@
 (def ^Long bits-per-long (long (Long/SIZE)))
 
 (defn ^Long bm-longs
-  "Return the number of longs required to store bits count bits in a bitmap."
+  "Returns the number of longs required to store bits count bits in a bitmap."
   [bits]
   (long (Math/ceil (/ bits bits-per-long))))
 
@@ -531,7 +530,7 @@
   (-> ancestry :node->idx (contains? node)))
 
 (defn ancestry-add
-  "Add a 'node and its 'parents associations to the 'ancestry cache."
+  "Adds a 'node and its 'parents associations to the 'ancestry cache."
   [ancestry node & parents]
   (if (ancestry-contains? ancestry node)
     ;; TODO Should we throw instead of drop?
@@ -549,7 +548,7 @@
       (->Ancestry node->idx idx->node bitmaps))))
 
 (defn ancestor?
-  "Find if the 'parenter node is an ancestor of 'childer node for the given
+  "Finds if the 'parenter node is an ancestor of 'childer node for the given
   'ancestry cache."
   [ancestry childer parenter]
   (let [{:keys [node->idx bitmaps]} ancestry
@@ -561,7 +560,7 @@
                pidx)))))
 
 (defn ancestors
-  "Return all of the ancestors of 'child node."
+  "Returns all of the ancestors of 'child node."
   [ancestry child]
   (let [{:keys [node->idx idx->node bitmaps]} ancestry
         cidx (node->idx child)]
@@ -570,6 +569,6 @@
          (map idx->node))))
 
 (defn ancestry-nodes
-  "Return all of the nodes in an 'ancestry."
+  "Returns all of the nodes in an 'ancestry."
   [ancestry]
   (-> ancestry :node->idx keys))
