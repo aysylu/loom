@@ -11,4 +11,9 @@
   :profiles {:dev
              {:dependencies [[org.clojure/clojure "1.5.1"]
                              [org.clojure/test.check "0.5.7"]]}}
-  :aliases {"release" ["do" "clean," "with-profile" "default" "deploy" "clojars"]})
+  :aliases {"release" ["do" "clean," "with-profile" "default" "deploy" "clojars"]}
+
+  :plugins  [[codox "0.8.12"]]
+  :codox  {:src-dir-uri "https://github.com/aysylu/loom/blob/master/"
+           :src-linenum-anchor-prefix "L"
+           :exclude loom.multigraph})
