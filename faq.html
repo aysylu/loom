@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link href="css/default.css" rel="stylesheet" type="text/css">
+    <script src="js/jquery.min.js" type="text/javascript"></script>
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      var pluginUrl =
+      '//www.google-analytics.com/plugins/ga/inpage_linkid.js';
+      _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+      _gaq.push(['_setAccount', 'UA-37511940-1']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+       var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+       ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+       var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+       })();
+    </script>
+
+    <title>Loom: Frequently Asked Questions</title>
+  </head>
+  <body>
+    <div id="header">
+      <h2>Loom on <a href="https://github.com/aysylu/loom">Github</a></h2>
+      <h1>Loom Frequently Asked Questions</h1>
+    </div>
+    <div class="sidebar" id="namespaces">
+      <h3>
+        <span>Categories of Questions</span>
+      </h3>
+      <ul>
+        <li><a href="faq.html#philosophy"><span>Loom Philosophy</span></a></li>
+        <li><a href="faq.html#features"><span>Adding Features</span></a></li>
+        <li><a href="faq.html#api"><span>API specific questions</span></a></li>
+      </ul>
+    </div>
+    <div class="namespace-index" id="content">
+      <h2>Loom Frequently Asked Questions</h2>
+      <div class="doc">Graph library for Clojure</div>
+      <div id="philosophy">
+        <h3> Loom Philosophy </h3>
+        <p><b>I just came up with a brilliant way to represent graphs. Can I rewrite Loom to describe graphs the new way?</b></p>
+        <p>Designing graph APIs is an entertaining mental activity. Often, when designing an API, once you start using it you'll find many ways to make it simpler/better. Loom has been a very general graph library that contains minimal information about the structure of graphs and is able to run generic graph algorithms on it, so we should not introduce major API changes until the need arises.</p>
+        <p><b>What is the relationship of Loom and Titanium? Is there really a need for both?</b></p>
+        <p><a href="http://titanium.clojurewerkz.org/">Titanium</a> is a Clojure API for graph databases that allows for different backends. It provides basic functionality of retrieving elements of the graphs. Loom is a graph algorithms and visualization library. So essentially they are trying to solve different problems: Titanium stores the data, Loom processes the data. <a href="https://github.com/aysylu/titanium-loom">Titanium-Loom</a> integration library allows one to run Loom's graph algorithms on the data they have stored in their Titanium and visualize it.</p>
+        <p><b>There are lots of graph formats and data structures that one might want to convert to/from Loom. Why doesn't Loom support any of them?</b></p>
+        <p>It's important to let the user define their own way of converting their graph to Loom by using Loom's protocols and factory functions. There are infinite number of different graph formats out there, and the primary idea behind Loom is to provide graph algorithms and visualization of the graph, once a graph has been converted into Loom representation. In addition, depending on the problem domain, only the owner of the graph might know how exactly to convert their graph into Loom. This is why <a href="https://github.com/aysylu/titanium-loom">Titanium-Loom</a> is implemented as an optional dependency.</p>
+      </div>
+      <div id="features">
+        <h3> Adding Features </h3>
+        <p><b> I'm interested in adding [an awesome feature and/or graph algorithm] to Loom. How can I do that? </b></p>
+        <p> I'd be happy to accept your pull request!</p>
+        <p><b> Do I need to sign the CA in order to have my pull request accepted?</b></p>
+        <p>Not anymore, but it's fantastic if you decide to! The vision for Loom has been to make it a contrib library when it matures, and in order for us to do that, every contributor needs to sign the CA. Currently, every code contributor (there's 5 of us so far) has a signed CA. The signing of CA can now be easily done <a href="http://clojure.org/contributing">online</a>. Regardless of your decision, I'll happily accept contributions to Loom.</p>
+      </div>
+      <div id="api">
+        <h3> API Specific Questions </h3>
+        <p><b> What is the reason for specifying edges sometimes as a vector and other times as two separate arguments?</b></p>
+        <p>Loom was created with a convention that one defines an edge by passing in the 2 nodes that define it. The reason you see representation of an edge as a vector in the <i><a href="loom.attr.html#var-add-attr-to-edges">add-attr-to-edges</a></i> is that we need a way to represent an edge in a collection of edges over which the function reduces. Destructuring is a more expensive operation and therefore is avoided in the protocol functions.</p>
+        <p><b> What is the reason for <i><a href="loom.graph.html#var-weight">weight</a></i> not being stored as <i><a href="loom.attr.html">attributes</a></i>?</b></p>
+        <p>This allows us to have weights derived from attributes. If one wants to store weights as attributes, one could define a weight function that calls <i><a href="http://clojuredocs.org/clojure_core/clojure.core/get">get</a></i> on the corresponding attribute.</p>
+        <p><b> I want to learn more about Loom!</b></p>
+        <p>Great! You can find Loom's source code on <a href="https://github.com/aysylu/loom">Github</a>, watch the <a href="http://youtu.be/Iev7zavblqg">talk</a> and view <a href="http://www.slideshare.net/aysylu/aysylu-loom">slides</a>. Also, check out the <a href="https://groups.google.com/d/forum/loom-clj">mailing list</a> and join the conversation.</p>
+      </div>
+    </div>
+  </body>
+</html>
