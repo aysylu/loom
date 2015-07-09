@@ -32,7 +32,7 @@
       (str sb))))
 
 (defn dot-str
-  "Render graph g as a DOT-format string. Calls (node-label node) and
+  "Renders graph g as a DOT-format string. Calls (node-label node) and
   (edge-label n1 n2) to determine what labels to use for nodes and edges,
   if any. Weights become edge labels unless a label is specified.
   Labels also include attributes when the graph satisfies AttrGraph."
@@ -41,11 +41,11 @@
   (let [d? (directed? g)
         w? (weighted? g)
         a? (attr? g)
-        node-label (if node-label node-label
+        node-label (or node-label
                        (if a?
                          #(attr g % :label)
                          (constantly nil)))
-        edge-label (if edge-label edge-label
+        edge-label (or edge-label
                        (cond
                          a? #(if-let [a (attr g %1 %2 :label)]
                                a
@@ -108,22 +108,21 @@
     nil))
 
 (defn- open
-  "Open the given file (a string, File, or file URI) in the default
+  "Opens the given file (a string, File, or file URI) in the default
   application for the current desktop environment. Returns nil"
   [f]
   (let [f (file f)]
     ;; There's an 'open' method in java.awt.Desktop but it hangs on Windows
     ;; using Clojure Box and turns the process into a GUI process on Max OS X.
     ;; Maybe it's ok for Linux?
-    (do
-      (condp = (os)
-        :mac (sh "open" (str f))
-        :win (sh "cmd" (str "/c start " (-> f .toURI .toURL str)))
-        :unix (sh "xdg-open" (str f)))
-      nil)))
+    (condp = (os)
+      :mac (sh "open" (str f))
+      :win (sh "cmd" (str "/c start " (-> f .toURI .toURL str)))
+      :unix (sh "xdg-open" (str f)))
+    nil))
 
 (defn- open-data
-  "Write the given data (string or bytes) to a temporary file with the
+  "Writes the given data (string or bytes) to a temporary file with the
   given extension (string or keyword, with or without the dot) and then open
   it in the default application for that extension in the current desktop
   environment. Returns nil"
