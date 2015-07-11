@@ -1,4 +1,4 @@
-(defproject aysylu/loom "0.5.4"
+(defproject aysylu/loom "0.5.5-SNAPSHOT"
   :description "Graph library for Clojure"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
