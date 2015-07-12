@@ -10,7 +10,8 @@ can use these functions."
                      out-degree in-degree weighted? directed? graph transpose]
              :as graph]
             [loom.alg-generic :refer [trace-path preds->span]]
-            [clojure.data.priority-map :as pm]
+            #?(:clj [clojure.data.priority-map :as pm]
+               :cljs [tailrecursion.priority-map :as pm])
             [clojure.set :as clj.set]))
 
 ;;;
