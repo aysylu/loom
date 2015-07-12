@@ -6,7 +6,7 @@
 (defn dataflow-analysis
   "Performs dataflow analysis using iterative worklist-based algorithm.
    Must provide the graph and its start node, join and transfer functions."
-  [& {:keys [start graph join transfer]}]
+  [{:keys [start graph join transfer]}]
   (let [start (cond
                 (set? start) start
                 (coll? start) (set start)
