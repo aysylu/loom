@@ -9,7 +9,7 @@
   [{:keys [start graph join transfer]}]
   (let [start (cond
                 (set? start) start
-                (coll? start) (set start)
+                (and (coll? start) (not (map? start))) (set start)
                 :else #{start})]
     (loop [out-values {} 
            queue (into clojure.lang.PersistentQueue/EMPTY start)]
