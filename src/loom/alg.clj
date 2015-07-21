@@ -752,5 +752,31 @@ can use these functions."
   [g]
   (bk g))
 
+(defn subgraph?
+  "Returns true iff g1 is a subgraph of g2."
+  [g1 g2]
+  (let [edge-test-fn (if (directed? g1)
+                       graph/has-edge?
+                       (fn [g x y]
+                         (or (graph/has-edge? g x y)
+                             (graph/has-edge? g y x)
+                             )))]
+    (and (every? #(graph/has-node? g2 %) (nodes g1))
+         (every? (fn [[x y]] (edge-test-fn g2 x y))
+                 (edges g1)))))
+
+(defn eql?
+  "Returns true iff g1 is a subgraph of g2 and g2 is a subgraph of g1"
+  [g1 g2]
+  (and (subgraph? g1 g2)
+       (subgraph? g2 g1)))
+
+(defn isomorphism?
+  "Given a mapping phi between the vertices of two graphs, determine
+  if the mapping is an isomorphism, e.g., {(phi x), (phi y)} connected
+  in g2 iff {x, y} are connected in g1."
+  [g1 g2 phi]
+  (eql? g2 (graph (map (fn [[x y]] [(phi x) (phi y)])
+                       (edges g1)))))
 
 ;; ;; Todo: MST, coloring, matching, etc etc
