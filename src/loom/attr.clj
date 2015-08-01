@@ -82,7 +82,7 @@ thickness, etc)."
   default-attr-graph-impl)
 
 (defn attr?
-  "Return true if g satisfies AttrGraph"
+  "Returns true if g satisfies AttrGraph"
   [g]
   (satisfies? AttrGraph g))
 
