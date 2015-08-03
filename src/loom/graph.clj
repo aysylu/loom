@@ -199,7 +199,7 @@ on adjacency lists."
             (update-in [:adj n1] (fnil conj #{}) n2)
             (update-in [:adj n2] (fnil conj #{}) n1)))
       g edges))
-     
+
    :remove-nodes*
    (fn [g nodes]
      (let [nbrs (mapcat #(successors g %) nodes)]
