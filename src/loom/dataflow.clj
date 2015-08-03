@@ -11,8 +11,11 @@
                 (set? start) start
                 (coll? start) (set start)
                 :else #{start})]
-    (loop [out-values {} 
-           queue (into clojure.lang.PersistentQueue/EMPTY start)]
+    (loop [out-values {}
+           queue (into
+                   #?(:clj  clojure.lang.PersistentQueue/EMPTY
+                      :cljs #queue [])
+                   start)]
       (let [node (peek queue)
             worklist (pop queue)
             in-value (join (mapv out-values (g/predecessors graph node)))

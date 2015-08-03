@@ -10,7 +10,8 @@ can use these functions."
                      out-degree in-degree weighted? directed? graph transpose]
              :as graph]
             [loom.alg-generic :refer [trace-path preds->span]]
-            [clojure.data.priority-map :as pm]
+            #?(:clj [clojure.data.priority-map :as pm]
+               :cljs [tailrecursion.priority-map :as pm])
             [clojure.set :as clj.set]))
 
 ;;;
@@ -200,7 +201,8 @@ can use these functions."
   (let [nodes (disj (nodes graph) start)
         path-costs {start 0}
         paths {start nil}
-        infinities (repeat Double/POSITIVE_INFINITY)
+        infinities (repeat #?(:clj Double/POSITIVE_INFINITY
+                              :cljs js/Infinity))
         nils (repeat nil)
         init-costs (interleave nodes infinities)
         init-paths (interleave nodes nils)]
@@ -234,7 +236,9 @@ can use these functions."
       [costs
        (->> (keys paths)
             ;;remove vertices that are unreachable from source
-            (remove #(= Double/POSITIVE_INFINITY (get costs %)))
+            (remove #(= #?(:clj Double/POSITIVE_INFINITY
+                           :cljs js/Infinity)
+                        (get costs %)))
             (reduce
              (fn [final-paths v]
                (assoc final-paths v
@@ -425,7 +429,8 @@ can use these functions."
   [g]
   (letfn [(color-component [coloring start]
             (loop [coloring (assoc coloring start 1)
-                   queue (conj clojure.lang.PersistentQueue/EMPTY start)]
+                   queue (conj #?(:clj clojure.lang.PersistentQueue/EMPTY
+                                  :cljs cljs.core.PersistentQueue/EMPTY) start)]
               (if (empty? queue)
                 coloring
                 (let [v (peek queue)
@@ -551,7 +556,7 @@ can use these functions."
   for un-weighted graphs."
   ([wg]
      (cond
-      (directed? wg) (throw (Exception.
+      (directed? wg) (throw (#?(:clj Exception. :cljs js/Error)
                              "Spanning tree only defined for undirected graphs"))
       :else (let [mst (prim-mst-edges wg (nodes wg) nil #{} [])]
               (if (weighted? wg)
