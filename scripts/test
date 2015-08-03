@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -e
+
+grench eval "(require 'bolth)"
+grench eval "(do (bolth/pretty-refresh) nil)"
+grench eval "(clojure.pprint/pprint (bolth/run-all-tests #\".*\" {:clear-screen true :warn-on-slow-test-limit-ms 10 :force-real-stdout true :show-slow-tests true}))"
