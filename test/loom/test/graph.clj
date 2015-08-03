@@ -1,7 +1,39 @@
 (ns loom.test.graph
   (:require [loom.graph :refer :all]
             [loom.attr :as attr]
-            [clojure.test :refer :all]))
+            [clojure.test :refer :all]
+            [loom.compliance-tester :refer [graph-test digraph-test
+                                            weighted-graph-test weighted-digraph-test]]))
+
+(deftest test-default-implementations
+  (graph-test (graph))
+  (digraph-test (digraph))
+  (weighted-graph-test (weighted-graph))
+  (weighted-digraph-test (weighted-digraph)))
+
+(deftest build-graph-test
+  (let [g1 (graph [1 2] [1 3] [2 3] 4)
+        g2 (graph {1 [2 3] 2 [3] 4 []})
+        g3 (graph g1)
+        g4 (graph g3 (digraph [5 6]) [7 8] 9)
+        g5 (graph)]
+    (testing "Construction, nodes, edges"
+      (are [expected got] (= expected got)
+           #{1 2 3 4} (set (nodes g1))
+           #{[1 2] [2 1] [1 3] [3 1] [2 3] [3 2]} (set (edges g1))
+           (set (nodes g2)) (set (nodes g1))
+           (set (edges g2)) (set (edges g1))
+           (set (nodes g3)) (set (nodes g1))
+           (set (nodes g3)) (set (nodes g1))
+           #{1 2 3 4 5 6 7 8 9} (set (nodes g4))
+           #{[1 2] [2 1] [1 3] [3 1] [2 3]
+             [3 2] [5 6] [6 5] [7 8] [8 7]} (set (edges g4))
+             #{} (set (nodes g5))
+             #{} (set (edges g5))
+             true (has-node? g1 4)
+             true (has-edge? g1 1 2)
+             false (has-node? g1 5)
+             false (has-edge? g1 4 1)))))
 
 (deftest simple-graph-test
   (let [g1 (graph [1 2] [1 3] [2 3] 4)
@@ -25,30 +57,7 @@
              true (has-node? g1 4)
              true (has-edge? g1 1 2)
              false (has-node? g1 5)
-             false (has-edge? g1 4 1)))
-    (testing "Successors"
-      (are [expected got] (= expected got)
-           #{2 3} (set (successors g1 1))
-           #{1 2} (set (successors g1 3))
-           #{} (set (successors g1 4))
-           2 (out-degree g1 1)
-           2 (out-degree g1 3)
-           0 (out-degree g1 4)))
-    (testing "Add & remove"
-      (are [expected got] (= expected got)
-           #{1 2 3 4 5} (set (nodes (add-nodes g1 5)))
-           #{:a :b :c} (set (nodes (add-nodes g5 :a :b :c)))
-           #{{:id 1} {:id 2}} (set (nodes (add-nodes g5 {:id 1} {:id 2})))
-           #{[1 2] [2 1]} (set (edges (add-edges g5 [1 2])))
-           #{1 2} (set (nodes (remove-nodes g1 3 4)))
-           #{[1 2] [2 1]} (set (edges (remove-nodes g1 3 4)))
-           #{1 2 3 4} (set (nodes (remove-edges g1 [1 2] [2 1] [1 3] [3 1])))
-           #{[2 3] [3 2]} (set (edges (remove-edges
-                                       g1 [1 2] [2 1] [1 3] [3 1])))))
-    (testing "Adding multiple edges"
-      (are [expected got] (= expected got)
-           #{1 2 3 4 5} (set (nodes (add-edges* g5 [[1 2] [2 3] [3 4] [4 5]])))
-           #{[1 2] [2 1] [2 3] [3 2] [3 4] [4 3] [4 5] [5 4]} (set (edges (add-edges* g5 [[1 2] [2 3] [3 4] [4 5]])))))))
+             false (has-edge? g1 4 1)))))
 
 (deftest simple-digraph-test
   (let [g1 (digraph [1 2] [1 3] [2 3] 4)
@@ -74,47 +83,7 @@
            true (has-node? g1 4)
            true (has-edge? g1 1 2)
            false (has-node? g1 5)
-           false (has-edge? g1 2 1)))
-    (testing "Successors"
-      (are [expected got] (= expected got)
-           #{2 3} (set (successors g1 1))
-           #{} (set (successors g1 3))
-           #{} (set (successors g1 4))
-           2 (out-degree g1 1)
-           0 (out-degree g1 3)
-           0 (out-degree g1 4)
-           #{1 2} (set (predecessors g1 3))
-           #{} (set (predecessors g1 1))
-           2 (in-degree g1 3)
-           0 (in-degree g1 1)
-           #{1 2} (set (successors g6 3))
-           #{} (set (successors g6 1))
-           2 (out-degree g6 3)
-           0 (out-degree g6 1)))
-    (testing "Add & remove"
-      (are [expected got] (= expected got)
-           #{1 2 3 4 5} (set (nodes (add-nodes g1 5)))
-           #{:a :b :c} (set (nodes (add-nodes g5 :a :b :c)))
-           #{{:id 1} {:id 2}} (set (nodes (add-nodes g5 {:id 1} {:id 2})))
-           #{[1 2]} (set (edges (add-edges g5 [1 2])))
-           #{1 2} (set (nodes (remove-nodes g1 3 4)))
-           #{[1 2]} (set (edges (remove-nodes g1 3 4)))
-           #{1 2 3 4} (set (nodes (remove-edges g1 [1 2] [1 3])))
-           #{[2 3]} (set (edges (remove-edges g1 [1 2] [1 3])))))))
-
-(deftest merge-graph-test
-  (testing "two graphs with attributes"
-    (let [g1 (attr/add-attr (digraph [1 2] 3 [1 4]) 1 :label "One")
-          g2 (attr/add-attr (digraph [1 3] [3 5]) 5 :label "Five")
-          merged (digraph g1 g2)]
-      (is (= "One"  (attr/attr merged 1 :label)))
-      (is (= "Five" (attr/attr merged 5 :label)))))
-  (testing "with two weighted graphs"
-    (let [g1 (attr/add-attr (weighted-graph [1 2] 3 [1 4]) 1 :label "One")
-          g2 (attr/add-attr (weighted-graph [1 3] [3 5]) 5 :label "Five")
-          merged (weighted-graph g1 g2)]
-      (is (= "One"  (attr/attr merged 1 :label)))
-      (is (= "Five" (attr/attr merged 5 :label))))))
+           false (has-edge? g1 2 1)))))
 
 (deftest simple-weighted-graph-test
   (let [g1 (weighted-graph [1 2 77] [1 3 88] [2 3 99] 4)
@@ -138,33 +107,7 @@
              true (has-node? g1 4)
              true (has-edge? g1 1 2)
              false (has-node? g1 5)
-             false (has-edge? g1 4 1)))
-    (testing "Successors"
-      (are [expected got] (= expected got)
-           #{2 3} (set (successors g1 1))
-           #{1 2} (set (successors g1 3))
-           #{} (set (successors g1 4))
-           2 (out-degree g1 1)
-           2 (out-degree g1 3)
-           0 (out-degree g1 4)))
-    (testing "Add & remove"
-      (are [expected got] (= expected got)
-           #{1 2 3 4 5} (set (nodes (add-nodes g1 5)))
-           #{:a :b :c} (set (nodes (add-nodes g5 :a :b :c)))
-           #{{:id 1} {:id 2}} (set (nodes (add-nodes g5 {:id 1} {:id 2})))
-           #{[1 2] [2 1]} (set (edges (add-edges g5 [1 2])))
-           #{1 2} (set (nodes (remove-nodes g1 3 4)))
-           #{[1 2] [2 1]} (set (edges (remove-nodes g1 3 4)))
-           #{1 2 3 4} (set (nodes (remove-edges g1 [1 2] [2 1] [1 3] [3 1])))
-           #{[2 3] [3 2]} (set (edges (remove-edges
-                                       g1 [1 2] [2 1] [1 3] [3 1])))))
-    (testing "Weight"
-      (are [expected got] (= expected got)
-           77 (weight g1 1 2)
-           77 (weight g2 1 2)
-           77 (weight g3 1 2)
-           88 (weight g4 6 5)
-           1 (weight g4 7 8)))))
+             false (has-edge? g1 4 1)))))
 
 (deftest simple-weighted-digraph-test
   (let [g1 (weighted-digraph [1 2 77] [1 3 88] [2 3 99] 4)
@@ -190,41 +133,7 @@
            true (has-node? g1 4)
            true (has-edge? g1 1 2)
            false (has-node? g1 5)
-           false (has-edge? g1 2 1)))
-    (testing "Successors"
-      (are [expected got] (= expected got)
-           #{2 3} (set (successors g1 1))
-           #{} (set (successors g1 3))
-           #{} (set (successors g1 4))
-           2 (out-degree g1 1)
-           0 (out-degree g1 3)
-           0 (out-degree g1 4)
-           #{1 2} (set (predecessors g1 3))
-           #{} (set (predecessors g1 1))
-           2 (in-degree g1 3)
-           0 (in-degree g1 1)
-           #{1 2} (set (successors g6 3))
-           #{} (set (successors g6 1))
-           2 (out-degree g6 3)
-           0 (out-degree g6 1)))
-    (testing "Add & remove"
-      (are [expected got] (= expected got)
-           #{1 2 3 4 5} (set (nodes (add-nodes g1 5)))
-           #{:a :b :c} (set (nodes (add-nodes g5 :a :b :c)))
-           #{{:id 1} {:id 2}} (set (nodes (add-nodes g5 {:id 1} {:id 2})))
-           #{[1 2]} (set (edges (add-edges g5 [1 2])))
-           #{1 2} (set (nodes (remove-nodes g1 3 4)))
-           #{[1 2]} (set (edges (remove-nodes g1 3 4)))
-           #{1 2 3 4} (set (nodes (remove-edges g1 [1 2] [1 3])))
-           #{[2 3]} (set (edges (remove-edges g1 [1 2] [1 3])))))
-    (testing "Weight"
-      (are [expected got] (= expected got)
-           77 (weight g1 1 2)
-           77 (weight g2 1 2)
-           77 (weight g3 1 2)
-           77 (weight g6 2 1)
-           88 (weight g4 6 5)
-           1 (weight g4 7 8)))))
+           false (has-edge? g1 2 1)))))
 
 (deftest fly-graph-test
   (let [fg1 (fly-graph :nodes [1 2 3]
@@ -247,6 +156,20 @@
            nil (has-node? fg2 11)))
     ;; TODO: finish
     ))
+
+(deftest merge-graph-test
+  (testing "two graphs with attributes"
+    (let [g1 (attr/add-attr (digraph [1 2] 3 [1 4]) 1 :label "One")
+          g2 (attr/add-attr (digraph [1 3] [3 5]) 5 :label "Five")
+          merged (digraph g1 g2)]
+      (is (= "One"  (attr/attr merged 1 :label)))
+      (is (= "Five" (attr/attr merged 5 :label)))))
+  (testing "with two weighted graphs"
+    (let [g1 (attr/add-attr (weighted-graph [1 2] 3 [1 4]) 1 :label "One")
+          g2 (attr/add-attr (weighted-graph [1 3] [3 5]) 5 :label "Five")
+          merged (weighted-graph g1 g2)]
+      (is (= "One"  (attr/attr merged 1 :label)))
+      (is (= "Five" (attr/attr merged 5 :label))))))
 
 (deftest utilities-test
   (testing "Predicates"
