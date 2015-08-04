@@ -570,5 +570,4 @@
 
     false (isomorphism? g7 (mapped-by inc g7) dec)
     false (isomorphism? (digraph) (graph) identity)
-    false(isomorphism? (digraph [1 2]) (graph [1 2]) identity)
-    ))
+    false(isomorphism? (digraph [1 2]) (graph [1 2]) identity)))
