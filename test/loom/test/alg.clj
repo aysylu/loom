@@ -1,6 +1,7 @@
 (ns loom.test.alg
   (:require [loom.graph :refer :all]
             [loom.alg :refer :all]
+            [loom.derived :refer [mapped-by]]
             [clojure.test :refer :all]))
 
 ;; http://en.wikipedia.org/wiki/Dijkstra's_algorithm
@@ -542,3 +543,32 @@
                         g7)
        false (subgraph? (digraph [2 1] [2 3] [3 1])
                         g7)))
+
+(deftest eql-test
+  (are [expected got] (= expected got)
+    true (eql? (graph) (graph))
+    true (eql? (digraph) (digraph))
+
+    true (eql? g6 (graph g6))
+    true (eql? g7 (digraph g7))
+
+    false (eql? (digraph) (graph))
+    false (eql? (graph) (digraph))
+    false (eql? g6 (graph 1 2))
+    false (eql? g7 (digraph 1 2))
+    false (eql? (digraph [1 2]) (graph [1 2]))
+    false (eql? g7 g6)))
+
+(deftest isomorphism-test
+  (are [expected got] (= expected got)
+    true (isomorphism? (graph) (graph) identity)
+    true (isomorphism? g6 g6 identity)
+    true (isomorphism? g7 g7 identity)
+    true (isomorphism? (graph) (graph) identity)
+    true (isomorphism? g6 (mapped-by inc g6) inc)
+    true (isomorphism? g7 (mapped-by inc g7) inc)
+
+    false (isomorphism? g7 (mapped-by inc g7) dec)
+    false (isomorphism? (digraph) (graph) identity)
+    false(isomorphism? (digraph [1 2]) (graph [1 2]) identity)
+    ))
