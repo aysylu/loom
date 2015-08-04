@@ -7,16 +7,16 @@
                                 directed?]]))
 
 (defn mapped-by
-  "Return a Graph or a DiGraph which has as nodeset (set (map f (nodes g)). An
-  edge [uu, vv] is an edge in the result iff g has an edge [u, v] such that [uu,
-  vv] = [(f u), (f v)]."
+  "Returns a Graph or a DiGraph which has as nodeset (set (map f (nodes g)). An
+  edge [uu, vv] is an edge in the resulting graph iff g has an edge [u, v] such
+  that [uu, vv] = [(f u), (f v)]."
   [f g]
   (-> (if (directed? g) (digraph) (graph))
       (add-nodes* (map f (nodes g)))
       (add-edges* (map #(map f %) (edges g)))))
 
-(defn subgraph-starting-from
-  "Return a subgraph of the given graph which contains all nodes and edges that
+(defn subgraph-reachable-from
+  "Returns a subgraph of the given graph which contains all nodes and edges that
   can be reached from the given start node."
   [g start]
   (if (directed? g)
@@ -27,7 +27,7 @@
                :successors #(successors g %))))
 
 (defn nodes-filtered-by
-  "Return a new graph which has as nodes all nodes of g which satisfy the
+  "Returns a new graph which has as nodes all nodes of g which satisfy the
   predicate."
   [pred g]
   (-> (if (directed? g) (digraph) (graph))
@@ -35,26 +35,27 @@
       (add-edges* (filter #(and (pred (first %))
                                 (pred (last %)))
                           (edges g)))))
+(defn edges-filtered-by
+  "Returns a new graph which has as nodes all nodes of g and edges which satisfy
+  the predicate."
+  [pred g]
+  (-> (if (directed? g) (digraph) (graph))
+      (add-nodes* (nodes g))
+      (add-edges* (filter pred (edges g)))))
 
-(defn border-subgraph
-  "Subgraph of g containing nodes which belong to the given subset of nodes and successors
-  which do not belong to subset. Inner edges are also excluded."
+(defn bipartite-subgraph
+  "Returns the subgraph of g containing only the edge subset E which lead
+  outside of the given subset. The nodes of the resulting graph are the start
+  and endpoints of these edges.
+  The resulting graph is thus the bipartite graph (U,V,E) where
+  U = subset, V = (map last E).
+  (see https://en.wikipedia.org/wiki/Bipartite_graph)."
   [g subset]
-  (let [subset (set subset)
-        border (->> subset
-                    (filter (fn [n] (not (every? subset (successors g n)))))
-                    (set))
-        coborder (->> (flatten (map #(seq (successors g %)) border))
-                      (filter #(not (subset %)))
-                      (set))
-        nodes (->> (clojure.set/union border coborder)
-                   (filter #(not (nil? %)))
-                   (set))
-        fsuccessors (fn [n] (->> (successors g n)
-                                 (filter coborder)))]
-    (if (directed? g)
-      (fly-graph :nodes nodes
-                 :successors fsuccessors
-                 :predecessors (fn [n] (filter #(nodes %)) (predecessors g n)))
-      (fly-graph :nodes nodes
-                 :successors fsuccessors))))
+  (let [ ;; force set semantics
+        subset (set subset)
+        edges (filter #(and (subset (first %))
+                            (not (subset (last %))))
+                      (edges g))]
+    (-> (if (directed? g) (digraph) (graph))
+        (add-nodes* (flatten edges))
+        (add-edges* edges))))

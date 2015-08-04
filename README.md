@@ -181,7 +181,7 @@ Attributes on nodes and edges:
 
 Derived graphs:
 
-    ; Build a derived graph of using a node mapping
+    ; Build a derived graph using a node mapping
     (nodes (mapped-by #(+ 10 %) g))
     => #{11 12 13 14 15 16 17 18 19}
 
@@ -189,7 +189,7 @@ Derived graphs:
     (edges (nodes-filtered-by #{1 2 3 5} dg))
     => ([1 2] [2 1] [2 3] [3 2])
 
-    (edges (subgraph-starting-from dg 1))
+    (edges (subgraph-reachable-from dg 1))
     => ([1 2] [2 1] [2 3] [3 2] [3 4] [4 3])
 
 ## Dependencies
