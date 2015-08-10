@@ -59,3 +59,27 @@
     (-> (if (directed? g) (digraph) (graph))
         (add-nodes* (flatten edges))
         (add-edges* edges))))
+
+(defn surroundings
+  "Returns th subgraph of g containing nodes which belong to the given subset of g and direct
+  successors of them."
+  [g subset]
+  (let [nodes-of-resulting-graph (->> subset
+                                      ;; first all successors of subset
+                                      (map #(seq (successors g %)))
+                                      flatten
+                                      ;; add subset itself
+                                      (clojure.set/union (set subset))
+                                      ;; don't want to have nil as nodes
+                                      (remove nil?)
+                                      ;; remove duplicates
+                                      set)
+        fsuccessors (fn [n] (->> (successors g n)
+                                 (filter #(nodes-of-resulting-graph %))))]
+    (if (directed? g)
+      (fly-graph :nodes nodes-of-resulting-graph
+                 :successors fsuccessors
+                 :predecessors (fn [n] (->> (predecessors g n)
+                                            (filter #(nodes-of-resulting-graph %)))))
+      (fly-graph :nodes nodes-of-resulting-graph
+                 :successors fsuccessors))))
