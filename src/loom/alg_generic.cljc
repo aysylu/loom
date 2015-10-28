@@ -2,7 +2,7 @@
       :author "Justin Kramer"}
   loom.alg-generic
   (:refer-clojure :exclude [ancestors])
-  (:import [java.util Arrays]))
+  #?(:clj (:import [java.util Arrays])))
 
 ;;;
 ;;; Utility functions
@@ -192,17 +192,18 @@
     (letfn [(step [queue preds]
               (when-let [[node depth] (peek queue)]
                 (cons
-                 (f node preds depth)
-                 (lazy-seq
-                  (let [nbrs (->> (successors node)
-                                  (remove #(contains? preds %))
-                                  (filter #(nbr-pred % node (inc depth))))]
-                    (step (into (pop queue) (for [nbr nbrs] [nbr (inc depth)]))
-                          (reduce #(assoc %1 %2 node) preds nbrs)))))))]
-      (step (conj clojure.lang.PersistentQueue/EMPTY [start 0])
-            (if (map? seen)
-              (assoc seen start nil)
-              (into {start nil} (for [s seen] [s nil])))))))
+                  (f node preds depth)
+                  (lazy-seq
+                    (let [nbrs (->> (successors node)
+                                 (remove #(contains? preds %))
+                                 (filter #(nbr-pred % node (inc depth))))]
+                      (step (into (pop queue) (for [nbr nbrs] [nbr (inc depth)]))
+                        (reduce #(assoc %1 %2 node) preds nbrs)))))))]
+      (step (conj #?(:cljs (.-EMPTY cljs.core/PersistentQueue)
+                     :clj  (clojure.lang.PersistentQueue/EMPTY)) [start 0])
+        (if (map? seen)
+          (assoc seen start nil)
+          (into {start nil} (for [s seen] [s nil])))))))
 
 (defn bf-span
   "Return a breadth-first spanning tree of the form {node
@@ -457,7 +458,7 @@
 
 ;;; Ancestry node-bitmap helper vars/fns
 
-(def ^Long bits-per-long (long (Long/SIZE)))
+(def ^Long bits-per-long (long #?(:clj (Long/SIZE) :cljs 64)))
 
 (defn ^Long bm-longs
   "Returns the number of longs required to store bits count bits in a bitmap."
@@ -473,7 +474,9 @@
   "Set boolean state of bit in 'bitmap at 'idx to true."
   ^longs [^longs bitmap idx]
   (let [size (max (count bitmap) (bm-longs (inc idx)))
-        new-bitmap (Arrays/copyOf bitmap ^Long size)
+        n-zeros (- size (count bitmap))
+        new-bitmap #?(:clj (Arrays/copyOf bitmap ^Long size)
+                      :cljs (.concat (.slice bitmap) (.fill (js/Array. n-zeros) 0)))
         chunk (quot idx bits-per-long)
         offset (mod idx bits-per-long)
         mask (bit-set 0 offset)
@@ -498,8 +501,13 @@
   ^longs [& bitmaps]
   (if (empty? bitmaps)
     (bm-new)
-    (let [size (apply max (map count bitmaps))
-          new-bitmap (Arrays/copyOf ^longs (first bitmaps) ^Long size)]
+    (let [
+          size (apply max (map count bitmaps))
+          bitmap (first bitmaps)
+          n-zeros (- size (count bitmap))
+          new-bitmap #?(:clj (Arrays/copyOf bitmap ^Long size)
+                        :cljs (.concat (.slice bitmap) (.fill (js/Array. n-zeros) 0)))
+          ]
       (doseq [bitmap (rest bitmaps)
               [idx value] (map-indexed list bitmap)
               :let [masked-value (bit-or value (aget new-bitmap idx))]]

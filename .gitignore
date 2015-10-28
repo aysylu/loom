@@ -5,3 +5,6 @@ classes
 /bin
 /target
 /.lein-*
+.idea
+*.iml
+.nrepl-port
