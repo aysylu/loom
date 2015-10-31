@@ -7,6 +7,9 @@ on adjacency lists."
   loom.graph
   (:require [loom.alg-generic :refer [bf-traverse]]))
 
+;;;
+;;; Protocols
+;;;
 
 (defprotocol Graph
   (nodes [g] "Returns a collection of the nodes in graph g")
@@ -82,7 +85,7 @@ on adjacency lists."
 
 (def ^{:dynamic true
        :doc "Weight used when none is given for edges in weighted graphs"}
-*default-weight* 1)
+  *default-weight* 1)
 
 (def default-graph-impls
   {:all
@@ -153,22 +156,6 @@ on adjacency lists."
     (apply dissoc m nodes)
     adjacents))
 
-(comment (defmacro extended-record [rn fv & spec]
-           (concat `(defrecord ~rn ~fv)
-             (mapcat
-               (fn [[pn pm]]
-                 ;(println pm)
-                 (cons pn
-                   (mapcat
-                     (fn [[fk fv]]
-                       ;(println "   " pn " " `~(cons (symbol (name fk)) (rest fv)))
-                       (if (vector? (second fv))
-                         (list `~(cons (symbol (name fk)) (rest fv)))
-                         (map (fn [fa] `~(cons (symbol (name fk)) fa)) (rest fv)))
-                       )
-                     (if (map? pm) pm (eval pm)))))
-               (partition 2 spec)))))
-
 ;;;
 ;;; Records for basic graphs -- one edge per vertex pair/direction,
 ;;; loops allowed
@@ -177,6 +164,27 @@ on adjacency lists."
 ;; TODO: preserve metadata?
 ;; TODO: leverage zippers for faster record updates?
 
+
+; hi, as Clojurescript doesn't have extend,
+; I used this macro to convert the
+; following code to Clojurescript-compatable code.
+; It's not pretty but it seems to work. Oh and the macro
+; only runs in Clojure
+
+(comment (defmacro extended-record [rn fv & spec]
+   (concat `(defrecord ~rn ~fv)
+           (mapcat
+             (fn [[pn pm]]
+               (cons pn
+                     (mapcat
+                       (fn [[fk fv]]
+                         (if (vector? (second fv))
+                           (list `~(cons (symbol (name fk)) (rest fv)))
+                           (map (fn [fa] `~(cons (symbol (name fk)) fa)) (rest fv)))
+                         )
+                       (if (map? pm) pm (eval pm)))))
+             (partition 2 spec)))))
+
 (comment
   (defrecord BasicEditableGraph [nodeset adj])
   (defrecord BasicEditableDigraph [nodeset adj in])
@@ -184,7 +192,6 @@ on adjacency lists."
   (defrecord BasicEditableWeightedDigraph [nodeset adj in]))
 
 (defrecord BasicEditableGraph [nodeset adj] Graph (nodes [g] (:nodeset g)) (edges [g] (for [n1 (nodes g) e (out-edges g n1)] e)) (has-node? [g node] (contains? (:nodeset g) node)) (has-edge? [g n1 n2] (contains? (get-in g [:adj n1]) n2)) (out-degree [g node] (count (get-in g [:adj node]))) (out-edges [g] (partial out-edges g)) (out-edges [g node] (for [n2 (successors g node)] [node n2])) (successors [g] (partial successors g)) (successors [g node] (get-in g [:adj node])) EditableGraph (add-nodes* [g nodes] (reduce (fn [g node] (update-in g [:nodeset] conj node)) g nodes)) (add-edges* [g edges] (reduce (fn [g [n1 n2]] (-> g (update-in [:nodeset] conj n1 n2) (update-in [:adj n1] (fnil conj #{}) n2) (update-in [:adj n2] (fnil conj #{}) n1))) g edges)) (remove-nodes* [g nodes] (let [nbrs (mapcat (fn* [p1__66951#] (successors g p1__66951#)) nodes)] (-> g (update-in [:nodeset] (fn* [p1__66952#] (apply disj p1__66952# nodes))) (assoc :adj (remove-adj-nodes (:adj g) nodes nbrs disj))))) (remove-edges* [g edges] (reduce (fn [g [n1 n2]] (-> g (update-in [:adj n1] disj n2) (update-in [:adj n2] disj n1))) g edges)) (remove-all [g] (assoc g :nodeset #{} :adj {})))
-
 
 (comment (macroexpand-1 '(extended-record BasicEditableGraph [nodeset adj]
 
