@@ -449,11 +449,111 @@ on adjacency lists."
 ;; Deprecate the flygraphs?  Instead provide interfaces on algorithms to
 ;; run the algorithm on
 
-(defrecord FlyGraph [fnodes fedges fsuccessors start] Graph (nodes [g] (if (or (:fnodes g) (not (:start g))) (call-or-return (:fnodes g)) (bf-traverse (successors g) (:start g)))) (edges [g] (if (:fedges g) (call-or-return (:fedges g)) (for [n (nodes g) nbr (successors g n)] [n nbr]))) (successors [g] (partial successors g)) (successors [g node] (call-or-return (:fsuccessors g) node)) (out-degree [g node] (count (successors g node))) (out-edges [g] (partial out-edges g)) (out-edges [g node] (for [n2 (successors g node)] [node n2])) (has-node? [g node] (some #{node} (nodes g))))
-(defrecord FlyDigraph [fnodes fedges fsuccessors fpredecessors start] Graph (nodes [g] (if (or (:fnodes g) (not (:start g))) (call-or-return (:fnodes g)) (bf-traverse (successors g) (:start g)))) (edges [g] (if (:fedges g) (call-or-return (:fedges g)) (for [n (nodes g) nbr (successors g n)] [n nbr]))) (successors [g] (partial successors g)) (successors [g node] (call-or-return (:fsuccessors g) node)) (out-degree [g node] (count (successors g node))) (out-edges [g] (partial out-edges g)) (out-edges [g node] (for [n2 (successors g node)] [node n2])) (has-node? [g node] (some #{node} (nodes g))) Digraph (predecessors [g node] (call-or-return (:fpredecessors g) node)) (in-degree [g node] (count (predecessors g node))))
-(defrecord WeightedFlyGraph [fnodes fedges fsuccessors fweight start] Graph (nodes [g] (if (or (:fnodes g) (not (:start g))) (call-or-return (:fnodes g)) (bf-traverse (successors g) (:start g)))) (edges [g] (if (:fedges g) (call-or-return (:fedges g)) (for [n (nodes g) nbr (successors g n)] [n nbr]))) (successors [g] (partial successors g)) (successors [g node] (call-or-return (:fsuccessors g) node)) (out-degree [g node] (count (successors g node))) (out-edges [g] (partial out-edges g)) (out-edges [g node] (for [n2 (successors g node)] [node n2])) (has-node? [g node] (some #{node} (nodes g))) WeightedGraph (weight [g] (partial weight g)) (weight [g e] (weight g (src e) (dest e))) (weight [g n1 n2] (call-or-return (:fweight g) n1 n2)))
-(defrecord WeightedFlyDigraph [fnodes fedges fsuccessors fpredecessors fweight start] Graph (nodes [g] (if (or (:fnodes g) (not (:start g))) (call-or-return (:fnodes g)) (bf-traverse (successors g) (:start g)))) (edges [g] (if (:fedges g) (call-or-return (:fedges g)) (for [n (nodes g) nbr (successors g n)] [n nbr]))) (successors [g] (partial successors g)) (successors [g node] (call-or-return (:fsuccessors g) node)) (out-degree [g node] (count (successors g node))) (out-edges [g] (partial out-edges g)) (out-edges [g node] (for [n2 (successors g node)] [node n2])) (has-node? [g node] (some #{node} (nodes g))) Digraph (predecessors [g node] (call-or-return (:fpredecessors g) node)) (in-degree [g node] (count (predecessors g node))) WeightedGraph (weight [g] (partial weight g)) (weight [g e] (weight g (src e) (dest e))) (weight [g n1 n2] (call-or-return (:fweight g) n1 n2)))
+(defrecord
+ FlyGraph
+ [fnodes fedges fsuccessors start]
+ Graph
+ (nodes
+  [g]
+  (if
+   (or (:fnodes g) (not (:start g)))
+   (call-or-return (:fnodes g))
+   (bf-traverse (successors g) (:start g))))
+ (edges
+  [g]
+  (if
+   (:fedges g)
+   (call-or-return (:fedges g))
+   (for [n (nodes g) nbr (successors g n)] [n nbr])))
+ (successors [g] (partial successors g))
+ (successors [g node] (call-or-return (:fsuccessors g) node))
+ (out-degree [g node] (count (successors g node)))
+ (out-edges [g] (partial out-edges g))
+ (out-edges [g node] (for [n2 (successors g node)] [node n2]))
+ (has-node? [g node] (some #{node} (nodes g))))
 
+(defrecord
+ FlyDigraph
+ [fnodes fedges fsuccessors fpredecessors start]
+ Graph
+ (nodes
+  [g]
+  (if
+   (or (:fnodes g) (not (:start g)))
+   (call-or-return (:fnodes g))
+   (bf-traverse (successors g) (:start g))))
+ (edges
+  [g]
+  (if
+   (:fedges g)
+   (call-or-return (:fedges g))
+   (for [n (nodes g) nbr (successors g n)] [n nbr])))
+ (successors [g] (partial successors g))
+ (successors [g node] (call-or-return (:fsuccessors g) node))
+ (out-degree [g node] (count (successors g node)))
+ (out-edges [g] (partial out-edges g))
+ (out-edges [g node] (for [n2 (successors g node)] [node n2]))
+ (has-node? [g node] (some #{node} (nodes g)))
+ Digraph
+ (predecessors [g node] (call-or-return (:fpredecessors g) node))
+ (in-degree [g node] (count (predecessors g node))))
+
+(defrecord
+ WeightedFlyGraph
+ [fnodes fedges fsuccessors fweight start]
+ Graph
+ (nodes
+  [g]
+  (if
+   (or (:fnodes g) (not (:start g)))
+   (call-or-return (:fnodes g))
+   (bf-traverse (successors g) (:start g))))
+ (edges
+  [g]
+  (if
+   (:fedges g)
+   (call-or-return (:fedges g))
+   (for [n (nodes g) nbr (successors g n)] [n nbr])))
+ (successors [g] (partial successors g))
+ (successors [g node] (call-or-return (:fsuccessors g) node))
+ (out-degree [g node] (count (successors g node)))
+ (out-edges [g] (partial out-edges g))
+ (out-edges [g node] (for [n2 (successors g node)] [node n2]))
+ (has-node? [g node] (some #{node} (nodes g)))
+ WeightedGraph
+ (weight [g] (partial weight g))
+ (weight [g e] (weight g (src e) (dest e)))
+ (weight [g n1 n2] (call-or-return (:fweight g) n1 n2)))
+
+(defrecord
+ WeightedFlyDigraph
+ [fnodes fedges fsuccessors fpredecessors fweight start]
+ Graph
+ (nodes
+  [g]
+  (if
+   (or (:fnodes g) (not (:start g)))
+   (call-or-return (:fnodes g))
+   (bf-traverse (successors g) (:start g))))
+ (edges
+  [g]
+  (if
+   (:fedges g)
+   (call-or-return (:fedges g))
+   (for [n (nodes g) nbr (successors g n)] [n nbr])))
+ (successors [g] (partial successors g))
+ (successors [g node] (call-or-return (:fsuccessors g) node))
+ (out-degree [g node] (count (successors g node)))
+ (out-edges [g] (partial out-edges g))
+ (out-edges [g node] (for [n2 (successors g node)] [node n2]))
+ (has-node? [g node] (some #{node} (nodes g)))
+ Digraph
+ (predecessors [g node] (call-or-return (:fpredecessors g) node))
+ (in-degree [g node] (count (predecessors g node)))
+ WeightedGraph
+ (weight [g] (partial weight g))
+ (weight [g e] (weight g (src e) (dest e)))
+ (weight [g n1 n2] (call-or-return (:fweight g) n1 n2)))
 
 ;;;
 ;;; Utility functions and constructors

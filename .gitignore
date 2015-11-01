@@ -8,5 +8,4 @@ classes
 .idea
 *.iml
 .nrepl-port
-*~
 .DS_Store
