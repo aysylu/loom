@@ -199,7 +199,7 @@
                                  (filter #(nbr-pred % node (inc depth))))]
                       (step (into (pop queue) (for [nbr nbrs] [nbr (inc depth)]))
                         (reduce #(assoc %1 %2 node) preds nbrs)))))))]
-      (step (conj #?(:cljs (.-EMPTY cljs.core/PersistentQueue)
+      (step (conj #?(:cljs #queue []
                      :clj  (clojure.lang.PersistentQueue/EMPTY)) [start 0])
         (if (map? seen)
           (assoc seen start nil)

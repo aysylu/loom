@@ -430,7 +430,7 @@ can use these functions."
   (letfn [(color-component [coloring start]
             (loop [coloring (assoc coloring start 1)
                    queue (conj #?(:clj  clojure.lang.PersistentQueue/EMPTY
-                                   :cljs (.-EMPTY cljs.core/PersistentQueue)) start)]
+                                   :cljs #queue []) start)]
               (if (empty? queue)
                 coloring
                 (let [v (peek queue)
