@@ -87,6 +87,8 @@ Add/remove items (graphs are immutable, of course, so these return new graphs):
     (remove-edges g [1 2] [2 3])
     
     (subgraph g [5 6 7])
+    
+    (filter-graph g odd?)
 
 Traverse a graph:
 
