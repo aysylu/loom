@@ -326,11 +326,11 @@ can use these functions."
 
 (defn bf-all-pairs-shortest-paths
   "Uses bf-span on each node in the graph."
-  [g]
-  (reduce (fn [spans node]
-            (assoc spans node (bf-span g node)))
-          {}
-          (nodes g)))
+  ([g]
+    (reduce (fn [spans node]
+              (assoc spans node (bf-span g node)))
+            {}
+            (nodes g))))
 
 (defn all-pairs-shortest-paths
   "Finds all-pairs shortest paths in a graph. Uses Johnson's algorithm for weighted graphs
@@ -338,8 +338,8 @@ can use these functions."
   ([g] (all-pairs-shortest-paths g +))
   ([g waf]
     (if (weighted? g)
-      (johnson g)
-      (bf-all-pairs-shortest-paths g waf))))
+        (johnson g waf)
+        (bf-all-pairs-shortest-paths g))))
 
 (defn connected-components
   "Returns the connected components of graph g as a vector of vectors. If g
