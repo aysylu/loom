@@ -4,7 +4,7 @@
   (:refer-clojure :exclude [ancestors])
   #?(:clj (:import [java.util Arrays])))
 
-(defn empty-queue [] #?(:cljs #queue [] :clj  (clojure.lang.PersistentQueue/EMPTY)))
+(defn empty-queue [] #?(:cljs #queue [] :clj (clojure.lang.PersistentQueue/EMPTY)))
 
 ;;;
 ;;; Utility functions
