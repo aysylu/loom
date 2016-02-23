@@ -430,11 +430,11 @@ on adjacency lists."
                   ([g node] (call-or-return (:fsuccessors g) node)))
    :out-degree '(fn [g node]
                   (count (successors g node)))
-   :out-edges (get-in default-graph-impls [:all :out-edges])
-   :has-node? (fn [g node]
+   :out-edges '(get-in default-graph-impls [:all :out-edges])
+   :has-node? '(fn [g node]
                 ;; cannot use contains? here because (nodes g) need not be a set.
                 (some #{node} (nodes g)))
-   :has-edge? (fn [g n1 n2]
+   :has-edge? '(fn [g n1 n2]
                 (some #{[n1 n2]} (edges g)))})
 
 (def ^{:private true} default-flygraph-digraph-impl
@@ -472,7 +472,8 @@ on adjacency lists."
  (out-degree [g node] (count (successors g node)))
  (out-edges [g] (partial out-edges g))
  (out-edges [g node] (for [n2 (successors g node)] [node n2]))
- (has-node? [g node] (some #{node} (nodes g))))
+ (has-node? [g node] (some #{node} (nodes g)))
+ (has-edge? [g n1 n2] (some #{[n1 n2]} (edges g))))
 
 (defrecord
  FlyDigraph
@@ -496,6 +497,8 @@ on adjacency lists."
  (out-edges [g] (partial out-edges g))
  (out-edges [g node] (for [n2 (successors g node)] [node n2]))
  (has-node? [g node] (some #{node} (nodes g)))
+ (has-edge? [g n1 n2] (some #{[n1 n2]} (edges g)))
+
  Digraph
  (predecessors [g node] (call-or-return (:fpredecessors g) node))
  (in-degree [g node] (count (predecessors g node))))
@@ -522,6 +525,7 @@ on adjacency lists."
  (out-edges [g] (partial out-edges g))
  (out-edges [g node] (for [n2 (successors g node)] [node n2]))
  (has-node? [g node] (some #{node} (nodes g)))
+ (has-edge? [g n1 n2] (some #{[n1 n2]} (edges g)))
  WeightedGraph
  (weight [g] (partial weight g))
  (weight [g e] (weight g (src e) (dest e)))
@@ -549,6 +553,7 @@ on adjacency lists."
  (out-edges [g] (partial out-edges g))
  (out-edges [g node] (for [n2 (successors g node)] [node n2]))
  (has-node? [g node] (some #{node} (nodes g)))
+ (has-edge? [g n1 n2] (some #{[n1 n2]} (edges g)))
  Digraph
  (predecessors [g node] (call-or-return (:fpredecessors g) node))
  (in-degree [g node] (count (predecessors g node)))
