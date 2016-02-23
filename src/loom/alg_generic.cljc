@@ -4,6 +4,8 @@
   (:refer-clojure :exclude [ancestors])
   #?(:clj (:import [java.util Arrays])))
 
+(defn empty-queue [] #?(:cljs #queue [] :clj  (clojure.lang.PersistentQueue/EMPTY)))
+
 ;;;
 ;;; Utility functions
 ;;;
@@ -191,16 +193,17 @@
         nbr-pred (or when (constantly true))]
     (letfn [(step [queue preds]
               (when-let [[node depth] (peek queue)]
-                (cons
-                  (f node preds depth)
-                  (lazy-seq
-                    (let [nbrs (->> (successors node)
-                                 (remove #(contains? preds %))
-                                 (filter #(nbr-pred % node (inc depth))))]
-                      (step (into (pop queue) (for [nbr nbrs] [nbr (inc depth)]))
-                        (reduce #(assoc %1 %2 node) preds nbrs)))))))]
-      (step (conj #?(:cljs #queue []
-                     :clj  (clojure.lang.PersistentQueue/EMPTY)) [start 0])
+                (let [sss (successors node)]
+                  (cons
+                   (f node preds depth)
+                   (lazy-seq
+                     (let [nbrs (->> sss
+                                     ((fn [x] (println preds node sss) x))
+                                     (remove #(contains? preds %))
+                                     (filter #(nbr-pred % node (inc depth))))]
+                       (step (into (pop queue) (for [nbr nbrs] [nbr (inc depth)]))
+                             (reduce #(assoc %1 %2 node) preds nbrs))))))))]
+      (step (conj (empty-queue) [start 0])
         (if (map? seen)
           (assoc seen start nil)
           (into {start nil} (for [s seen] [s nil])))))))

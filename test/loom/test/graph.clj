@@ -274,3 +274,4 @@
            true (weighted? sg)
            #{[1 2] [2 3] [3 4] [4 5]} (set (edges pg))
            #{[1 2] [2 3] [3 1]} (set (edges cg))))))
+
