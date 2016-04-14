@@ -429,8 +429,8 @@ can use these functions."
   [g]
   (letfn [(color-component [coloring start]
             (loop [coloring (assoc coloring start 1)
-                   queue (conj #?(:clj clojure.lang.PersistentQueue/EMPTY
-                                  :cljs cljs.core.PersistentQueue/EMPTY) start)]
+                   queue (conj #?(:clj  clojure.lang.PersistentQueue/EMPTY
+                                   :cljs #queue []) start)]
               (if (empty? queue)
                 coloring
                 (let [v (peek queue)
@@ -606,7 +606,8 @@ can use these functions."
   ([g src target heur q explored]
      (cond
       ;; queue empty, target not reachable
-      (empty? q) (throw (Exception. "Target not reachable from source"))
+      (empty? q) (throw #?(:clj (Exception. "Target not reachable from source")
+                           :cljs (js/Error. "Target not reachable from source")))
       ;; target found, build path and return
       (= (first (peek q)) target) (let [u (first (peek q))
                                         parent ((second (peek q)) 1)
