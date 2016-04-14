@@ -100,7 +100,8 @@
                  (assoc-in flow_1 [vn1 vn0] (- reverse-flow pushback))
                  flow_1)]
     (cond (> pushback reverse-flow) (throw
-                                     (java.lang.RuntimeException.
+                                     (#?(:clj java.lang.RuntimeException.
+                                         :cljs js/Object)
                                       (str "Path augmentation failure: "
                                            vn0 " " vn1)))
           (> (count path) 2) (recur flow_2 capacity (next path) increase)
