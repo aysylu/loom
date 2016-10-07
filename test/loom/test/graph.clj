@@ -200,4 +200,16 @@
            true (directed? sg)
            true (weighted? sg)
            #{[1 2] [2 3] [3 4] [4 5]} (set (edges pg))
-           #{[1 2] [2 3] [3 1]} (set (edges cg))))))
+           #{[1 2] [2 3] [3 1]} (set (edges cg)))))
+
+  (testing "Filter"
+    (let [g (weighted-digraph [1 2] [2 3] [3 1])
+          sg (filter-graph g odd?)]
+    (are [expected got] (= expected got)
+      #{1 3} (set (nodes sg))
+      #{[3 1]} (set (edges sg))
+      true (graph? sg)
+      true (directed? sg)
+      true (weighted? sg)
+      )))
+  )

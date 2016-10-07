@@ -452,6 +452,11 @@ on adjacency lists."
   [g ns]
   (remove-nodes* g (remove (set ns) (nodes g))))
 
+(defn filter-graph
+  "Returns a subgraph with only the nodes matching the given predicate",
+  [g pred]
+  (subgraph g (filter pred (nodes g))))
+
 (defn add-path
   "Adds a path of edges connecting the given nodes in order"
   [g & nodes]
