@@ -4,10 +4,9 @@ thickness, etc)."
       :author "Justin Kramer"}
   loom.attr
   (:require [loom.graph :refer [directed? nodes edges src dest has-node?]
-             :as graph])
-  (:import [loom.graph BasicEditableGraph BasicEditableDigraph
-            BasicEditableWeightedGraph BasicEditableWeightedDigraph
-            FlyGraph FlyDigraph WeightedFlyGraph WeightedFlyDigraph]))
+             :as graph]
+            #?@(:clj [[loom.cljs :refer (def-protocol-impls)]]))
+  #?@(:cljs [(:require-macros [loom.cljs :refer [def-protocol-impls extend]])]))
 
 (defprotocol AttrGraph
   (add-attr [g node-or-edge k v] [g n1 n2 k v] "Add an attribute to node or edge")
@@ -15,7 +14,7 @@ thickness, etc)."
   (attr [g node-or-edge k] [g n1 n2 k] "Return the attribute on a node or edge")
   (attrs [g node-or-edge] [g n1 n2] "Return all attributes on a node or edge"))
 
-(def default-attr-graph-impl
+(def-protocol-impls default-attr-graph-impl
   {:add-attr (fn
                ([g node-or-edge k v]
                  (if (has-node? g node-or-edge)
@@ -49,35 +48,35 @@ thickness, etc)."
                (let [attributes (get-in g [:attrs n1 ::edge-attrs n2])]
                  (when (seq attributes) attributes))))})
 
-(extend BasicEditableGraph
+(extend loom.graph.BasicEditableGraph
   AttrGraph
   default-attr-graph-impl)
 
-(extend BasicEditableDigraph
+(extend loom.graph.BasicEditableDigraph
   AttrGraph
   default-attr-graph-impl)
 
-(extend BasicEditableWeightedGraph
+(extend loom.graph.BasicEditableWeightedGraph
   AttrGraph
   default-attr-graph-impl)
 
-(extend BasicEditableWeightedDigraph
+(extend loom.graph.BasicEditableWeightedDigraph
   AttrGraph
   default-attr-graph-impl)
 
-(extend FlyGraph
+(extend loom.graph.FlyGraph
   AttrGraph
   default-attr-graph-impl)
 
-(extend FlyDigraph
+(extend loom.graph.FlyDigraph
   AttrGraph
   default-attr-graph-impl)
 
-(extend WeightedFlyGraph
+(extend loom.graph.WeightedFlyGraph
   AttrGraph
   default-attr-graph-impl)
 
-(extend WeightedFlyDigraph
+(extend loom.graph.WeightedFlyDigraph
   AttrGraph
   default-attr-graph-impl)
 
@@ -144,3 +143,4 @@ thickness, etc)."
          (hilite n2)
          (hilite n1 n2)))
    g (partition 2 1 path)))
+

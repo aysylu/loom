@@ -430,7 +430,7 @@ can use these functions."
   (letfn [(color-component [coloring start]
             (loop [coloring (assoc coloring start 1)
                    queue (conj #?(:clj clojure.lang.PersistentQueue/EMPTY
-                                  :cljs cljs.core.PersistentQueue/EMPTY) start)]
+                                  :cljs cljs.core/PersistentQueue.EMPTY) start)]
               (if (empty? queue)
                 coloring
                 (let [v (peek queue)
@@ -530,9 +530,10 @@ can use these functions."
         [flow-map flow-value] (case method
                                 :edmonds-karp (flow/edmonds-karp n i c s t)
                                 (throw
-                                 (java.lang.RuntimeException.
+                                 (ex-info
                                   (str "Method not found.  Choose from: "
-                                       method-set))))]
+                                       method-set)
+                                  {:method-set method-set})))]
     [flow-map flow-value]))
 
 
@@ -606,7 +607,7 @@ can use these functions."
   ([g src target heur q explored]
      (cond
       ;; queue empty, target not reachable
-      (empty? q) (throw (Exception. "Target not reachable from source"))
+      (empty? q) (throw (ex-info "Target not reachable from source" {}))
       ;; target found, build path and return
       (= (first (peek q)) target) (let [u (first (peek q))
                                         parent ((second (peek q)) 1)

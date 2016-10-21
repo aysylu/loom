@@ -4,7 +4,9 @@ weighted, unweighted, directed, and undirected. The implementations are based
 on adjacency lists."
       :author "Justin Kramer"}
   loom.graph
-  (:require [loom.alg-generic :refer [bf-traverse]]))
+  (:require [loom.alg-generic :refer [bf-traverse]]
+            #?@(:clj [[loom.cljs :refer (def-protocol-impls)]]))
+  #?@(:cljs [(:require-macros [loom.cljs :refer [def-protocol-impls extend]])]))
 
 ;;;
 ;;; Protocols
@@ -109,63 +111,47 @@ on adjacency lists."
        :doc "Weight used when none is given for edges in weighted graphs"}
   *default-weight* 1)
 
-(def default-graph-impls
-  {:all
-   {:nodes (fn [g]
-             (:nodeset g))
-    :edges (fn [g]
-             (for [n1 (nodes g)
-                   e (out-edges g n1)]
-               e))
-    :has-node? (fn [g node]
-                 (contains? (:nodeset g) node))
-    :has-edge? (fn [g n1 n2]
-                 (contains? (get-in g [:adj n1]) n2))
-    :out-degree (fn [g node]
+(def-protocol-impls ^:private default-all
+  {:nodes (fn [g]
+            (:nodeset g))
+   :edges (fn [g]
+            (for [n1 (nodes g)
+                  e (out-edges g n1)]
+              e))
+   :has-node? (fn [g node]
+                (contains? (:nodeset g) node))
+   :has-edge? (fn [g n1 n2]
+                (contains? (get-in g [:adj n1]) n2))
+   :out-degree (fn [g node]
                  (count (get-in g [:adj node])))
-    :out-edges (fn
-                 ([g] (partial out-edges g))
-                 ([g node] (for [n2 (successors g node)] [node n2])))}
+   :out-edges (fn [g node]
+                (for [n2 (successors g node)] [node n2]))})
 
-   ;; Unweighted graphs store adjacencies as {node #{neighbor}}
-   :unweighted
-   {:add-nodes* (fn [g nodes]
-                  (reduce
-                   (fn [g n]
-                     (-> g
-                         (update-in [:nodeset] conj n)
-                         (assoc-in [:adj n] (or ((:adj g) n) #{}))))
-                   g nodes))
-    :successors* (fn
-                   ([g] (partial successors g))
-                   ([g node] (get-in g [:adj node])))}
+(def-protocol-impls ^:private default-unweighted
+  ;; Unweighted graphs store adjacencies as {node #{neighbor}}
+  {:successors* (fn [g node] (get-in g [:adj node]))})
 
-   ;; Weighted graphs store adjacencies as {node {neighbor weight}}
-   :weighted
-   {:add-nodes* (fn [g nodes]
-                  (reduce
-                   (fn [g n]
-                     (-> g
-                         (update-in [:nodeset] conj n)
-                         (assoc-in [:adj n] (or ((:adj g) n) {}))))
-                   g nodes))
-    :successors* (fn
-                   ([g] (partial successors g))
-                   ([g node] (keys (get-in g [:adj node]))))}})
+(def-protocol-impls ^:private default-weighted
+  ;; Weighted graphs store adjacencies as {node {neighbor weight}}
+  {:successors* (fn [g node] (keys (get-in g [:adj node])))})
 
-(def default-digraph-impl
-  {:predecessors* (fn
-                    ([g] (partial predecessors g))
-                    ([g node] (get-in g [:in node])))
+;; this map of maps of protocol impls here to maintain existing public var in
+;;     the course of making loom Clojure[Script]-portable
+;; TODO can this be eliminated?
+#?(:clj (def default-graph-impls
+          {:all default-all
+           :unweighted default-unweighted
+           :weighted default-weighted}))
+
+(def-protocol-impls default-digraph-impl
+  {:predecessors* (fn [g node] (get-in g [:in node]))
    :in-degree (fn [g node]
                 (count (get-in g [:in node])))
-   :in-edges (fn
-               ([g] (partial in-edges g))
-               ([g node] (for [n2 (predecessors g node)] [n2 node])))})
+   :in-edges (fn [g node]
+               (for [n2 (predecessors g node)] [n2 node]))})
 
-(def default-weighted-graph-impl
+(def-protocol-impls default-weighted-graph-impl
   {:weight* (fn
-              ([g] (partial weight g))
               ([g e] (weight g (src e) (dest e)))
               ([g n1 n2] (get-in g [:adj n1 n2])))})
 
@@ -180,8 +166,7 @@ on adjacency lists."
 
 (extend BasicEditableGraph
   Graph
-  (let [{:keys [all unweighted]} default-graph-impls]
-    (merge all unweighted))
+  (merge default-all default-unweighted)
 
   EditableGraph
   {:add-nodes*
@@ -222,8 +207,7 @@ on adjacency lists."
 
 (extend BasicEditableDigraph
   Graph
-  (let [{:keys [all unweighted]} default-graph-impls]
-    (merge all unweighted))
+  (merge default-all default-unweighted)
 
   EditableGraph
   {:add-nodes*
@@ -265,14 +249,13 @@ on adjacency lists."
      (assoc g :nodeset #{} :adj {} :in {}))}
 
   Digraph
-  (assoc default-digraph-impl
-    :transpose (fn [g]
-                 (assoc g :adj (:in g) :in (:adj g)))))
+  (merge default-digraph-impl
+         {:transpose (fn [g]
+                       (assoc g :adj (:in g) :in (:adj g)))}))
 
 (extend BasicEditableWeightedGraph
   Graph
-  (let [{:keys [all weighted]} default-graph-impls]
-    (merge all weighted))
+  (merge default-all default-weighted)
 
   EditableGraph
   {:add-nodes*
@@ -316,8 +299,7 @@ on adjacency lists."
 
 (extend BasicEditableWeightedDigraph
   Graph
-  (let [{:keys [all weighted]} default-graph-impls]
-    (merge all weighted))
+  (merge default-all default-weighted)
 
   EditableGraph
   {:add-nodes*
@@ -359,12 +341,12 @@ on adjacency lists."
      (assoc g :nodeset #{} :adj {} :in {}))}
 
   Digraph
-  (assoc default-digraph-impl
-    :transpose (fn [g]
-                 (reduce (fn [tg [n1 n2]]
-                           (add-edges* tg [[n2 n1 (weight g n1 n2)]]))
-                         (assoc g :adj {} :in {})
-                         (edges g))))
+  (merge default-digraph-impl
+         {:transpose (fn [g]
+                       (reduce (fn [tg [n1 n2]]
+                                 (add-edges* tg [[n2 n1 (weight g n1 n2)]]))
+                               (assoc g :adj {} :in {})
+                               (edges g)))})
 
   WeightedGraph
   default-weighted-graph-impl)
@@ -382,7 +364,7 @@ on adjacency lists."
     (apply f args)
     f))
 
-(def ^{:private true} default-flygraph-graph-impl
+(def-protocol-impls ^:private default-flygraph-graph-impl
   {:nodes (fn [g]
             (if (or (:fnodes g) (not (:start g)))
               (call-or-return (:fnodes g))
@@ -393,26 +375,23 @@ on adjacency lists."
               (for [n (nodes g)
                     nbr (successors g n)]
                 [n nbr])))
-   :successors* (fn
-                  ([g] (partial successors g))
-                  ([g node] (call-or-return (:fsuccessors g) node)))
+   :successors* (fn [g node] (call-or-return (:fsuccessors g) node))
    :out-degree (fn [g node]
                  (count (successors g node)))
-   :out-edges (get-in default-graph-impls [:all :out-edges])
+   :out-edges (get-in default-all [:out-edges])
    :has-node? (fn [g node]
                 ;; cannot use contains? here because (nodes g) need not be a set.
                 (some #{node} (nodes g)))
    :has-edge? (fn [g n1 n2]
                 (some #{[n1 n2]} (edges g)))})
 
-(def ^{:private true} default-flygraph-digraph-impl
+(def-protocol-impls ^:private default-flygraph-digraph-impl
   {:predecessors* (fn [g node] (call-or-return (:fpredecessors g) node))
    :in-degree (fn [g node] (count (predecessors g node)))
    :in-edges (get-in default-digraph-impl [:all :in-edges])})
 
-(def ^{:private true} default-flygraph-weighted-impl
+(def-protocol-impls ^:private default-flygraph-weighted-impl
   {:weight* (fn
-              ([g] (partial weight g))
               ([g e] (weight g (src e) (dest e)))
               ([g n1 n2] (call-or-return (:fweight g) n1 n2)))})
 

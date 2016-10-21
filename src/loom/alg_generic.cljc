@@ -1,8 +1,11 @@
 (ns ^{:doc "Graph algorithms for use on any type of graph"
       :author "Justin Kramer"}
   loom.alg-generic
-  (:refer-clojure :exclude [ancestors])
-  (:import [java.util Arrays]))
+  (:refer-clojure :exclude [ancestors]))
+
+#?(:clj (do (set! *warn-on-reflection* true)
+            ;(set! *unchecked-math* :warn-on-boxed)
+            ))
 
 ;;;
 ;;; Utility functions
@@ -199,7 +202,9 @@
                                   (filter #(nbr-pred % node (inc depth))))]
                     (step (into (pop queue) (for [nbr nbrs] [nbr (inc depth)]))
                           (reduce #(assoc %1 %2 node) preds nbrs)))))))]
-      (step (conj clojure.lang.PersistentQueue/EMPTY [start 0])
+      (step (conj #?(:clj clojure.lang.PersistentQueue/EMPTY
+                     :cljs cljs.core/PersistentQueue.EMPTY)
+                  [start 0])
             (if (map? seen)
               (assoc seen start nil)
               (into {start nil} (for [s seen] [s nil])))))))
@@ -231,42 +236,46 @@
     (recur m2 m1)
     (filter (partial contains? m2) (keys m1))))
 
-(defn bf-path-bi
-  "Using a bidirectional breadth-first search, finds a path from start
+#?(:cljs
+   (defn bf-path-bi [& args]
+     (throw (js/Error. "Unsupported operation `bf-path-bi`")))
+   :clj
+   (defn bf-path-bi
+     "Using a bidirectional breadth-first search, finds a path from start
   to end with the fewest hops (i.e. irrespective of edge weights),
   outgoing and predecessors being functions which return adjacent
   nodes. Can be much faster than a unidirectional search on certain
   types of graphs"
-  [outgoing predecessors start end]
-  (let [done? (atom false)
-        preds1 (atom {}) ;from start to end
-        preds2 (atom {}) ;from end to start
-        search (fn [nbrs n preds]
-                 (dorun
-                  (take-while
-                   (fn [_] (not @done?))
-                   (bf-traverse
-                    nbrs n :f (fn [_ pm _] (reset! preds pm))))))
-        search1 (future (search outgoing start preds1))
-        search2 (future (search predecessors end preds2))
-        ;; TODO: watchers?
-        find-intersects #(shared-keys @preds1 @preds2)]
-    (loop [intersects (find-intersects)]
-      (if (or (seq intersects) (future-done? search1) (future-done? search2))
-        (do
-          (reset! done? true)
-          (cond
-           (seq intersects)
-           (let [intersect (apply min-key
-                                  #(+ (count (trace-path @preds1 %))
-                                      (count (trace-path @preds2 %)))
-                                  intersects)]
-             (concat
-              (reverse (trace-path @preds1 intersect))
-              (rest (trace-path @preds2 intersect))))
-           (@preds1 end) (reverse (trace-path @preds1 end))
-           (@preds2 start) (trace-path @preds2 start)))
-        (recur (find-intersects))))))
+     [outgoing predecessors start end]
+     (let [done? (atom false)
+           preds1 (atom {})             ;from start to end
+           preds2 (atom {})             ;from end to start
+           search (fn [nbrs n preds]
+                    (dorun
+                     (take-while
+                      (fn [_] (not @done?))
+                      (bf-traverse
+                       nbrs n :f (fn [_ pm _] (reset! preds pm))))))
+           search1 (future (search outgoing start preds1))
+           search2 (future (search predecessors end preds2))
+           ;; TODO: watchers?
+           find-intersects #(shared-keys @preds1 @preds2)]
+       (loop [intersects (find-intersects)]
+         (if (or (seq intersects) (future-done? search1) (future-done? search2))
+           (do
+             (reset! done? true)
+             (cond
+               (seq intersects)
+               (let [intersect (apply min-key
+                                      #(+ (count (trace-path @preds1 %))
+                                          (count (trace-path @preds2 %)))
+                                      intersects)]
+                 (concat
+                  (reverse (trace-path @preds1 intersect))
+                  (rest (trace-path @preds2 intersect))))
+               (@preds1 end) (reverse (trace-path @preds1 end))
+               (@preds2 start) (trace-path @preds2 start)))
+           (recur (find-intersects)))))))
 
 (defn- reverse-edges [successor-fn nodes coll]
   (for [node nodes
@@ -457,9 +466,9 @@
 
 ;;; Ancestry node-bitmap helper vars/fns
 
-(def ^Long bits-per-long (long (Long/SIZE)))
+(def bits-per-long (long #?(:clj 64 :cljs 32)))
 
-(defn ^Long bm-longs
+(defn bm-longs
   "Returns the number of longs required to store bits count bits in a bitmap."
   [bits]
   (long (Math/ceil (/ bits bits-per-long))))
@@ -469,11 +478,15 @@
   ^longs []
   (long-array 1))
 
+(defn- bm-copy ^longs [bm size]
+  #?(:clj (java.util.Arrays/copyOf ^longs bm ^Long size)
+     :cljs (.slice bm 0 size)))
+
 (defn bm-set
   "Set boolean state of bit in 'bitmap at 'idx to true."
   ^longs [^longs bitmap idx]
   (let [size (max (count bitmap) (bm-longs (inc idx)))
-        new-bitmap (Arrays/copyOf bitmap ^Long size)
+        new-bitmap (bm-copy bitmap size) 
         chunk (quot idx bits-per-long)
         offset (mod idx bits-per-long)
         mask (bit-set 0 offset)
@@ -499,7 +512,7 @@
   (if (empty? bitmaps)
     (bm-new)
     (let [size (apply max (map count bitmaps))
-          new-bitmap (Arrays/copyOf ^longs (first bitmaps) ^Long size)]
+          new-bitmap (bm-copy (first bitmaps) size)]
       (doseq [bitmap (rest bitmaps)
               [idx value] (map-indexed list bitmap)
               :let [masked-value (bit-or value (aget new-bitmap idx))]]
