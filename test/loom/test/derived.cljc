@@ -1,8 +1,11 @@
 (ns loom.test.derived
-  (:require [loom.derived :refer :all]
-            [loom.graph :refer :all]
-            [loom.alg :refer :all]
-            [clojure.test :refer :all]))
+  (:require [loom.derived :refer [mapped-by nodes-filtered-by edges-filtered-by
+                                  subgraph-reachable-from bipartite-subgraph]]
+            [loom.graph :refer (graph digraph edges)]
+            [loom.alg :refer (eql?)]
+            #?@(:clj [[clojure.test :refer :all]]
+                :cljs [cljs.test]))
+  #?@(:cljs [(:require-macros [cljs.test :refer (deftest testing are is)])]))
 
 (deftest derived-graph-test
   (let [g  (graph [1 2] [1 3] [2 3] 4)

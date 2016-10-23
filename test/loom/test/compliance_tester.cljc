@@ -1,8 +1,11 @@
-(ns loom.compliance-tester 
+(ns loom.test.compliance-tester 
   "Provides compliance tests for graph protocols."
-  (:require [loom.graph :refer :all]
+  (:require [loom.graph :refer [add-edges add-nodes nodes edges has-node? has-edge?
+                                successors out-degree remove-nodes remove-edges
+                                add-edges* transpose predecessors in-degree weight]]
             [loom.attr :as attr]
-            [clojure.test :refer :all]))
+            #?@(:clj [[clojure.test :refer :all]]))
+  #?@(:cljs [(:require-macros [cljs.test :refer (deftest testing are is)])]))
 
 (defn graph-test
   "Collection of simple graph tests. Uses the provided empty graph instance, g, to create 

@@ -1,9 +1,13 @@
 (ns loom.test.graph
-  (:require [loom.graph :refer :all]
+  (:require [loom.graph :refer (graph digraph weighted-graph weighted-digraph
+                                      nodes edges has-node? has-edge? transpose fly-graph
+                                      weight graph? Graph directed? Digraph weighted?
+                                      WeightedGraph subgraph add-path add-cycle)]
             [loom.attr :as attr]
-            [clojure.test :refer :all]
-            [loom.compliance-tester :refer [graph-test digraph-test
-                                            weighted-graph-test weighted-digraph-test]]))
+            #?@(:clj [[clojure.test :refer (deftest testing are is)]])
+            [loom.test.compliance-tester :refer [graph-test digraph-test
+                                                 weighted-graph-test weighted-digraph-test]])
+  #?@(:cljs [(:require-macros [cljs.test :refer (deftest testing are is)])]))
 
 (deftest test-default-implementations
   (graph-test (graph))

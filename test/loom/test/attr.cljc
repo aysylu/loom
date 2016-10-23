@@ -1,7 +1,8 @@
 (ns loom.test.attr
-  (:require [loom.graph :refer :all]
-            [loom.attr :refer :all]
-            [clojure.test :refer :all]))
+  (:require [loom.graph :refer (digraph)]
+            [loom.attr :refer (add-attr attr add-attr-to-nodes add-attr-to-edges)]
+            #?@(:clj [[clojure.test :refer :all]]))
+  #?@(:cljs [(:require-macros [cljs.test :refer (deftest testing are is)])]))
 
 (deftest attr-graph-test
   (let [g (digraph [1 2] [2 3] [2 4] [3 5] [4 5])

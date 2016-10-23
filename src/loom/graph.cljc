@@ -42,16 +42,31 @@ on adjacency lists."
   (dest [edge] "Returns the dest node of the edge"))
 
 ; Default implementation for vectors
-(extend-type clojure.lang.IPersistentVector
+(extend-type #?(:clj clojure.lang.IPersistentVector
+                :cljs cljs.core.PersistentVector)
   Edge
   (src [edge] (get edge 0))
   (dest [edge] (get edge 1)))
 
 ; Default implementation for maps
-(extend-type clojure.lang.IPersistentMap
-  Edge
-  (src [edge] (:src edge))
-  (dest [edge] (:dest edge)))
+#?(:clj
+    (extend-type clojure.lang.IPersistentMap
+      Edge
+      (src [edge] (:src edge))
+      (dest [edge] (:dest edge)))
+    :cljs
+    (do (extend-type cljs.core.PersistentArrayMap
+          Edge
+          (src [edge] (:src edge))
+          (dest [edge] (:dest edge)))
+        (extend-type cljs.core.PersistentHashMap
+          Edge
+          (src [edge] (:src edge))
+          (dest [edge] (:dest edge)))
+        (extend-type cljs.core.PersistentTreeMap
+          Edge
+          (src [edge] (:src edge))
+          (dest [edge] (:dest edge)))))
 
 ;; Curried wrappers
 (defn successors
@@ -359,8 +374,7 @@ on adjacency lists."
 ;;;
 
 (defn- call-or-return [f & args]
-  (if (or (fn? f)
-          (and (instance? clojure.lang.IFn f) (seq args)))
+  (if (fn? f)
     (apply f args)
     f))
 

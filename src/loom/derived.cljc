@@ -4,7 +4,8 @@
   (:require [loom.graph :refer [digraph graph
                                 nodes edges successors fly-graph predecessors
                                 add-nodes* add-edges*
-                                directed?]]))
+                                directed?]]
+            clojure.set))
 
 (defn mapped-by
   "Returns a Graph or a DiGraph which has as nodeset (set (map f (nodes g)). An

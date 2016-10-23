@@ -237,7 +237,7 @@
     (filter (partial contains? m2) (keys m1))))
 
 #?(:cljs
-   (defn bf-path-bi [& args]
+   (defn bf-path-bi [outgoing predecessors start end]
      (throw (js/Error. "Unsupported operation `bf-path-bi`")))
    :clj
    (defn bf-path-bi
