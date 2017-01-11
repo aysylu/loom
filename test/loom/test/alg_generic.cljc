@@ -2,11 +2,15 @@
   (:require [loom.alg-generic :as lag]
             [loom.graph :as g]
             [clojure.set :as set]
-            [clojure.test :refer [deftest are]]
             [clojure.test.check :as tc]
-            [clojure.test.check.clojure-test :refer [defspec]]
-            [clojure.test.check.properties :as prop]
-            [clojure.test.check.generators :as gen]))
+            [clojure.test.check.generators :as gen]
+            #?@(:clj [[clojure.test :refer :all]
+                      [clojure.test.check.clojure-test :refer [defspec]]
+                      [clojure.test.check.properties :as prop]]
+                :cljs [clojure.test.check.properties]))
+  #?@(:cljs [(:require-macros [cljs.test :refer (deftest testing are is)]
+                              [clojure.test.check.clojure-test :refer [defspec]]
+                              [clojure.test.check.properties :as prop])]))
 
 (defn dag-samples-gen
   [dag percent]
@@ -37,7 +41,7 @@
                              (if (< 0 nodes)
                                (gen-dag (conj dag-so-far (set parents))
                                         (dec nodes))
-                               (dag-samples-gen dag-so-far 1/2))))))))
+                               (dag-samples-gen dag-so-far 0.5))))))))
 
 
 (defn anc-model-new [] {})
@@ -68,26 +72,26 @@
   (prop/for-all [[dag samples] (gen/bind (gen/choose 0 100)
                                          (fn [dag-size]
                                            (gen-dag dag-size)))]
-                (let [anc (reduce (fn [a [i ps]]
-                                    (apply lag/ancestry-add a i (seq ps)))
-                                  (lag/ancestry-new)
-                                  (map-indexed vector dag))
-                      anc-model (reduce (fn [a [i ps]]
-                                          (apply anc-model-add a i (seq ps)))
-                                        (anc-model-new)
-                                        (map-indexed vector dag))
-                      samp-pairs (partition 2 samples)
-                      anc-to-model (anc->anc-model anc)]
-                  (and
-                   (= anc-model anc-to-model)
-                   (every?
-                    (fn [[a b]]
-                      (and
-                       (= (lag/ancestor? anc b a)
-                          (anc-model-anc? anc-model b a))
-                       (= (lag/ancestor? anc a b)
-                          (anc-model-anc? anc-model a b))))
-                    samp-pairs)))))
+    (let [anc (reduce (fn [a [i ps]]
+                        (apply lag/ancestry-add a i (seq ps)))
+                      (lag/ancestry-new)
+                      (map-indexed vector dag))
+          anc-model (reduce (fn [a [i ps]]
+                              (apply anc-model-add a i (seq ps)))
+                            (anc-model-new)
+                            (map-indexed vector dag))
+          samp-pairs (partition 2 samples)
+          anc-to-model (anc->anc-model anc)]
+      (and
+       (= anc-model anc-to-model)
+       (every?
+        (fn [[a b]]
+          (and
+           (= (lag/ancestor? anc b a)
+              (anc-model-anc? anc-model b a))
+           (= (lag/ancestor? anc a b)
+              (anc-model-anc? anc-model a b))))
+        samp-pairs)))))
 
 (defspec ^:test-check-fast dag-similarity-100
   100
@@ -150,14 +154,14 @@
 
 (deftest bf-paths-bi-test
   (are [g start end paths] (= (lag/bf-paths-bi g g start end) paths)
-       g2 :a :b
-       [[:a :b]]
+    g2 :a :b
+    [[:a :b]]
 
-       g3 :a :c
-       [[:a :b :c]]
+    g3 :a :c
+    [[:a :b :c]]
 
-       g3 :a :e
-       [[:a :b :c :e] [:a :b :d :e]]))
+    g3 :a :e
+    [[:a :b :c :e] [:a :b :d :e]]))
 
 (deftest edge-traverse
   ; works with nodes without outgoing edges or just a loop to iself

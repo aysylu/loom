@@ -3,62 +3,61 @@
       :author "Justin Kramer"}
   loom.label
   (:require [loom.attr :refer [add-attr remove-attr attr]]
-            [loom.graph :refer [add-nodes add-edges]])
-  (:import [loom.graph BasicEditableGraph BasicEditableDigraph
-            BasicEditableWeightedGraph BasicEditableWeightedDigraph
-            FlyGraph FlyDigraph WeightedFlyGraph WeightedFlyDigraph]))
+            [loom.graph :refer [add-nodes add-edges]]
+            #?@(:clj [[loom.cljs :refer (def-protocol-impls)]]))
+  #?@(:cljs [(:require-macros [loom.cljs :refer [def-protocol-impls extend]])]))
 
 (defprotocol LabeledGraph
   (add-label [g node label] [g n1 n2 label] "Add a label to node or edge")
   (remove-label [g node] [g n1 n2] "Remove a label from a node or edge")
   (label [g node] [g n1 n2] "Return the label on a node or edge"))
 
-(def default-labeled-graph-impl
+(def-protocol-impls default-labeled-graph-impl
   {:add-label (fn
                 ([g node label]
-                   (add-attr g node :label label))
+                 (add-attr g node :label label))
                 ([g n1 n2 label]
-                   (add-attr g n1 n2 :label label)))
+                 (add-attr g n1 n2 :label label)))
    :remove-label (fn
                    ([g node]
-                      (remove-attr g node :label))
+                    (remove-attr g node :label))
                    ([g n1 n2]
-                      (remove-attr g n1 n2 :label)))
+                    (remove-attr g n1 n2 :label)))
    :label (fn
             ([g node]
-               (attr g node :label))
+             (attr g node :label))
             ([g n1 n2]
-               (attr g n1 n2 :label)))})
+             (attr g n1 n2 :label)))})
 
-(extend BasicEditableGraph
+(extend loom.graph.BasicEditableGraph
   LabeledGraph
   default-labeled-graph-impl)
 
-(extend BasicEditableDigraph
+(extend loom.graph.BasicEditableDigraph
   LabeledGraph
   default-labeled-graph-impl)
 
-(extend BasicEditableWeightedGraph
+(extend loom.graph.BasicEditableWeightedGraph
   LabeledGraph
   default-labeled-graph-impl)
 
-(extend BasicEditableWeightedDigraph
+(extend loom.graph.BasicEditableWeightedDigraph
   LabeledGraph
   default-labeled-graph-impl)
 
-(extend FlyGraph
+(extend loom.graph.FlyGraph
   LabeledGraph
   default-labeled-graph-impl)
 
-(extend FlyDigraph
+(extend loom.graph.FlyDigraph
   LabeledGraph
   default-labeled-graph-impl)
 
-(extend WeightedFlyGraph
+(extend loom.graph.WeightedFlyGraph
   LabeledGraph
   default-labeled-graph-impl)
 
-(extend WeightedFlyDigraph
+(extend loom.graph.WeightedFlyDigraph
   LabeledGraph
   default-labeled-graph-impl)
 
