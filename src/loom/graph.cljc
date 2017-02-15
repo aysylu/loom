@@ -402,7 +402,7 @@ on adjacency lists."
 (def-protocol-impls ^:private default-flygraph-digraph-impl
   {:predecessors* (fn [g node] (call-or-return (:fpredecessors g) node))
    :in-degree (fn [g node] (count (predecessors g node)))
-   :in-edges (get-in default-digraph-impl [:all :in-edges])})
+   :in-edges (:in-edges default-digraph-impl)})
 
 (def-protocol-impls ^:private default-flygraph-weighted-impl
   {:weight* (fn
