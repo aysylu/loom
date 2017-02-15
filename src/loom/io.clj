@@ -139,21 +139,21 @@
     (open tmp)))
 
 (defn render-to-bytes
-  "Renders the graph g in the PNG format using GraphViz and returns PNG data
+  "Renders the graph g in the image format using GraphViz and returns data
   as a byte array.
   Requires GraphViz's 'dot' (or a specified algorithm) to be installed in
   the shell's path. Possible algorithms include :dot, :neato, :fdp, :sfdp,
-  :twopi, and :circo"
-  [g & {:keys [alg] :or {alg "dot"} :as opts}]
+  :twopi, and :circo. Possible formats include :png, :ps, :pdf, and :svg."
+  [g & {:keys [alg fmt] :or {alg "dot" fmt :png} :as opts}]
   (let [dot (apply dot-str g (apply concat opts))
-        {png :out} (sh (name alg) "-Tpng" :in dot :out-enc :bytes)]
-    png))
+        {:keys [out]} (sh (name alg) (str "-T" (name fmt)) :in dot :out-enc :bytes)]
+    out))
 
 (defn view
-  "Converts graph g to a temporary PNG file using GraphViz and opens it
-  in the current desktop environment's default viewer for PNG files.
+  "Converts graph g to a temporary image file using GraphViz and opens it
+  in the current desktop environment's default viewer for said files.
   Requires GraphViz's 'dot' (or a specified algorithm) to be installed in
   the shell's path. Possible algorithms include :dot, :neato, :fdp, :sfdp,
-  :twopi, and :circo"
-  [g & opts]
-    (open-data (apply render-to-bytes g opts) :png))
+  :twopi, and :circo. Possible formats include :png, :ps, :pdf, and :svg."
+  [g & {:keys [fmt] :or {fmt :png} :as opts}]
+    (open-data (apply render-to-bytes g opts) fmt))
