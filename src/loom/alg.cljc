@@ -627,7 +627,7 @@ can use these functions."
                  curr-dist ((second (peek q)) 2)
                  ;; update path
                  explored (assoc explored curr-node ((second (peek q)) 1))
-                 nbrs (remove explored (successors g curr-node))
+                 nbrs (remove (into #{} (keys explored)) (successors g curr-node))
                  ;; we do this for following reasons
                  ;; a. avoiding duplicate heuristics computation
                  ;; b. duplicate entries for nodes, which needs to be removed later
@@ -636,7 +636,7 @@ can use these functions."
                                (let [act (+ curr-dist
                                             (if (weighted? g) (weight g curr-node v) 1))
                                      est (if (nil? (get q v))
-                                           (heur curr-node v) ((get q v) 3))
+                                           (heur v target) ((get q v) 3))
                                   ]
                                  (cond
                                   (or (nil? (get q v))
