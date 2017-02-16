@@ -1,5 +1,23 @@
 # Change Log
 
+## [1.0.0](https://github.com/aysylu/loom/tree/1.0.0) (2017-02-16)
+[Full Changelog](https://github.com/aysylu/loom/compare/0.6.0...1.0.0)
+
+**Closed issues:**
+
+- Support for weighted nodes [\#92](https://github.com/aysylu/loom/issues/92)
+- default-flygraph-digraph-impl has error, nil protocol method impl [\#90](https://github.com/aysylu/loom/issues/90)
+- Graph Attribute [\#89](https://github.com/aysylu/loom/issues/89)
+- load graph from disk [\#88](https://github.com/aysylu/loom/issues/88)
+- A\* implementation is incorrect. [\#82](https://github.com/aysylu/loom/issues/82)
+- clojurescript support [\#45](https://github.com/aysylu/loom/issues/45)
+
+**Merged pull requests:**
+
+- Add support for other formats in loom.io/view [\#94](https://github.com/aysylu/loom/pull/94) ([mikekap](https://github.com/mikekap))
+- Make loom Clojure\[Script\] portable [\#91](https://github.com/aysylu/loom/pull/91) ([cemerick](https://github.com/cemerick))
+- Fix bugs in A\* implementation. [\#84](https://github.com/aysylu/loom/pull/84) ([tessellator](https://github.com/tessellator))
+
 ## [0.6.0](https://github.com/aysylu/loom/tree/0.6.0) (2016-04-14)
 [Full Changelog](https://github.com/aysylu/loom/compare/0.5.4...0.6.0)
 
@@ -50,7 +68,6 @@
 - now at version to 0.5.0 [\#33](https://github.com/aysylu/loom/pull/33) ([fmjrey](https://github.com/fmjrey))
 - dot-str: edge label, when available, takes precedence over weight. [\#32](https://github.com/aysylu/loom/pull/32) ([fmjrey](https://github.com/fmjrey))
 - Edge traverse [\#31](https://github.com/aysylu/loom/pull/31) ([fmjrey](https://github.com/fmjrey))
-- minor optimizations or typos [\#29](https://github.com/aysylu/loom/pull/29) ([fmjrey](https://github.com/fmjrey))
 
 ## [0.5.0](https://github.com/aysylu/loom/tree/0.5.0) (2014-06-09)
 [Full Changelog](https://github.com/aysylu/loom/compare/0.4.2...0.5.0)
@@ -61,17 +78,6 @@
 - Link to autodocs [\#11](https://github.com/aysylu/loom/issues/11)
 - `\(scc ...\)` dies with a StackOverflow on large directed graphs [\#5](https://github.com/aysylu/loom/issues/5)
 - Add documentation on loom.attr functions [\#4](https://github.com/aysylu/loom/issues/4)
-
-**Merged pull requests:**
-
-- A\* algorithm [\#27](https://github.com/aysylu/loom/pull/27) ([gdevanla](https://github.com/gdevanla))
-- Fixed typo [\#26](https://github.com/aysylu/loom/pull/26) ([gdevanla](https://github.com/gdevanla))
-- Register tempfile for deletion on JVM exit [\#25](https://github.com/aysylu/loom/pull/25) ([guns](https://github.com/guns))
-- Implementation of Prim's algorithm for Minimum spanning tree [\#24](https://github.com/aysylu/loom/pull/24) ([gdevanla](https://github.com/gdevanla))
-- speed up traverse-all, scc [\#23](https://github.com/aysylu/loom/pull/23) ([gdevanla](https://github.com/gdevanla))
-- Function for bytes for rendered graph PNG. [\#22](https://github.com/aysylu/loom/pull/22) ([aysylu](https://github.com/aysylu))
-- Refactored topsort\_component\(\) to avoid duplicate stacking of seen nodes... [\#21](https://github.com/aysylu/loom/pull/21) ([gdevanla](https://github.com/gdevanla))
-- Enhanced protocols in preparation for multigraphs. [\#19](https://github.com/aysylu/loom/pull/19) ([Engelberg](https://github.com/Engelberg))
 
 ## [0.4.2](https://github.com/aysylu/loom/tree/0.4.2) (2014-01-04)
 [Full Changelog](https://github.com/aysylu/loom/compare/0.4.1...0.4.2)
