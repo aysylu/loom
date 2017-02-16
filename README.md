@@ -2,8 +2,6 @@
 
 [![Build Status](https://travis-ci.org/aysylu/loom.png)](http://travis-ci.org/aysylu/loom)
 
-**Caveat coder**: This library is not yet battle-tested.
-
 
 ## Video and Slides
 
