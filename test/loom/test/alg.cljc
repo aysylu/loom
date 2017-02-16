@@ -537,6 +537,12 @@
        )
   )
 
+(deftest astar-visit-test
+  (let [g (graph [0 1] [1 2] [2 3] [3 4])
+        i (atom 0)]
+    (astar-path g 2 4 (fn [x y] (swap! i inc) (if (> x y) (- x y) (- y x))))
+    (is (= 3 @i) "This implementation of A* is incorrect. It is not optimal.")))
+
 (def degeneracy-g1 (graph {:a [:b]
                            :b [:c :d]}))
 
