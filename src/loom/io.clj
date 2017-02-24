@@ -156,4 +156,4 @@
   the shell's path. Possible algorithms include :dot, :neato, :fdp, :sfdp,
   :twopi, and :circo. Possible formats include :png, :ps, :pdf, and :svg."
   [g & {:keys [fmt] :or {fmt :png} :as opts}]
-    (open-data (apply render-to-bytes g opts) fmt))
+    (open-data (apply render-to-bytes g (apply concat opts)) fmt))
