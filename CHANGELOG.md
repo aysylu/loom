@@ -1,5 +1,20 @@
 # Change Log
 
+## [1.0.1](https://github.com/aysylu/loom/tree/1.0.1) (2018-02-19)
+[Full Changelog](https://github.com/aysylu/loom/compare/1.0.0...1.0.1)
+
+**Closed issues:**
+
+- Make 1.0.1 release ? [\#103](https://github.com/aysylu/loom/issues/103)
+- loom.io/view calls render-to-bytes incorrectly [\#95](https://github.com/aysylu/loom/issues/95)
+- :fmt option in render-to-bytes? [\#56](https://github.com/aysylu/loom/issues/56)
+
+**Merged pull requests:**
+
+- highlighting loom code samples [\#99](https://github.com/aysylu/loom/pull/99) ([ertugrulcetin](https://github.com/ertugrulcetin))
+- Add network simplex implementation [\#98](https://github.com/aysylu/loom/pull/98) ([drhops](https://github.com/drhops))
+- Pass positional keyword arguments correctly [\#96](https://github.com/aysylu/loom/pull/96) ([lvh](https://github.com/lvh))
+
 ## [1.0.0](https://github.com/aysylu/loom/tree/1.0.0) (2017-02-16)
 [Full Changelog](https://github.com/aysylu/loom/compare/0.6.0...1.0.0)
 
@@ -55,7 +70,7 @@
 - Make tense on docstrings consistent [\#63](https://github.com/aysylu/loom/pull/63) ([danielcompton](https://github.com/danielcompton))
 - Clean up ns and make code more idiomatic [\#62](https://github.com/aysylu/loom/pull/62) ([danielcompton](https://github.com/danielcompton))
 - Fix for \#55 [\#59](https://github.com/aysylu/loom/pull/59) ([AshtonKem](https://github.com/AshtonKem))
-- fix typo in bellman-ford docstring [\#58](https://github.com/aysylu/loom/pull/58) ([ZTO](https://github.com/ZTO))
+- fix typo in bellman-ford docstring [\#58](https://github.com/aysylu/loom/pull/58) ([aw7](https://github.com/aw7))
 - Add has-node? to flygraph default implementation. [\#57](https://github.com/aysylu/loom/pull/57) ([monora](https://github.com/monora))
 - Ensure that max-weight is greater than min-weight when generating random weighted-graphs [\#53](https://github.com/aysylu/loom/pull/53) ([tihancock](https://github.com/tihancock))
 - Fix comment "nodes" -\> "edges" [\#52](https://github.com/aysylu/loom/pull/52) ([semperos](https://github.com/semperos))
