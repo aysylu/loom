@@ -1,4 +1,4 @@
-(defproject aysylu/loom "1.0.1"
+(defproject aysylu/loom "1.0.2-SNAPSHOT"
   :min-lein-version "2.0.0"
   :description "Graph library for Clojure"
   :license {:name "Eclipse Public License"
