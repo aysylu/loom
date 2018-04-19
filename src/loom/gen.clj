@@ -53,3 +53,17 @@
     (-> g
         (add-nodes* nodes)
         (add-edges* edges))))
+
+(defn gen-circle
+  "Adds num-nodes nodes to graph g and connects each one to degree
+  other nodes."
+  [g num-nodes degree]
+  {:pre [(even? degree)]}
+  (let [out-degree (/ degree 2)
+        nodes (range num-nodes)
+        edges (for [n nodes
+                    d (range 1 (inc out-degree))]
+                [n (mod (+ n d) (count nodes))])]
+    (-> g
+        (add-nodes* nodes)
+        (add-edges* edges))))
