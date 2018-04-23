@@ -58,6 +58,7 @@
   "Adds num-nodes nodes to graph g and connects each one to out-degree
   other nodes."
   [g num-nodes out-degree]
+  {:pre [(> num-nodes (* out-degree 2))]}
   (let [nodes (range num-nodes)
         edges (for [n nodes
                     d (range 1 (inc out-degree))]
