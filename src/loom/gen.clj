@@ -66,3 +66,16 @@
     (-> g
         (add-nodes* nodes)
         (add-edges* edges))))
+
+(defn ^:private add-shortcuts
+  "Computes additional edges for a graph with num-nodes nodes as described
+  in Newman and Watts (1999)."
+  [num-nodes phi seed]
+  (reduce
+    #(when (.nextBoolean (java.util.Random. (+ seed %2)))
+       (let
+         [src (.nextInt (java.util.Random. (+ seed %2 42)) num-nodes)
+          dest (.nextInt (java.util.Random. (+ seed %2 -42)) num-nodes)]
+         (conj %1 [src dest])))
+    []
+    (range num-nodes)))
