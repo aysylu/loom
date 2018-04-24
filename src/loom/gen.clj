@@ -68,14 +68,23 @@
         (add-edges* edges))))
 
 (defn ^:private add-shortcuts
-  "Computes additional edges for a graph with num-nodes nodes as described
-  in Newman and Watts (1999)."
-  [num-nodes phi seed]
-  (reduce
-    #(when (.nextBoolean (java.util.Random. (+ seed %2)))
-       (let
-         [src (.nextInt (java.util.Random. (+ seed %2 42)) num-nodes)
-          dest (.nextInt (java.util.Random. (+ seed %2 -42)) num-nodes)]
-         (conj %1 [src dest])))
-    []
-    (range num-nodes)))
+  "Computes additional edges for graph g as described in Newman and Watts (1999)."
+  ([g phi seed]
+   (let [rnd (java.util.Random. seed)
+         nodes (loom.graph/nodes g)
+         shortcuts (for [n nodes
+                         :when (> phi (.nextDouble rnd))]
+                     [n (.nextInt rnd (count nodes))])]
+     (-> g
+         (add-edges* shortcuts)))))
+
+(defn gen-newman-watts
+  "Generate a graph with small-world properties as described in Newman and Watts
+  (1999)."
+  ([g num-nodes out-degree phi seed]
+   (-> g
+       (gen-circle num-nodes out-degree)
+       (add-shortcuts phi seed)))
+  ([g num-nodes out-degree phi]
+    (gen-newman-watts g num-nodes out-degree (System/nanoTime))))
+
