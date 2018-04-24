@@ -86,5 +86,5 @@
        (gen-circle num-nodes out-degree)
        (add-shortcuts phi seed)))
   ([g num-nodes out-degree phi]
-    (gen-newman-watts g num-nodes out-degree (System/nanoTime))))
+    (gen-newman-watts g num-nodes out-degree phi (System/nanoTime))))
 
