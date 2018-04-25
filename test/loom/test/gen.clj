@@ -1,6 +1,7 @@
 (ns loom.test.gen
   (:require [clojure.test :refer (deftest testing is are)]
             [loom.graph :refer (graph digraph weighted-graph weighted-digraph graph? nodes edges)]
+            [loom.alg :refer (clustering-coefficient)]
             [loom.gen :refer (gen-circle gen-newman-watts)]))
 
 (deftest build-circle-test
@@ -43,3 +44,25 @@
         #{[0 1] [1 2] [2 3] [3 4] [4 5] [5 6] [6 7] [7 8] [8 9] [9 0]
           [1 0] [2 1] [3 2]} (set (edges g6))
         #{[0 1] [1 2] [2 3] [3 4] [4 5] [5 6] [6 7] [7 8] [8 9] [9 0]} (set (edges g7))))))
+
+(deftest build-newman-watts-test
+  (let [g1 (gen-newman-watts (graph) 20 2 0.2)
+        g2 (gen-newman-watts (graph) 100 5 0.3)]
+    (testing "Construction, Nodes, Edges, Clustering coefficient for g1"
+      (is loom.graph/graph? g1)
+      (is (= 20 (count (nodes g1))))
+      (is (and
+            (>= (count (edges g1)) (* 2 20 2))
+            (<= (count (edges g1)) (+ (* 2 20 2) (* 20 2 0.35)))))
+      (is (and
+            (<= (- (/ 3 4) 0.5) (clustering-coefficient g1))
+            (>= (+ (/ 3 4) 0.5) (clustering-coefficient g1)))))
+    (testing "Construction, Nodes, Edges, Clustering coefficient for g2"
+      (is loom.graph/graph? g2)
+      (is (= 100 (count (nodes g2))))
+      (is (and
+            (>= (count (edges g2)) (* 2 100 5))
+            (<= (count (edges g2)) (+ (* 2 100 5) (* 100 5 0.45)))))
+      (is (and
+            (<= (- (/ 3 4) 0.5) (clustering-coefficient g2))
+            (>= (+ (/ 3 4) 0.5) (clustering-coefficient g2)))))))
