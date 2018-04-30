@@ -47,7 +47,8 @@
 
 (deftest build-newman-watts-test
   (let [g1 (gen-newman-watts (graph) 20 2 0.2)
-        g2 (gen-newman-watts (graph) 100 5 0.3)]
+        g2 (gen-newman-watts (graph) 100 5 0.3)
+        g3 (gen-newman-watts (graph) 100 6 0)]
     (testing "Construction, Nodes, Edges, Clustering coefficient for g1"
       (is loom.graph/graph? g1)
       (is (= 20 (count (nodes g1))))
@@ -65,4 +66,11 @@
             (<= (count (edges g2)) (+ (* 2 100 5) (* 100 5 0.45)))))
       (is (and
             (<= (- (/ 3 4) 0.5) (clustering-coefficient g2))
-            (>= (+ (/ 3 4) 0.5) (clustering-coefficient g2)))))))
+            (>= (+ (/ 3 4) 0.5) (clustering-coefficient g2)))))
+    (testing "Construction, Nodes, Edges, Clustering coefficient for g3"
+      (is loom.graph/graph? g3)
+      (is (= 100 (count (nodes g2))))
+      (is (= (count (edges g3)) (* 2 100 6)))
+      (is (and
+            (<= (- (/ 3 4) 0.2) (clustering-coefficient g2))
+            (>= (+ (/ 3 4) 0.2) (clustering-coefficient g2)))))))
