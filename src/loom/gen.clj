@@ -1,7 +1,7 @@
 (ns ^{:doc "Graph-generating functions"
       :author "Justin Kramer"}
   loom.gen
-  (:require [loom.graph :refer [weighted? directed? add-nodes* add-edges*]]))
+  (:require [loom.graph :refer [weighted? directed? add-nodes* add-edges* nodes]]))
 
 (defn gen-rand
   "Adds num-nodes nodes and approximately num-edges edges to graph g. Nodes
@@ -87,4 +87,33 @@
        (add-shortcuts phi seed)))
   ([g num-nodes out-degree phi]
     (gen-newman-watts g num-nodes out-degree phi (System/nanoTime))))
+
+
+(defn ^:private initial-barabasi-albert
+  "In the Barabasi-Albert model, the first new node that is
+  added to the graph has to be treated specially. It will have
+  exactly num-edges connections, and every node in the graph
+  will attach to it with equal probability."
+  ([g num-edges]
+    (initial-barabasi-albert g num-edges (System/nanoTime)))
+  ([g num-edges seed]
+    ;; there can't be more edges that nodes in the graph
+   {:pre [(<= num-edges (count (nodes g)))]}
+   (let [num-nodes (count (nodes g))
+         new-node (inc num-nodes)
+         rnd (java.util.Random. seed)
+         draw-connecting-nodes (fn [g]
+                                 (loop [partners #{}]
+                                   (if (= (count partners) num-edges)
+                                     (vec partners)
+                                     (recur (conj partners (.nextInt rnd num-nodes))))))
+         new-edges (map vector (repeat num-edges new-node) (draw-connecting-nodes g))
+         ]
+     (add-edges* g new-edges))))
+
+(defn gen-barabasi-albert
+  "Generate a preferential attachment graph as described in Barabasi and Albert
+  (1999)."
+  [g num-nodes num-edges]
+  (initial-barabasi-albert g num-edges (System/nanoTime)))
 

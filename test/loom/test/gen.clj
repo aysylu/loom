@@ -2,7 +2,7 @@
   (:require [clojure.test :refer (deftest testing is are)]
             [loom.graph :refer (graph digraph weighted-graph weighted-digraph graph? nodes edges)]
             [loom.alg :refer (clustering-coefficient)]
-            [loom.gen :refer (gen-circle gen-newman-watts)]))
+            [loom.gen :refer (gen-circle gen-newman-watts gen-barabasi-albert)]))
 
 (deftest build-circle-test
   (let [g1 (gen-circle (graph) 5 1)
@@ -74,3 +74,8 @@
       (is (and
             (<= (- (/ 3 4) 0.2) (clustering-coefficient g2))
             (>= (+ (/ 3 4) 0.2) (clustering-coefficient g2)))))))
+
+(deftest initial-barabasi-albert
+  (let [g (graph 0 1 2 3 4 5 6 7)]
+    (testing
+      (is (= 12 (count (edges (gen-barabasi-albert g 3 6))))))))
