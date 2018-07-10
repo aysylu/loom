@@ -199,6 +199,12 @@ Nothing but Clojure. There is optional support for visualization via [GrapViz](h
 
 See [Loom TODO board](https://trello.com/b/VgPZkvjP/loom-todo).
 
+## Testing
+
+```bash
+lein test-all
+```
+
 ## Contributors
 
 Names in no particular order:
