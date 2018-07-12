@@ -97,8 +97,7 @@
   [g num-initial num-edges rnd]
   ;; there can't be more edges that nodes in the graph
   {:pre [(<= num-edges num-initial)]}
-  (let [num-nodes (count (nodes g))
-        new-node (inc num-nodes)
+  (let [new-node (inc num-initial)
         draw-connecting-nodes (fn [g]
                                 (loop [partners #{}]
                                   (if (= (count partners) num-edges)
@@ -131,7 +130,7 @@
   and Albert (1999)."
   [g num-initial num-nodes num-edges seed]
   (let [rnd (java.util.Random. seed)
-        g-0 (initial-barabasi-albert g num-initial num-edges seed)
+        g-0 (initial-barabasi-albert g num-initial num-edges rnd)
         connect-pred (fn [g node degree-sum rnd]
                        (let [d-node (count (loom.graph/successors g node))
                              degree-sum (reduce #(+ %1 (count (loom.graph/successors g-0 %2))) 0 (nodes g-0))]
