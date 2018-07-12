@@ -128,7 +128,7 @@
 (defn gen-barabasi-albert
   "Generate a preferential attachment graph as described in Barabasi
   and Albert (1999)."
-  [g num-initial num-nodes num-edges seed]
+  [g num-nodes num-initial num-edges seed]
   (let [rnd (java.util.Random. seed)
         g-0 (initial-barabasi-albert g num-initial num-edges rnd)
         connect-pred (fn [g node degree-sum rnd]
