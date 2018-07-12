@@ -94,11 +94,11 @@
   added to the graph has to be treated specially. It will have
   exactly num-edges connections, and every node in the graph
   will attach to it with equal probability."
-  ([g num-edges]
-    (initial-barabasi-albert g num-edges (System/nanoTime)))
-  ([g num-edges seed]
+  ([g num-initial num-edges]
+    (initial-barabasi-albert g num-initial num-edges (System/nanoTime)))
+  ([g num-initial num-edges seed]
     ;; there can't be more edges that nodes in the graph
-   {:pre [(<= num-edges (count (nodes g)))]}
+   {:pre [(<= num-edges num-initial)]}
    (let [num-nodes (count (nodes g))
          new-node (inc num-nodes)
          rnd (java.util.Random. seed)
