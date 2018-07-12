@@ -76,6 +76,6 @@
             (>= (+ (/ 3 4) 0.2) (clustering-coefficient g2)))))))
 
 (deftest initial-barabasi-albert
-  (let [g (graph 0 1 2 3 4 5 6 7)]
+  (let [g (graph )]
     (testing
-      (is (= 12 (count (edges (gen-barabasi-albert g 3 6))))))))
+      (is (= 6 (count (edges (gen-barabasi-albert g 20 6 3 (System/nanoTime)))))))))
