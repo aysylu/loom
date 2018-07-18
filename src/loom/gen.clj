@@ -88,53 +88,37 @@
   ([g num-nodes out-degree phi]
     (gen-newman-watts g num-nodes out-degree phi (System/nanoTime))))
 
-
-(defn ^:private initial-barabasi-albert
-  "In the Barabasi-Albert model, the first new node that is
-  added to the graph has to be treated specially. It will have
-  exactly num-edges connections, and every node in the graph
-  will attach to it with equal probability."
-  [g num-initial num-edges rnd]
-  ;; there can't be more edges that nodes in the graph
-  {:pre [(<= num-edges num-initial)]}
-  (let [new-node (inc num-initial)
-        draw-connecting-nodes (fn [g]
-                                (loop [partners #{}]
-                                  (if (= (count partners) num-edges)
-                                    (vec partners)
-                                    (recur (conj partners (.nextInt rnd num-initial))))))
-        new-edges (map vector (repeat num-edges new-node) (draw-connecting-nodes g))]
-    (add-edges* g new-edges)))
-
-
-;; collect all degrees in a list
-;(map #(count (loom.graph/successors g0 %)) (nodes g0))
-;; sum over all degrees
-;(reduce #(+ %1 (count (loom.graph/successors g0 %2))) 0 (nodes g0))
-
-;(defn connect?
-;  "Should old be connected to a new node?"
-;  [g old degree-sum rnd]
-;  (let [degree-old (loom.graph/out-degree g old)
-;        p (/ degree-old degree-sum)]
-;    (<= p (.nextDouble rnd))))
-(defn connect-to?
-  "Higher-order function to decide wether node should be connected to.
-  pred-fn must return true or false."
-  [g node pred-fn]
-  (pred-fn g node))
-
-
 (defn gen-barabasi-albert
   "Generate a preferential attachment graph as described in Barabasi
   and Albert (1999)."
-  [g num-nodes num-initial num-edges seed]
+  [g num-nodes num-edges seed]
   (let [rnd (java.util.Random. seed)
-        g-0 (initial-barabasi-albert g num-initial num-edges rnd)
-        connect-pred (fn [g node degree-sum rnd]
-                       (let [d-node (count (loom.graph/successors g node))
-                             degree-sum (reduce #(+ %1 (count (loom.graph/successors g-0 %2))) 0 (nodes g-0))]
-                         (<= (/ d-node degree-sum) (.nextDouble rnd))))]
-    g-0)
-  )
+        ;; initialize graph with two connected nodes
+        ;; with equal probability, a new node will attach to
+        ;; either one
+        g-0 (loom.graph/add-edges g [0 1])
+        ;; predicate for deciding wether a node
+        ;; should be connected to a new node
+        connect? (fn [g node]
+                   (let [degree-node (count (loom.graph/successors g node))
+                         degree-sum (reduce #(+ %1 (count (loom.graph/successors g %2))) 0 (nodes g))]
+                     (<= (/ degree-node degree-sum) (.nextDouble rnd))))
+        ;; go through all nodes in g and decide whether
+        ;; they connect to new
+        new-edges (fn [g new]
+                    (for [n (nodes g)
+                          :when (connect? g n)]
+                      [new n]))
+        ;; compute num-edges edges for new in graph g
+        get-new-edges-and-connect (fn [g new num-edges]
+                                    (as-> g v
+                                      (new-edges v new)
+                                      (take num-edges v)
+                                      (filter #(= 2 (count %)) v)
+                                      (apply loom.graph/add-edges g v)))
+        ;; two nodes are already in the initialized graph
+        ;; the remaining notes will be added
+        remaining-nodes (range 2 num-nodes)
+        ]
 
+    (reduce #(get-new-edges-and-connect %1 %2 num-edges) g-0 remaining-nodes)))
