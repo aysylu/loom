@@ -76,7 +76,9 @@
             (>= (+ (/ 3 4) 0.2) (clustering-coefficient g2)))))))
 
 (deftest gen-barabasi-albert-test
-  (let [g (graph )]
-    (testing
+  (let [g (graph)]
+    (testing "Construction, Nodes, Edges"
+      (is loom.graph/graph? (gen-barabasi-albert g 42 5))
       (is (= 200 (count (nodes (gen-barabasi-albert g 200 3 123)))))
+      (is (= (* 2 (+ 1 (* 198 2))) (count (edges (gen-barabasi-albert g 200 2)))))
       )))
