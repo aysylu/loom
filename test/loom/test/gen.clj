@@ -69,8 +69,26 @@
             (>= (+ (/ 3 4) 0.2) (clustering-coefficient g2)))))))
 
 (deftest gen-barabasi-albert-test
-  (let [g (graph)]
-    (testing "Construction, Nodes, Edges"
-      (is loom.graph/graph? (gen-barabasi-albert g 42 5))
-      (is (= 200 (count (nodes (gen-barabasi-albert g 200 3 123)))))
-      (is (= (* 2 (+ 1 (* 198 2))) (count (edges (gen-barabasi-albert g 200 2))))))))
+  (let [g (graph)
+        percentage (fn [num percent]
+                     (* (/ percent 100) num))]
+    (testing "Construction"
+      (are [graphs] loom.graph/graph?
+        (gen-barabasi-albert g 10 1)
+        (gen-barabasi-albert g 20 2)
+        (gen-barabasi-albert g 42 5)))
+    (testing "Node Count"
+      ;; Because creating the graph involves probabilistic decisions
+      ;; the actual number of nodes may be a bit lower than the expected count
+      (are [expected-count degree] (< (percentage expected-count 95) (count (nodes (gen-barabasi-albert g expected-count degree))))
+        200 3
+        100 1
+        567 7
+        980 20))
+    (testing "Edge Count"
+      ;; same problem as with node count
+      (are [expected-count degree] (< (percentage expected-count 95) (count (edges (gen-barabasi-albert g expected-count degree))))
+        200 3
+        100 1
+        567 7
+        980 20))))
