@@ -11,17 +11,10 @@
         g4 (gen-circle (weighted-graph {0 {1 42 2 42} 1 {2 42 3 42} 2 {3 42 4 42}}) 10 1)
         g5 (gen-circle (weighted-graph) 10 1)
         g6 (gen-circle (weighted-digraph [0 1 42] [1 2 42] [2 3 42] [1 0 43] [2 1 43] [3 2 43]) 10 1)
-        g7 (gen-circle (weighted-digraph) 10 1)
-        ]
+        g7 (gen-circle (weighted-digraph) 10 1)]
     (testing "Generating circle-graphs from the different graph types"
       (are [graphs] (graph? graphs)
-        g1
-        g2
-        g3
-        g4
-        g5
-        g6
-        g7))
+        g1 g2 g3 g4 g5 g6 g7))
     (testing "Nodes and Edges"
       (are [expected got] (= expected got)
         (into #{} (range 5)) (nodes g1)
@@ -80,5 +73,4 @@
     (testing "Construction, Nodes, Edges"
       (is loom.graph/graph? (gen-barabasi-albert g 42 5))
       (is (= 200 (count (nodes (gen-barabasi-albert g 200 3 123)))))
-      (is (= (* 2 (+ 1 (* 198 2))) (count (edges (gen-barabasi-albert g 200 2)))))
-      )))
+      (is (= (* 2 (+ 1 (* 198 2))) (count (edges (gen-barabasi-albert g 200 2))))))))
