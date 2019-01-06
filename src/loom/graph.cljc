@@ -494,7 +494,7 @@ on adjacency lists."
                    (add-nodes* (nodes init))
                    (add-edges* (edges init))
                    (assoc :attrs (merge (:attrs g) (:attrs init)))))
-             ;; adacency map
+             ;; adjacency map
              (map? init)
              (let [es (if (map? (val (first init)))
                         (for [[n nbrs] init

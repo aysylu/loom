@@ -35,7 +35,7 @@ Feel free to join [Loom mailing list](https://groups.google.com/forum/#!forum/lo
 
 Create a graph:
 ```clojure
-;; Initialize with any of: edges, adacency lists, nodes, other graphs
+;; Initialize with any of: edges, adjacency lists, nodes, other graphs
 (def g (graph [1 2] [2 3] {3 [4] 5 [6 7]} 7 8 9))
 (def dg (digraph g))
 (def wg (weighted-graph {:a {:b 10 :c 20} :c {:d 30} :e {:b 5 :d 5}}))
