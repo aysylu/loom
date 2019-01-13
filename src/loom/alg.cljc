@@ -288,7 +288,7 @@ can use these functions."
   a collection of nodes in traversal order."
   [g start end & {:keys [max-depth] :or {max-depth nil}}]
   (if (= start end)
-    [[]]
+    [[start]]
     (letfn [(create-path-map []
               {:members #{}
                :path []})

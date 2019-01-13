@@ -240,8 +240,8 @@
 
 (deftest simple-paths-test
   (are [expected got] (= expected got)
-       [[]] (simple-paths g6 0 0)
-       [[]] (simple-paths g5 :a :a)
+       [[0]] (simple-paths g6 0 0)
+       [[:a]] (simple-paths g5 :a :a)
        (set [[:a :b :d]
              [:a :c :e :d]
              [:a :c :f :e :d]
