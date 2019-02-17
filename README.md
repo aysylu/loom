@@ -193,7 +193,7 @@ Derived graphs:
 ```
 ## Dependencies
 
-Nothing but Clojure. There is optional support for visualization via [GrapViz](http://graphviz.org).
+Nothing but Clojure. There is optional support for visualization via [GraphViz](http://graphviz.org).
 
 ## TODO
 
