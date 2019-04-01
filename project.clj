@@ -3,8 +3,8 @@
   :description "Graph library for Clojure"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/data.priority-map "0.0.5"]
+  :dependencies [[org.clojure/clojure "1.10.0" :scope "provided"]
+                 [org.clojure/data.priority-map "0.0.10"]
                  [tailrecursion/cljs-priority-map "1.2.1"]]
   :url "https://github.com/aysylu/loom"
   :test-selectors {:default (fn [m] (not (:test-check-slow m)))
@@ -16,7 +16,7 @@
                     :plugins [[com.jakemccrary/lein-test-refresh "0.15.0"]]
                     :repl-options {:init (set! *print-length* 50)}}]
 
-             :cljs {:dependencies [[org.clojure/clojurescript "1.9.89"]]
+             :cljs {:dependencies [[org.clojure/clojurescript "1.10.520"]]
                     :plugins [[lein-cljsbuild "1.1.3" :exclusions [org.clojure/clojure]]
                               [lein-doo "0.1.7"]]
                     :doo {:build "node-dev"}
