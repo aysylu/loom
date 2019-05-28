@@ -1,7 +1,7 @@
 ![Loom logo](https://raw.github.com/aysylu/loom/master/doc/loom_logo.png "Loom")
 
 [![Build Status](https://travis-ci.org/aysylu/loom.png)](http://travis-ci.org/aysylu/loom)
-
+[![cljdoc badge](https://cljdoc.org/badge/aysylu/loom)](https://cljdoc.org/d/aysylu/loom/CURRENT)
 
 ## Video and Slides
 
@@ -25,7 +25,7 @@ Watch the talk on Loom [at Clojure/West 2014](https://www.youtube.com/watch?v=wE
 
 ### Documentation
 
-[API Reference](http://aysy.lu/loom/)
+[API Reference](https://cljdoc.org/d/aysylu/loom/CURRENT)
 
 [Frequently Asked Questions](http://aysy.lu/loom/faq.html)
 
@@ -193,7 +193,7 @@ Derived graphs:
 ```
 ## Dependencies
 
-Nothing but Clojure. There is optional support for visualization via [GrapViz](http://graphviz.org).
+Nothing but Clojure. There is optional support for visualization via [GraphViz](http://graphviz.org).
 
 ## TODO
 
