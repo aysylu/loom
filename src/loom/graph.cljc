@@ -48,12 +48,17 @@ on adjacency lists."
   (src [edge] (get edge 0))
   (dest [edge] (get edge 1)))
 
-; Default implementation for maps
+; Default implementation for maps, long support
 #?(:clj
-    (extend-type clojure.lang.IPersistentMap
-      Edge
-      (src [edge] (:src edge))
-      (dest [edge] (:dest edge)))
+    (do
+      (extend-type clojure.lang.IPersistentMap
+        Edge
+        (src [edge] (:src edge))
+        (dest [edge] (:dest edge)))
+      (extend-type java.lang.Long
+        Edge
+        (src [edge] (:src edge))
+        (dest [edge] (:dest edge))))
     :cljs
     (do (extend-type cljs.core.PersistentArrayMap
           Edge
