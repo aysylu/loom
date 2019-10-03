@@ -1,4 +1,4 @@
-(defproject alcamech/loom "1.0.3"
+(defproject org.clojars.alcamech/loom "1.0.3"
   :min-lein-version "2.0.0"
   :description "Graph library for Clojure"
   :license {:name "Eclipse Public License"
