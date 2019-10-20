@@ -2,7 +2,11 @@ language: clojure
 script: lein test-all
 jdk:
   - openjdk8
-  - oraclejdk8
-  - oraclejdk9
-  - oraclejdk10
+  - openjdk9
+  - openjdk10
+  - openjdk11
+  - openjdk12
   - oraclejdk11
+  - oraclejdk12
+  - oraclejdk13
+  - oraclejdk14
