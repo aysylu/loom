@@ -356,19 +356,16 @@
        ;; TODO: the rest
        ))
 
-(def INF #?(:clj Double/POSITIVE_INFINITY
-            :cljs Infinity))
-
 (deftest bellman-ford-test
   (are [expected graph start]
        (= expected (bellman-ford graph start))
 
        false g11 :a
        false g11 :b
-       [{:e INF
-         :d INF
-         :b INF
-         :a INF
+       [{:e ##Inf
+         :d ##Inf
+         :b ##Inf
+         :a ##Inf
          :c 0}{:c [:c]}] g11 :c
          false g11 :d
          false g11 :e
@@ -385,22 +382,22 @@
            [{:e 7,
              :d 5,
              :c 4,
-             :a INF,
+             :a ##Inf,
              :b 0}
             {:b [:b],
              :c [:b :c],
              :d [:b :d],
              :e [:b :d :e]}] g12 :b
-             [{:e INF
-               :d INF
-               :b INF
-               :a INF
+             [{:e ##Inf
+               :d ##Inf
+               :b ##Inf
+               :a ##Inf
                :c 0}
               {:c [:c]}] g12 :c
               [{:e 2,
                 :b -5,
                 :c -1,
-                :a INF,
+                :a ##Inf,
                 :d 0}
                {:d [:d],
                 :c [:d :e :b :c],
@@ -409,7 +406,7 @@
                 [{:d -2,
                   :b -7,
                   :c -3,
-                  :a INF,
+                  :a ##Inf,
                   :e 0}
                  {:e [:e],
                   :c [:e :b :c],
