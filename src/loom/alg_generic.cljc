@@ -491,8 +491,7 @@
         offset (mod idx bits-per-long)
         mask (bit-set 0 offset)
         value (aget new-bitmap chunk)
-        new-value #?(:clj (bit-or value ^Long mask)
-                     :cljs (bit-or value mask))]
+        new-value (bit-or value mask)]
     (aset new-bitmap chunk new-value)
     new-bitmap))
 
