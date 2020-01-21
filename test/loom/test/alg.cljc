@@ -13,7 +13,7 @@
                               coloring? greedy-coloring prim-mst-edges
                               prim-mst-edges prim-mst astar-path astar-dist
                               degeneracy-ordering maximal-cliques
-                              subgraph? eql? isomorphism?]]
+                              subgraph? eql? isomorphism? digraph-all-cycles]]
             [loom.derived :refer [mapped-by]]
             clojure.walk
             #?@(:clj [[clojure.test :refer :all]]
@@ -190,6 +190,45 @@
                                :g :h
                              ))
 
+(def directed-graph1 (digraph [1 2]
+                              [2 3]
+                              [2 4]
+                              [3 1]
+                              [4 3]))
+
+(def directed-graph2 (digraph {1 [2 5 8]
+                               2 [3 7 9]
+                               3 [1 2 4 6]
+                               4 [5]
+                               5 [2]
+                               6 [4]
+                               8 [9]
+                               9 [8]}))
+
+(def directed-graph3 (digraph [1 2]
+                              [1 5]
+                              [2 4]
+                              [2 5]
+                              [2 7]
+                              [3 2]
+                              [3 7]
+                              [4 1]
+                              [4 3]
+                              [4 7]
+                              [5 6]
+                              [5 7]
+                              [6 1]
+                              [6 2]
+                              [6 4]
+                              [7 1]))
+
+;; No cycles present here
+(def directed-graph4 (digraph {1 [2 3]
+                               2 [4 5]
+                               3 [4 5]
+                               6 [1]}))
+
+
 (deftest depth-first-test
   (are [expected got] (= expected got)
        #{1 2 3 5 6 7} (set (pre-traverse g7))
@@ -214,7 +253,7 @@
        [:g :a :b :c :f :e :d] (topsort g5)
        nil (topsort g7)
        [5 6 7] (topsort g7 5)
-       
+
        [1 2 4] (topsort g15 1)))
 
 (deftest depth-first-test-2
@@ -234,7 +273,7 @@
        #{:r :o :b :g :p} (set (bf-traverse g2 :r :when #(< %3 3)))
        [:a :e :j] (bf-path g4 :a :j)
        [:a :c :h :j] (bf-path g4 :a :j :when (fn [n p d] (not= :e n)))
-       
+
        #?@(:clj [[:a :e :j] (bf-path-bi g4 :a :j)
                  true (some #(= % (bf-path-bi g5 :g :d)) [[:g :a :b :d] [:g :f :e :d]])])))
 
@@ -464,13 +503,13 @@
       [[:c :a 2] [:c :b 2]] (prim-mst-edges mst_wt_g5)
       [[:b :a 4] [:c :b 8] [:c :i 2] [:c :f 4] [:f :g 2]
        [:g :h 1] [:d :c 7] [:e :d 9]]  (prim-mst-edges mst_wt_g6))
-    
+
     (are [solutions result] (contains? solutions result)
       #{(edge-sets [[:d :a 1] [:b :d 2] [:c :b 1] [:e :f 1]])
         (edge-sets [[:d :a 1] [:a :b 2] [:c :b 1] [:e :f 1]])}
       (edge-sets (prim-mst-edges mst_wt_g2))
 
-      
+
       #{(edge-sets [[:c :a] [:d :b] [:c :d]])
         (edge-sets [[:a :b] [:a :c] [:a :d]])}
       (edge-sets (prim-mst-edges mst_unweighted_g3)))))
@@ -627,3 +666,43 @@
     false (isomorphism? g7 (mapped-by inc g7) dec)
     false (isomorphism? (digraph) (graph) identity)
     false(isomorphism? (digraph [1 2]) (graph [1 2]) identity)))
+
+(deftest digraph-all-cycles-test
+  (testing "Check for Simple Cycle in directed graph"
+    (is (= (sort (map (comp vec sort) (digraph-all-cycles directed-graph1)))
+           (sort (map (comp vec sort) [[1 2 3] [1 2 4 3]]))))
+    (is (= (sort (map (comp vec sort) (digraph-all-cycles directed-graph2)))
+           (sort (map (comp vec sort) [[1 5 2 3]
+                                       [1 2 3]
+                                       [4 5 2 3 6]
+                                       [4 5 2 3]
+                                       [3 2]
+                                       [9 8]]))))
+    (is (= (sort (map (comp vec sort) (digraph-all-cycles directed-graph3)))
+           (sort (map (comp vec sort) [[7 1 5 6 2 4 3]
+                                       [7 1 5 6 2 4]
+                                       [7 1 5 6 2]
+                                       [7 1 5 6 4 3 2]
+                                       [7 1 5 6 4 3]
+                                       [7 1 5 6 4]
+                                       [7 1 5]
+                                       [7 1 2 5 6 4 3]
+                                       [7 1 2 5 6 4]
+                                       [7 1 2 5]
+                                       [7 1 2 4 3]
+                                       [7 1 2 4]
+                                       [7 1 2]
+                                       [1 5 6 2 4]
+                                       [1 5 6 4]
+                                       [1 5 6]
+                                       [1 2 5 6 4]
+                                       [1 2 5 6]
+                                       [1 2 4]
+                                       [4 3 2 5 6]
+                                       [4 3 2]
+                                       [6 2 5]])))))
+  (testing "Check for no cycles present in directed graphs"
+    (is (= (digraph-all-cycles directed-graph4)
+           '())))
+  (testing "Check for not a directed graph"
+    (is (= (digraph-all-cycles g6) :loom.alg/not-a-directed-graph))))
