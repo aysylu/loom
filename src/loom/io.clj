@@ -1,7 +1,7 @@
 (ns ^{:doc "Output and view graphs in various formats"
       :author "Justin Kramer"}
   loom.io
-  (:require [loom.graph :refer [directed? weighted? nodes edges weight]]
+  (:require [loom.graph :refer [directed? weighted? nodes edges weight src dest]]
             [loom.alg :refer [distinct-edges loners]]
             [loom.attr :refer [attr? attr attrs]]
             [clojure.string :refer [escape]]
@@ -61,8 +61,10 @@
         (doto sb
           (.append (str "  " (name k) " "))
           (.append (dot-attrs (k opts))))))
-    (doseq [[n1 n2] (distinct-edges g)]
-      (let [n1l (str (or (node-label n1) n1))
+    (doseq [edge (distinct-edges g)]
+      (let [n1 (src edge)
+            n2 (dest edge)
+            n1l (str (or (node-label n1) n1))
             n2l (str (or (node-label n2) n2))
             el (edge-label n1 n2)
             eattrs (assoc (if a?
