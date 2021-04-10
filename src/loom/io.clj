@@ -64,27 +64,22 @@
     (doseq [edge (distinct-edges g)]
       (let [n1 (src edge)
             n2 (dest edge)
-            n1l (str (or (node-label n1) n1))
-            n2l (str (or (node-label n2) n2))
             el (edge-label n1 n2)
             eattrs (assoc (if a?
                             (attrs g n1 n2) {})
                      :label el)]
         (doto sb
-          (.append "  \"")
-          (.append (dot-esc n1l))
-          (.append (if d? "\" -> \"" "\" -- \""))
-          (.append (dot-esc n2l))
-          (.append \"))
+          (.append (str (hash n1)))
+          (.append (if d? " -> " " -- "))
+          (.append (str (hash n2))))
         (when (or (:label eattrs) (< 1 (count eattrs)))
           (.append sb \space)
           (.append sb (dot-attrs eattrs)))
         (.append sb "\n")))
     (doseq [n (nodes g)]
-      (doto sb
-        (.append "  \"")
-        (.append (dot-esc (str (or (node-label n) n))))
-        (.append \"))
+      (let [nl (dot-esc (str (or (node-label n) n)))]
+        (doto sb
+          (.append (str (hash n) " [label=\"" nl "\"]"))))
       (when-let [nattrs (when a?
                           (dot-attrs (attrs g n)))]
         (.append sb \space)
