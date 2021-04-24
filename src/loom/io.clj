@@ -1,7 +1,7 @@
 (ns ^{:doc "Output and view graphs in various formats"
       :author "Justin Kramer"}
   loom.io
-  (:require [loom.graph :refer [directed? weighted? nodes edges weight]]
+  (:require [loom.graph :refer [directed? weighted? nodes edges weight src dest]]
             [loom.alg :refer [distinct-edges loners]]
             [loom.attr :refer [attr? attr attrs]]
             [clojure.string :refer [escape]]
@@ -61,28 +61,25 @@
         (doto sb
           (.append (str "  " (name k) " "))
           (.append (dot-attrs (k opts))))))
-    (doseq [[n1 n2] (distinct-edges g)]
-      (let [n1l (str (or (node-label n1) n1))
-            n2l (str (or (node-label n2) n2))
+    (doseq [edge (distinct-edges g)]
+      (let [n1 (src edge)
+            n2 (dest edge)
             el (edge-label n1 n2)
             eattrs (assoc (if a?
                             (attrs g n1 n2) {})
                      :label el)]
         (doto sb
-          (.append "  \"")
-          (.append (dot-esc n1l))
-          (.append (if d? "\" -> \"" "\" -- \""))
-          (.append (dot-esc n2l))
-          (.append \"))
+          (.append (str (hash n1)))
+          (.append (if d? " -> " " -- "))
+          (.append (str (hash n2))))
         (when (or (:label eattrs) (< 1 (count eattrs)))
           (.append sb \space)
           (.append sb (dot-attrs eattrs)))
         (.append sb "\n")))
     (doseq [n (nodes g)]
-      (doto sb
-        (.append "  \"")
-        (.append (dot-esc (str (or (node-label n) n))))
-        (.append \"))
+      (let [nl (dot-esc (str (or (node-label n) n)))]
+        (doto sb
+          (.append (str (hash n) " [label=\"" nl "\"]"))))
       (when-let [nattrs (when a?
                           (dot-attrs (attrs g n)))]
         (.append sb \space)
