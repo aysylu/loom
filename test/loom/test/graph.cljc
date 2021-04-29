@@ -20,7 +20,8 @@
         g2 (graph {1 [2 3] 2 [3] 4 []})
         g3 (graph g1)
         g4 (graph g3 (digraph [5 6]) [7 8] 9)
-        g5 (graph)]
+        g5 (graph)
+        g6 (graph {})]
     (testing "Construction, nodes, edges"
       (are [expected got] (= expected got)
            #{1 2 3 4} (set (nodes g1))
@@ -34,6 +35,8 @@
              [3 2] [5 6] [6 5] [7 8] [8 7]} (set (edges g4))
              #{} (set (nodes g5))
              #{} (set (edges g5))
+             #{} (set (nodes g6))
+             #{} (set (edges g6))
              true (has-node? g1 4)
              true (has-edge? g1 1 2)
              false (has-node? g1 5)

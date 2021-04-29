@@ -496,16 +496,18 @@ on adjacency lists."
                    (assoc :attrs (merge (:attrs g) (:attrs init)))))
              ;; adacency map
              (map? init)
-             (let [es (if (map? (val (first init)))
-                        (for [[n nbrs] init
-                              [nbr wt] nbrs]
-                          [n nbr wt])
-                        (for [[n nbrs] init
-                              nbr nbrs]
-                          [n nbr]))]
-               (-> g
-                   (add-nodes* (keys init))
-                   (add-edges* es)))
+             (if (empty? init)
+               g
+               (let [es (if (map? (val (first init)))
+                          (for [[n nbrs] init
+                                [nbr wt] nbrs]
+                            [n nbr wt])
+                          (for [[n nbrs] init
+                                nbr nbrs]
+                            [n nbr]))]
+                 (-> g
+                     (add-nodes* (keys init))
+                     (add-edges* es))))
              ;; edge
              (sequential? init) (add-edges g init)
              ;; node
