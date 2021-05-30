@@ -663,25 +663,19 @@ can use these functions."
 (defn degeneracy-ordering
   "Returns sequence of vertices in degeneracy order."
   [g]
+  ;; The strategy here is to repeatedly remove the node with smallest
+  ;; degree in the remaining subgraph.
   (loop [ordered-nodes []
          node-degs (->> (zipmap (nodes g)
                                 (map (partial out-degree g) (nodes g)))
-                        (into (pm/priority-map)))
-         k 0]
+                        (into (pm/priority-map)))]
     (if (empty? node-degs)
       ordered-nodes
-      (let [[n deg] (first node-degs)
-            ;; This will be the adjacent nodes still in node-degs (not in ordered-nodes) decr'd by 1
-            updated-degs (->> (map (juxt identity node-degs) (successors g n))
-                              (filter second)
-                              (map (juxt first (comp dec second)))
-                              (into {}))]
+      (let [[n _] (first node-degs)]
         (recur (conj ordered-nodes n)
-               (reduce (fn [n-ds [n d]] ;; Update this assoc'ing the updated-degs found above
-                         (assoc n-ds n d))
+               (reduce (fn [m n'] (if (contains? m n') (update m n' dec) m))
                        (dissoc node-degs n)
-                       updated-degs)
-               (max k deg))))))
+                       (successors g n)))))))
 
 (defn- bk-gen [g [r p x] stack]
   (let [v-pivot (reduce (partial max-key (partial out-degree g)) p)]
