@@ -5,6 +5,7 @@ on adjacency lists."
       :author "Justin Kramer"}
   loom.graph
   (:require [loom.alg-generic :refer [bf-traverse]]
+            [clojure.set :as clj.set]
             #?@(:clj [[loom.cljs :refer (def-protocol-impls)]]))
   #?@(:cljs [(:require-macros [loom.cljs :refer [def-protocol-impls extend]])]))
 
@@ -78,6 +79,14 @@ on adjacency lists."
   "Returns direct predecessors of node"
   ([g] #(predecessors g %))
   ([g node] (predecessors* g node)))
+
+(defn neighbors
+  "Returns all neighbors of node"
+  ([g] #(neighbors g %))
+  ([g node]
+   (clj.set/union
+    (set (predecessors g node))
+    (set (successors g node)))))
 
 (defn weight
  "Returns the weight of edge e or edge [n1 n2]"

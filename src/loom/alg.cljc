@@ -435,7 +435,7 @@ can use these functions."
                 coloring
                 (let [v (peek queue)
                       color (- 1 (coloring v))
-                      nbrs (graph/successors g v)]
+                      nbrs (graph/neighbors g v)]
                   ;; TODO: could be better
                   (if (some #(and (coloring %) (= (coloring v) (coloring %)))
                             nbrs)
