@@ -10,9 +10,11 @@ can use these functions."
                      out-degree in-degree weighted? directed? graph digraph transpose]
              :as graph]
             [loom.alg-generic :refer [trace-path preds->span]]
-            #?(:clj [clojure.data.priority-map :as pm]
-               :cljs [tailrecursion.priority-map :as pm])
-            [clojure.set :as clj.set]))
+    #?(:clj
+            [clojure.data.priority-map :as pm]
+       :cljs [tailrecursion.priority-map :as pm])
+            [clojure.set :as clj.set]
+            [clojure.set :as set]))
 
 ;;;
 ;;; Convenience wrappers for loom.alg-generic functions
@@ -792,3 +794,32 @@ can use these functions."
                                       (edges g1))))))
 
 ;; ;; Todo: MST, coloring, matching, etc etc
+
+(defn clustering-coefficient
+  "Computes clustering coefficient as described in Watts and Strogatz (1998).
+  When g and node are supplied as arguments, returns the local clustering
+  coefficient for node in g. When only g is supplied as an argument, returns
+  the average over all clustering coefficients. For details see
+  Watts, Duncan J., and Steven H. Strogatz. “Collective Dynamics of ‘Small-World’
+  Networks.” Nature 393, no. 6684 (June 1998): 440–42. https://doi.org/10.1038/30918."
+  ([g node]
+   (let [neighbours (successors g node)
+         potential-connections (/ (* (count neighbours) (dec (count neighbours))) 2)]
+     (if (> (count neighbours) 1)
+       ;; how many connections between the neighbours
+       ;; of node are there?
+       (let [neighbour-overlaps (for [n neighbours]
+                                  (let [potential (clj.set/difference neighbours #{n})
+                                        actual (successors g n)
+                                        overlap (clj.set/intersection potential actual)]
+                                    (count overlap)))
+             sum-overlaps (reduce + 0 neighbour-overlaps)]
+         (/ sum-overlaps potential-connections 2))
+       ;; if there are not at least 2 neighbours,
+       ;; clustering-coefficient is set to zero
+       0)))
+  ([g]
+    (let [nodeset (nodes g)
+          sum-coeffs (reduce #(+ %1 (clustering-coefficient g %2)) 0 nodeset)]
+      (/ sum-coeffs (count nodeset)))))
+

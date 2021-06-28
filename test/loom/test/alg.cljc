@@ -13,7 +13,8 @@
                               coloring? greedy-coloring prim-mst-edges
                               prim-mst-edges prim-mst astar-path astar-dist
                               degeneracy-ordering maximal-cliques
-                              subgraph? eql? isomorphism?]]
+                              subgraph? eql? isomorphism?
+                              clustering-coefficient]]
             [loom.derived :refer [mapped-by]]
             clojure.walk
             #?@(:clj [[clojure.test :refer :all]]
@@ -624,3 +625,24 @@
     false (isomorphism? g7 (mapped-by inc g7) dec)
     false (isomorphism? (digraph) (graph) identity)
     false(isomorphism? (digraph [1 2]) (graph [1 2]) identity)))
+
+(deftest clustering-coefficient-test
+  (let [g1 (graph {0 #{}, 1 #{}, 2 #{}, 3 #{}})             ; empty graph
+        g2 (graph {0 #{1 2 3}, 1 #{0 2 3}, 2 #{0 1 3}, 3 #{0 1 2}}) ; fully connected
+        g3 (graph {0 #{1 4}, 1 #{2 0}, 2 #{3 1}, 3 #{4 2}, 4 #{0 3}}) ; circle
+        g4 (graph {0 #{1 2 3}, 1 #{0 3}, 2 #{0}, 3 #{0 1}})
+        g5 (graph [0 1] [0 2] [0 3] [1 3])]
+    (testing "local clustering coefficients"
+      (are [expected got] (= expected got)
+        (clustering-coefficient g1 0) 0
+        (clustering-coefficient g2 1) 1
+        (clustering-coefficient g3 0) 0
+        (clustering-coefficient g4 0) (/ 1 3)
+        (clustering-coefficient g5 0) (/ 1 3)))
+    (testing "global clustering coefficients"
+      (are [expected got] (= expected got)
+        (clustering-coefficient g1) 0
+        (clustering-coefficient g2) 1
+        (clustering-coefficient g3) 0
+        (clustering-coefficient g4) (/ 7 12)
+        (clustering-coefficient g4) (clustering-coefficient g5)))))
