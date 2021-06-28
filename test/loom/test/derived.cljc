@@ -1,7 +1,7 @@
 (ns loom.test.derived
   (:require [loom.derived :refer [mapped-by nodes-filtered-by edges-filtered-by
                                   subgraph-reachable-from bipartite-subgraph]]
-            [loom.graph :refer (graph digraph edges)]
+            [loom.graph :refer (graph digraph edges nodes)]
             [loom.alg :refer (eql?)]
             #?@(:clj [[clojure.test :refer :all]]
                 :cljs [cljs.test]))
@@ -19,6 +19,10 @@
                    (mapped-by inc g))
         true (eql? (graph [2 0] [2 1] [0 1] 2)
                    (mapped-by #(mod % 3) g))
+
+        (count (nodes g)) (let [counter (atom 0)]
+                            (count (nodes (mapped-by (fn [_] (swap! counter inc))
+                                                     g))))
         ;; digraph
         true (eql? dg
                    (mapped-by identity dg))

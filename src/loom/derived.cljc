@@ -12,9 +12,12 @@
   edge [uu, vv] is an edge in the resulting graph iff g has an edge [u, v] such
   that [uu, vv] = [(f u), (f v)]."
   [f g]
-  (-> (if (directed? g) (digraph) (graph))
-      (add-nodes* (map f (nodes g)))
-      (add-edges* (map #(map f %) (edges g)))))
+  (let [mapped-nodes (into {} (map (fn [n]
+                                     [n (f n)])
+                                   (nodes g)))]
+    (-> (if (directed? g) (digraph) (graph))
+        (add-nodes* (map mapped-nodes (nodes g)))
+        (add-edges* (map #(map mapped-nodes %) (edges g))))))
 
 (defn subgraph-reachable-from
   "Returns a subgraph of the given graph which contains all nodes and edges that
