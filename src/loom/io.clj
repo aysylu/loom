@@ -35,12 +35,18 @@
   "Renders graph g as a DOT-format string. Calls (node-label node) and
   (edge-label n1 n2) to determine what labels to use for nodes and edges,
   if any. Weights become edge labels unless a label is specified.
-  Labels also include attributes when the graph satisfies AttrGraph."
-  [g & {:keys [graph-name node-label edge-label]
-        :or {graph-name "graph"} :as opts }]
+  Labels also include attributes when the graph satisfies AttrGraph.
+  `global-attrs` for add some attr to graph, eg: {:overlap false} for neate"
+  [g & {:keys [graph-name node-label edge-label global-attrs]
+        :or {graph-name "graph"
+             global-attrs {:overlap false}}
+        :as opts }]
   (let [d? (directed? g)
         w? (weighted? g)
         a? (attr? g)
+        global-attrs-str (->> global-attrs
+                              (map #(format "  %s=%s" (-> % first name) (second %)) ,,,)
+                              (clojure.string/join "\n" ,,,))
         node-label (or node-label
                        (if a?
                          #(attr g % :label)
@@ -55,7 +61,9 @@
         sb (doto (StringBuilder.
                   (if d? "digraph \"" "graph \""))
              (.append (dot-esc graph-name))
-             (.append "\" {\n"))]
+             (.append "\" {\n")
+             (.append global-attrs-str)
+             (.append "\n"))]
     (doseq [k [:graph :node :edge]]
       (when (k opts)
         (doto sb
