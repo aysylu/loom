@@ -138,13 +138,11 @@ can use these functions."
   "Returns a lazy-seq of [current-node state] where state is a map in
   the format {node [distance predecessor]}. When f is provided,
   returns a lazy-seq of (f node state) for each node"
-  ([g]
-     (gen/dijkstra-traverse
-      (graph/successors g) (graph/weight g) (first (nodes g))))
-  ([g start]
-     (gen/dijkstra-traverse (graph/successors g) (graph/weight g) start vector))
-  ([g start f]
-     (gen/dijkstra-traverse (graph/successors g) (graph/weight g) start f)))
+  ([g            ] (gen/dijkstra-traverse (graph/successors g) (graph/weight g)
+                     (first (nodes g))))
+  ([g start      ] (gen/dijkstra-traverse (graph/successors g) (graph/weight g) start))
+  ([g start f    ] (gen/dijkstra-traverse (graph/successors g) (graph/weight g) start f))
+  ([g start f waf] (gen/dijkstra-traverse (graph/successors g) (graph/weight g) start f waf)))
 
 (defn dijkstra-span
   "Finds all shortest distances from start. Returns a map in the
@@ -166,32 +164,33 @@ can use these functions."
   [g start end]
   (first (dijkstra-path-dist g start end)))
 
+#?(:clj
 (defn- can-relax-edge?
   "Tests for whether we can improve the shortest path to v found so far
    by going through u."
-  [[u v :as edge] weight costs]
+  [[u v :as edge] weight costs waf]
   (let [vd (get costs v)
         ud (get costs u)
-        sum (+ ud weight)]
-    (> vd sum)))
+        aggregated (waf ud weight)]
+    (> vd aggregated))))
 
 (defn- relax-edge
   "If there's a shorter path from s to v via u,
     update our map of estimated path costs and
    map of paths from source to vertex v"
-  [[u v :as edge] weight [costs paths :as estimates]]
+  [[u v :as edge] weight [costs paths :as estimates] waf]
   (let [ud (get costs u)
-        sum (+ ud weight)]
-    (if (can-relax-edge? edge weight costs)
-      [(assoc costs v sum) (assoc paths v u)]
+        aggregated (waf ud weight)]
+    (if (can-relax-edge? edge weight costs waf)
+      [(assoc costs v aggregated) (assoc paths v u)]
       estimates)))
 
 (defn- relax-edges
   "Performs edge relaxation on all edges in weighted directed graph"
-  [g start estimates]
+  [g start estimates waf]
   (->> (edges g)
        (reduce (fn [estimates [u v :as edge]]
-                 (relax-edge edge (graph/weight g u v) estimates))
+                 (relax-edge edge (graph/weight g u v) estimates waf))
                estimates)))
 
 (defn- init-estimates
@@ -220,36 +219,37 @@ can use these functions."
    paths and their costs if no negative-weight cycle that is reachable
    from the source exists, and false otherwise, indicating that no
    solution exists."
-  [g start]
-  (let [initial-estimates (init-estimates g start)
-        ;;relax-edges is calculated for all edges V-1 times
-        [costs paths] (reduce (fn [estimates _]
-                                (relax-edges g start estimates))
-                              initial-estimates
-                              (-> g nodes count dec range))
-        edges (edges g)]
-    (if (some
-         (fn [[u v :as edge]]
-           (can-relax-edge? edge (graph/weight g u v) costs))
-         edges)
-      false
-      [costs
-       (->> (keys paths)
-            ;;remove vertices that are unreachable from source
-            (remove #(= #?(:clj Double/POSITIVE_INFINITY
-                           :cljs js/Infinity)
-                        (get costs %)))
-            (reduce
-             (fn [final-paths v]
-               (assoc final-paths v
-                      ;; follows the parent pointers
-                      ;; to construct path from source to node v
-                      (loop [node v
-                             path ()]
-                        (if node
-                          (recur (get paths node) (cons node path))
-                          path))))
-             {}))])))
+  ([g start] (bellman-ford g start +))
+  ([g start waf]
+    (let [initial-estimates (init-estimates g start)
+          ;;relax-edges is calculated for all edges V-1 times
+          [costs paths] (reduce (fn [estimates _]
+                                  (relax-edges g start estimates waf))
+                                initial-estimates
+                                (-> g nodes count dec range))
+          edges (edges g)]
+      (if (some
+           (fn [[u v :as edge]]
+             (can-relax-edge? edge (graph/weight g u v) costs waf))
+           edges)
+        false
+        [costs
+         (->> (keys paths)
+              ;;remove vertices that are unreachable from source
+              (remove #(= #?(:clj Double/POSITIVE_INFINITY
+                             :cljs js/Infinity)
+                          (get costs %)))
+              (reduce
+               (fn [final-paths v]
+                 (assoc final-paths v
+                        ;; follows the parent pointers
+                        ;; to construct path from source to node v
+                        (loop [node v
+                               path ()]
+                          (if node
+                            (recur (get paths node) (cons node path))
+                            path))))
+               {}))]))))
 
 (defn dag?
   "Returns true if g is a directed acyclic graph"
@@ -285,18 +285,20 @@ can use these functions."
 
 (defn- bellman-ford-transform
   "Helper function for Johnson's algorithm. Uses Bellman-Ford to remove negative weights."
-  [wg]
-  (let [q (first (drop-while (partial graph/has-node? wg) (repeatedly gensym)))
-        es (for [v (graph/nodes wg)] [q v 0])
-        bf-results (bellman-ford (graph/add-edges* wg es) q)]
-    (if bf-results
-      (let [[dist-q _] bf-results
-            new-es (map (juxt first second (fn [[u v]]
-                                             (+ (weight wg u v) (- (dist-q u)
-                                                                   (dist-q v)))))
-                        (graph/edges wg))]
-        (graph/add-edges* wg new-es))
-      false)))
+  ([wg] (bellman-ford-transform +))
+  ([wg waf]
+    (let [q (first (drop-while (partial graph/has-node? wg) (repeatedly gensym)))
+          es (for [v (graph/nodes wg)] [q v 0])
+          bf-results (bellman-ford (graph/add-edges* wg es) q)]
+      (if bf-results
+        (let [[dist-q _] bf-results
+              new-es (map (juxt first second (fn [[u v]]
+                                               (waf (weight wg u v)
+                                                    ((gen/inverse waf) (dist-q u)
+                                                                       (dist-q v)))))
+                          (graph/edges wg))]
+          (graph/add-edges* wg new-es))
+        false))))
 
 (defn johnson
   "Finds all-pairs shortest paths using Bellman-Ford to remove any negative edges before
@@ -307,35 +309,37 @@ can use these functions."
   to use breadth-first spans for a graph with a uniform edge weight rather than Dijkstra's algorithm.
   Most callers should use shortest-paths and allow the most efficient implementation be selected
   for the graph."
-  [g]
-  (let [g (if (and (weighted? g) (some (partial > 0) (map (graph/weight g) (graph/edges g))))
-            (bellman-ford-transform g)
-            g)]
-    (if (false? g)
-      false
-      (let [dist (if (weighted? g)
-                   (weight g)
-                   (fn [u v] (when (graph/has-edge? g u v) 1)))]
-        (reduce (fn [acc node]
-                  (assoc acc node (gen/dijkstra-span (successors g) dist node)))
-                {}
-                (nodes g))))))
+  ([g] (johnson g +))
+  ([g waf]
+    (let [g (if (and (weighted? g) (some (partial > 0) (map (graph/weight g) (graph/edges g))))
+              (bellman-ford-transform g waf)
+              g)]
+      (if (false? g)
+        false
+        (let [dist (if (weighted? g)
+                     (weight g)
+                     (fn [u v] (when (graph/has-edge? g u v) 1)))]
+          (reduce (fn [acc node]
+                    (assoc acc node (gen/dijkstra-span (successors g) dist node waf)))
+                  {}
+                  (nodes g)))))))
 
 (defn bf-all-pairs-shortest-paths
   "Uses bf-span on each node in the graph."
-  [g]
-  (reduce (fn [spans node]
-            (assoc spans node (bf-span g node)))
-          {}
-          (nodes g)))
+  ([g]
+    (reduce (fn [spans node]
+              (assoc spans node (bf-span g node)))
+            {}
+            (nodes g))))
 
 (defn all-pairs-shortest-paths
   "Finds all-pairs shortest paths in a graph. Uses Johnson's algorithm for weighted graphs
   which is efficient for sparse graphs. Breadth-first spans are used for unweighted graphs."
-  [g]
-  (if (weighted? g)
-    (johnson g)
-    (bf-all-pairs-shortest-paths g)))
+  ([g] (all-pairs-shortest-paths g +))
+  ([g waf]
+    (if (weighted? g)
+        (johnson g waf)
+        (bf-all-pairs-shortest-paths g))))
 
 (defn connected-components
   "Returns the connected components of graph g as a vector of vectors. If g
