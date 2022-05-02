@@ -7,6 +7,7 @@
             loom.test.derived
             loom.test.flow
             loom.test.graph
-            loom.test.label))
+            loom.test.label
+            loom.test.io))
 
 (doo-all-tests)
