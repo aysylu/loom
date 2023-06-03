@@ -12,7 +12,7 @@
                               bipartite-color bipartite? bipartite-sets
                               coloring? greedy-coloring prim-mst-edges
                               prim-mst-edges prim-mst astar-path astar-dist
-                              degeneracy-ordering maximal-cliques
+                              degeneracy-ordering maximal-cliques simple-paths
                               subgraph? eql? isomorphism?]]
             [loom.derived :refer [mapped-by]]
             clojure.walk
@@ -237,6 +237,27 @@
        
        #?@(:clj [[:a :e :j] (bf-path-bi g4 :a :j)
                  true (some #(= % (bf-path-bi g5 :g :d)) [[:g :a :b :d] [:g :f :e :d]])])))
+
+(deftest simple-paths-test
+  (are [expected got] (= expected got)
+       [[0]] (simple-paths g6 0 0)
+       [[:a]] (simple-paths g5 :a :a)
+       (set [[:a :b :d]
+             [:a :c :e :d]
+             [:a :c :f :e :d]
+             [:a :b :c :e :d]
+             [:a :b :c :f :e :d]]) (set (simple-paths g5 :a :d))
+       (set [[0 1 3 4]
+             [0 1 2 4]]) (set (simple-paths g6 0 4))
+       (set [[:a :b :d]]) (set (simple-paths g11 :a :d))
+       (set [[:a :b :e :f :g]
+             [:a :b :f :g]
+             [:a :b :c :g]
+             [:a :b :c :d :h :g]]) (set (simple-paths g10 :a :g))
+       (set [[:a :b :e :f :g]
+             [:a :b :f :g]
+             [:a :b :c :g]]) (set (simple-paths g10 :a :g :max-depth 5))
+       (set []) (set (simple-paths g10 :a :g :max-depth 2))))
 
 (deftest dijkstra-test
   (are [expected got] (= expected got)
