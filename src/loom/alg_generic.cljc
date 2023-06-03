@@ -55,16 +55,27 @@
   lazy seq of nodes."
   [successors start & {:keys [seen] :or {seen #{}}}]
   (letfn [(step [stack seen]
-            (when-let [node (peek stack)]
-              (if (contains? seen node)
-                (step (pop stack) seen)
-                (let [seen (conj seen node)
-                      nbrs (remove seen (successors node))]
-                  (lazy-seq
-                    (cons node
-                          (step (into (pop stack) nbrs)
-                                seen)))))))]
-    (step [start] seen)))
+            (when-let [[node remaining-successors] (peek stack)]
+              (if (seen node)
+                ;; We have seen this node before, but we may not
+                ;; have seen all of its successors yet.  Continue
+                ;; checking successors where we left off.
+                (if-let [s (seq (drop-while seen remaining-successors))]
+                  ;; Then at least one neighbor of node has not been
+                  ;; seen yet.  Remember where we are in the
+                  ;; remaining-successors sequence for node, and push
+                  ;; the unseen node onto the stack.
+                  (recur (conj (pop stack)
+                               [node (rest s)]
+                               [(first s) (successors (first s))])
+                         seen)
+                  ;; else all neighbors of node have already been
+                  ;; seen.  Backtrack on the stack.
+                  (recur (pop stack) seen))
+                ;; else we have not seen this node before
+                (lazy-seq (cons node
+                                (step stack (conj seen node)))))))]
+    (step [[start (successors start)]] seen)))
 
 (defn pre-edge-traverse
   "Traverses a graph depth-first preorder from start, successors being
