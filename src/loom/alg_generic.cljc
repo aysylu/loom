@@ -8,6 +8,50 @@
             ))
 
 ;;;
+;;; Weight-aggregation functions and inverses
+;;;
+
+(def inverse-map ; some better way of doing this?
+  {+ -
+   - +
+   / *
+   * /})
+
+(defn inverse
+  "Gets the inverse of the function `f`."
+  {:tests '{(inverse +) -
+            (inverse *) /}
+   :todo "Make this better. E.g. intelligent inverse of more
+          complex functions"}
+  [f]
+  (or (get inverse-map f)
+      (throw (#?(:clj  IllegalArgumentException.
+                 :cljs js/Error.)
+              (str "Inverse not defined for function: " (str f))))))
+
+(def ^{:doc "Base values for operators.
+             E.g. "}
+  base-map
+  {+ 0
+   - 0
+   / 1
+   * 1})
+
+(defn base
+  "Gets the identity-base for the given function `f`.
+   
+   For instance:
+   The identity-base of the `+` function is 0: (= x (+ x 0)).
+   By contrast, that of the `*` function is 1: (= x (* x 0))"
+  {:tests '{(base +) 0
+            (base *) 1}}
+  [f]
+  (or (get base-map f)
+      (throw (#?(:clj  IllegalArgumentException.
+                 :cljs js/Error.)
+              (str "Base not defined for function: " (str f))))))
+
+;;;
 ;;; Utility functions
 ;;;
 
@@ -362,6 +406,8 @@
   ([successors dist start]
      (dijkstra-traverse successors dist start vector))
   ([successors dist start f]
+    (dijkstra-traverse successors dist start f +))
+  ([successors dist start f waf]
      (letfn [(step [[state pq]]
                (when-let [[dist-su _ u :as fpq] (first pq)]
                  (cons
@@ -381,26 +427,27 @@
                               (conj pq [dist-suv (hash v) v])]))))
                      [state (disj pq fpq)]
                      (successors u)))))))]
-       (step [{start [0 nil]}
+       (step [{start [(base waf) nil]}
               ;; Poor man's priority queue. Caveats:
               ;; 1) Have to keep it in sync with current state
               ;; 2) Have to include hash codes for non-Comparable items
               ;; 3) O(logn) operations
               ;; Tried clojure.contrib.priority-map but it wasn't any faster
-              (sorted-set [0 (hash start) start])]))))
+              (sorted-set [(base waf) (hash start) start])]))))
 
 (defn dijkstra-span
   "Finds all shortest distances from start, where successors and dist
   are functions called as (successors node) and (dist node1 node2).
   Returns a map in the format {node {successor distance}}"
-  [successors dist start]
-  (reduce
-   (fn [span [n [d p]]]
-     (if p
-       (assoc-in span [p n] d)
-       span))
-   {}
-   (second (last (dijkstra-traverse successors dist start)))))
+  ([successors dist start] (dijkstra-span successors dist start +))
+  ([successors dist start waf]
+    (reduce
+     (fn [span [n [d p]]]
+       (if p
+         (assoc-in span [p n] d)
+         span))
+     {}
+     (second (last (dijkstra-traverse successors dist start vector waf))))))
 
 (defn dijkstra-path-dist
   "Finds the shortest path from start to end, where successors and dist
