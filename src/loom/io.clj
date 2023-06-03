@@ -4,7 +4,7 @@
   (:require [loom.graph :refer [directed? weighted? nodes edges weight src dest]]
             [loom.alg :refer [distinct-edges loners]]
             [loom.attr :refer [attr? attr attrs]]
-            [clojure.string :refer [escape]]
+            [clojure.string :refer [escape] :as str]
             [clojure.java.io :refer [file]]
             [clojure.java.shell :refer [sh]])
   (:import (java.io FileWriter
@@ -19,15 +19,19 @@
   (when (seq attrs)
     (let [sb (StringBuilder. "[")]
       (doseq [[k v] attrs]
-        (when (pos? (.length (str v)))
-          (when (< 1 (.length sb))
-            (.append sb \,))
-          (doto sb
-            (.append \")
-            (.append (dot-esc (if (keyword? k) (name k) (str k))))
-            (.append "\"=\"")
-            (.append (dot-esc (if (keyword? v) (name v) (str v))))
-            (.append \"))))
+        (let [v (dot-esc (if (keyword? v) (name v) (str v)))
+              html-string? (and (str/starts-with? v "<") (str/ends-with? v ">"))
+              attr-val-open (if html-string? "\"=" "\"=\"")
+              attr-val-close (if html-string? "" \")]
+          (when (pos? (.length (str v)))
+            (when (< 1 (.length sb))
+              (.append sb \,))
+            (doto sb
+              (.append \")
+              (.append (dot-esc (if (keyword? k) (name k) (str k))))
+              (.append attr-val-open)
+              (.append v)
+              (.append attr-val-close)))))
       (.append sb "]")
       (str sb))))
 
