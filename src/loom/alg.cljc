@@ -681,7 +681,7 @@ can use these functions."
                          (assoc n-ds n d))
                        (dissoc node-degs n)
                        updated-degs)
-               (max k deg))))))
+               (long (max k deg)))))))
 
 (defn- bk-gen [g [r p x] stack]
   (let [v-pivot (reduce (partial max-key (partial out-degree g)) p)]
