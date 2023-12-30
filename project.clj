@@ -14,7 +14,8 @@
   :profiles {:dev [:cljs
                    {:dependencies [[org.clojure/test.check "0.9.0"]]
                     :plugins [[com.jakemccrary/lein-test-refresh "0.15.0"]]
-                    :repl-options {:init (set! *print-length* 50)}}]
+                    :repl-options {:init (set! *print-length* 50)}
+                    :global-vars {*warn-on-reflection* true}}]
 
              :cljs {:dependencies [[org.clojure/clojurescript "1.10.520"]]
                     :plugins [[lein-cljsbuild "1.1.3" :exclusions [org.clojure/clojure]]
